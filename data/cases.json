@@ -1,0 +1,56 @@
+[
+  {
+    "id": "emergency_chest_pain",
+    "title": "急诊胸痛",
+    "department": "急诊医学",
+    "chief_complaint": "胸痛2小时",
+    "difficulty": "中级",
+    "learning_goals": ["胸痛问诊结构", "急性冠脉综合征识别", "危重鉴别诊断", "心电图和肌钙蛋白选择"],
+    "script": {
+      "identity": "45岁男性，虚拟教学病例，无真实患者信息。",
+      "opening": "医生，我胸口疼得厉害，大概两小时前开始的。",
+      "answers": [
+        { "keywords": ["性质", "怎么疼", "压榨", "刺痛"], "reply": "像被重物压住一样，不太像针扎，疼的时候有点喘不过气。" },
+        { "keywords": ["部位", "哪里疼", "放射"], "reply": "主要在胸骨后面，刚才左肩和左臂也有点酸痛。" },
+        { "keywords": ["时间", "多久", "诱因", "活动"], "reply": "两小时前上楼后开始疼，休息以后没有完全缓解。" },
+        { "keywords": ["伴随", "出汗", "恶心", "呼吸困难"], "reply": "有出冷汗，也有点恶心，呼吸不太顺。" },
+        { "keywords": ["既往", "高血压", "糖尿病", "吸烟"], "reply": "我有高血压，平时吃药不规律，抽烟二十多年。" },
+        { "keywords": ["撕裂", "背痛", "主动脉"], "reply": "不是撕裂样疼，背部没有特别明显的疼。" },
+        { "keywords": ["咯血", "下肢", "肺栓塞"], "reply": "没有咯血，最近没有长途卧床，腿也没有明显肿痛。" },
+        { "keywords": ["诊断", "是不是心梗", "结果"], "reply": "我不知道是什么病，只能告诉你我的感受和病史。" }
+      ]
+    }
+  },
+  {
+    "id": "acute_abdominal_pain",
+    "title": "急性腹痛",
+    "department": "消化与急诊",
+    "chief_complaint": "右下腹痛6小时",
+    "difficulty": "初中级",
+    "learning_goals": ["腹痛定位", "外科急腹症识别", "伴随症状问诊"]
+  },
+  {
+    "id": "fever_unknown",
+    "title": "发热待查",
+    "department": "感染与内科",
+    "chief_complaint": "反复发热3天",
+    "difficulty": "中级",
+    "learning_goals": ["热型问诊", "感染灶定位", "用药史采集"]
+  },
+  {
+    "id": "dyspnea",
+    "title": "呼吸困难",
+    "department": "呼吸与急诊",
+    "chief_complaint": "活动后气促加重",
+    "difficulty": "中级",
+    "learning_goals": ["呼吸困难分层", "心肺鉴别", "低氧风险识别"]
+  },
+  {
+    "id": "diabetes_education",
+    "title": "糖尿病健康宣教",
+    "department": "全科医学",
+    "chief_complaint": "血糖控制不佳",
+    "difficulty": "初级",
+    "learning_goals": ["健康宣教", "用药依从性", "生活方式干预"]
+  }
+]
