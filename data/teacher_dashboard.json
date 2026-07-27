@@ -1,0 +1,12 @@
+{
+  "class_average": 82,
+  "training_sessions": 248,
+  "teacher_time_saved": "41%",
+  "citation_accuracy": "88%",
+  "improvements": [
+    { "label": "临床推理分提升", "value": 24 },
+    { "label": "关键问诊遗漏率下降", "value": 32 },
+    { "label": "指南引用准确率提升", "value": 18 }
+  ],
+  "common_missing_points": ["尚未询问胸痛性质", "尚未排除主动脉夹层", "建议申请心电图和肌钙蛋白", "未记录危险因素", "未说明非诊疗边界"]
+}

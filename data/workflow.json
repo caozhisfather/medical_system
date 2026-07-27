@@ -1,0 +1,41 @@
+{
+  "name": "AI+医学学科交叉 Agent Workflow",
+  "stages": [
+    {
+      "id": "intake",
+      "name": "场景识别",
+      "agent": "TaskRouterAgent",
+      "goal": "判断问题属于教学、科研、实验实训还是个性化学习。"
+    },
+    {
+      "id": "plan",
+      "name": "学习/科研任务规划",
+      "agent": "DisciplinePlannerAgent",
+      "goal": "拆解医学学科目标、先修知识和交付物。"
+    },
+    {
+      "id": "retrieve",
+      "name": "RAG 证据检索",
+      "agent": "EvidenceRetrieverAgent",
+      "goal": "从课程资料、指南、论文摘要和知识图谱中检索证据。"
+    },
+    {
+      "id": "safety",
+      "name": "医学合规检查",
+      "agent": "MedicalSafetyAgent",
+      "goal": "检查隐私、伦理、诊疗边界和数据授权风险。"
+    },
+    {
+      "id": "teach",
+      "name": "教学活动生成",
+      "agent": "TeachingDesignerAgent",
+      "goal": "生成病例推理任务、学习路径和课堂互动。"
+    },
+    {
+      "id": "evaluate",
+      "name": "效果评价",
+      "agent": "OutcomeEvaluatorAgent",
+      "goal": "输出可量化评价指标和验证方案。"
+    }
+  ]
+}

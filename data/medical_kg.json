@@ -1,0 +1,24 @@
+{
+  "nodes": [
+    { "id": "chest_pain", "label": "胸痛", "group": "symptom" },
+    { "id": "acs", "label": "急性冠脉综合征", "group": "disease" },
+    { "id": "aortic_dissection", "label": "主动脉夹层", "group": "differential" },
+    { "id": "pulmonary_embolism", "label": "肺栓塞", "group": "differential" },
+    { "id": "ecg", "label": "心电图", "group": "exam" },
+    { "id": "troponin", "label": "肌钙蛋白", "group": "exam" },
+    { "id": "diagnosis", "label": "诊断路径", "group": "diagnosis" },
+    { "id": "treatment", "label": "治疗原则", "group": "treatment" },
+    { "id": "guideline", "label": "指南依据", "group": "guideline" },
+    { "id": "learning_goal", "label": "学习目标", "group": "learning" }
+  ],
+  "edges": [
+    { "source": "chest_pain", "target": "acs", "relation": "可能提示" },
+    { "source": "acs", "target": "ecg", "relation": "需要检查" },
+    { "source": "acs", "target": "troponin", "relation": "需要检查" },
+    { "source": "chest_pain", "target": "aortic_dissection", "relation": "需要鉴别" },
+    { "source": "chest_pain", "target": "pulmonary_embolism", "relation": "需要鉴别" },
+    { "source": "ecg", "target": "diagnosis", "relation": "支持" },
+    { "source": "guideline", "target": "treatment", "relation": "约束" },
+    { "source": "learning_goal", "target": "chest_pain", "relation": "训练" }
+  ]
+}
