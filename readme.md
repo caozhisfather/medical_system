@@ -1,245 +1,251 @@
-# 面向医学教育的 AI 标准化病人临床思维训练平台
+# 临思智训：AI 标准化病人临床思维训练平台
 
-本项目是一个用于医学教育和临床思维训练的 AI 教学平台原型，不用于真实临床诊断。平台通过 AI 标准化病人、临床思维评分、可追溯指南知识库、教师看板、Agent 工作流和 RAG 知识检索，帮助医学生训练问诊、鉴别诊断、检查选择、治疗原则和循证依据查找能力。
+本项目是面向医学教育的 AI 标准化病人临床思维训练平台原型，不用于真实临床诊断。平台通过 AI 标准化病人、临床思维评分、教材学习路径、可追溯指南知识库、教师看板、超级管理员控制台、Agent Workflow、Hybrid RAG、双语医学知识图谱和解剖定位训练，帮助医学生训练问诊、鉴别诊断、检查选择、治疗原则和循证依据查找能力。
 
-默认病例为“急诊胸痛”。所有病例均为虚拟教学病例，不包含真实患者信息。
+第五版重点把你提供的医学教材体系并入平台：基础医学 -> 桥梁课程 -> 临床核心 -> 专科拓展 -> 实践能力，同时加入英文经典参考书、ModelScope 数据源规划、管理员账号体系、双语图谱和 Obsidian 风格导出。所有病例均为虚拟教学病例，不包含真实患者信息，不写入真实 API 密钥。
+
+## 演示登录
+
+- 学生端：`student / student123`
+- 教师端：`teacher / teacher123`
+- 超级管理员：`admin / admin123`
+
+前端使用 localStorage 保存演示登录状态；后端提供 mock auth 接口：
+
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `POST /api/auth/logout`
 
 ## 技术栈
 
 - 前端：Vue 3、TypeScript、Vite、HTML、CSS、JavaScript
 - 后端：Python、FastAPI、Flask、Pydantic
-- AI 骨架：LangChain、Agent Workflow、RAG
-- 向量库预留：Milvus、ChromaDB
-- 知识图谱预留：Neo4j，当前使用 mock JSON 图谱
+- AI 骨架：PatientAgent、TutorAgent、ScoringAgent、RetrievalAgent、SafetyAgent、ReportAgent
+- RAG：HybridRetrievalService、mock embedding、citation 返回、Milvus/ChromaDB 占位
+- 知识图谱：双语 JSON mock，Neo4j 占位，Obsidian Markdown 导出预览
 - 配置：`.env.example` 占位，不包含真实密钥
 
-## 前端架构
+## 第五版新增内容
 
-前端位于 `frontend/`：
-
-- `src/App.vue`：完整交互原型，包含学生端、教师端、病例训练、指南知识库、教师看板、训练报告、知识图谱。
-- `src/api.ts`：API 封装，后续可接真实后端。
-- `src/types.ts`：前端类型定义。
-- `src/styles.css`：响应式样式，浅色背景、蓝绿色主色、橙色风险提醒。
-- `public/contest-rules.pdf`：赛题依据文件，非核心页面内容。
-
-前端默认可脱离后端运行 mock 交互。设置 `VITE_API_BASE_URL` 后会调用真实 FastAPI 接口。
-
-## 后端架构
-
-后端位于 `backend/app/`：
-
-- `main.py`：FastAPI 主服务，提供病例、问诊、评分、指南、教师看板、报告、图谱、RAG 接口。
-- `flask_app.py`：Flask 辅助服务，挂载到 `/flask`。
-- `models.py`：Pydantic 数据模型。
-- `rag.py`：RAG 模块骨架，包含文档加载、切分、embedding 占位、Milvus/Chroma mock adapter、检索和 citation 返回。
-- `workflow.py`：Agent 工作流骨架。
-- `config.py`：环境变量读取。
-
-## 系统总体架构图
-
-```mermaid
-flowchart LR
-  Student[医学生] --> FE[Vue 3 训练工作台]
-  Teacher[教师] --> FE
-  FE --> API[FastAPI API]
-  API --> Flask[Flask 辅助模块]
-  API --> Agents[Agent Workflow]
-  Agents --> Patient[PatientAgent 标准化病人]
-  Agents --> Tutor[TutorAgent 临床引导]
-  Agents --> Scoring[ScoringAgent 过程评分]
-  Agents --> Retrieval[RetrievalAgent RAG检索]
-  Agents --> Safety[SafetyAgent 安全边界]
-  Agents --> Report[ReportAgent 训练报告]
-  Retrieval --> RAG[RAG Pipeline]
-  RAG --> Chroma[ChromaDB 占位]
-  RAG --> Milvus[Milvus 占位]
-  API --> KG[医学教育知识图谱]
-  API --> Env[.env.example 配置]
-```
-
-## Agent + Workflow 流程图
-
-```mermaid
-sequenceDiagram
-  participant S as 学生
-  participant UI as Vue训练工作台
-  participant API as FastAPI
-  participant Safety as SafetyAgent
-  participant Patient as PatientAgent
-  participant RAG as RetrievalAgent
-  participant Score as ScoringAgent
-  participant Tutor as TutorAgent
-  participant Report as ReportAgent
-
-  S->>UI: 输入问诊问题
-  UI->>API: POST /api/patient/chat
-  API->>Patient: 读取病例上下文
-  API->>Safety: 医学安全边界检查
-  Safety-->>API: 教学用途确认
-  API->>Patient: 生成标准化病人回复
-  API->>RAG: 检索指南和教材依据
-  RAG-->>API: 返回 citations
-  API->>Score: 过程性评分
-  Score-->>API: 六维评分结果
-  API->>Tutor: 关键遗漏检测
-  Tutor-->>API: 遗漏提醒和下一步建议
-  API->>Report: 保存训练记录并生成报告
-  API-->>UI: 返回病人回复、评分、引用和报告线索
-```
-
-## RAG 流程说明
-
-当前 RAG 使用 mock adapter，代码结构保留真实接入点：
-
-1. 文档加载：读取 `data/guidelines.json`。
-2. 文档切分：按文本长度生成 chunk。
-3. Embedding：当前为占位向量函数。
-4. 向量库写入：支持 `MockChromaAdapter` 和 `MockMilvusAdapter`。
-5. 检索：根据胸痛、ACS、心电图、肌钙蛋白等关键词召回。
-6. citation 返回：每条反馈返回 `id/title/source/snippet`。
-7. 后续可替换为真实 LangChain Retriever、Milvus、ChromaDB 和模型 API。
-
-## RAG 检索流程图
-
-```mermaid
-flowchart TD
-  Q[学生问诊或教师问题] --> Loader[文档加载]
-  Loader --> Splitter[文档切分]
-  Splitter --> Embed[Embedding]
-  Embed --> Store{向量库选择}
-  Store --> Chroma[ChromaDB]
-  Store --> Milvus[Milvus]
-  Chroma --> Retrieve[相似度检索]
-  Milvus --> Retrieve
-  Retrieve --> Cite[返回 citation]
-  Cite --> Feedback[生成问诊反馈和评分依据]
-```
-
-## 知识图谱设计说明
-
-知识图谱数据位于 `data/medical_kg.json`，包含：疾病、症状、体征、检查、诊断、鉴别诊断、治疗原则、指南依据、学习目标。
-
-示例关系：
-
-- 胸痛 -> 可能提示 -> 急性冠脉综合征
-- 急性冠脉综合征 -> 需要检查 -> 心电图
-- 急性冠脉综合征 -> 需要检查 -> 肌钙蛋白
-- 胸痛 -> 需要鉴别 -> 主动脉夹层
-- 胸痛 -> 需要鉴别 -> 肺栓塞
-
-## 医学知识图谱示意图
-
-```mermaid
-graph TD
-  CP[胸痛] -->|可能提示| ACS[急性冠脉综合征]
-  ACS -->|需要检查| ECG[心电图]
-  ACS -->|需要检查| TROP[肌钙蛋白]
-  CP -->|需要鉴别| AD[主动脉夹层]
-  CP -->|需要鉴别| PE[肺栓塞]
-  ECG --> DX[诊断路径]
-  GL[指南依据] --> TP[治疗原则]
-  LG[学习目标] --> CP
-```
+- 新增登录页和三类角色：学生、教师、超级管理员。
+- 新增超级管理员工作台：用户管理、ModelScope 数据源、知识库状态、图谱状态、RAG 配置、Obsidian 导出。
+- ModelScope 数据源规划包含 `AI-ModelScope/med_qa`、`GoodBaiBai88/M3D-VQA`、`GoodBaiBai88/M3D-Cap`、`GoodBaiBai88/M3D-Seg`。
+- 知识库扩展为 85 条双语 mock 知识，保留 title_zh/title_en、summary_zh/summary_en、citation、embedding_text、graph_node_ids。
+- 双语医学教育知识图谱扩展为 177 个节点、162 条关系，节点包含疾病、症状、体征、检查、诊断、鉴别诊断、治疗原则、指南依据、学习目标和教材节点。
+- 知识图谱支持中文/英文切换、ACS/chest pain 等英文术语检索、节点详情、邻居关系和学习路径。
+- RAG 返回 `matched_knowledge`、`graph_nodes`、`graph_edges`、`bilingual_terms`、相关病例、相关解剖练习和推荐学习路径。
+- 教材学习路径纳入基础医学、桥梁课程、临床核心、专科拓展、实践能力、英文经典参考。
 
 ## 项目目录结构
 
 ```text
 ai+medicine/
-  .env.example
-  environment.yml
-  README.md
   frontend/
     src/
-      App.vue
-      api.ts
-      types.ts
-      styles.css
-    public/
-      contest-rules.pdf
+      App.vue                  三角色产品工作台
+      api.ts                   前端 API 封装
+      types.ts                 前端类型定义
+      styles.css               响应式 UI、登录页、管理员台、数字人、解剖图、图谱样式
+      data/
+        admin.ts               管理员用户和数据源 mock
+        cases.ts               8 个虚拟教学病例
+        knowledge.ts           85 条双语知识条目
+        graph.ts               177 节点 / 162 关系双语图谱
+        textbooks.ts           教材学习路径
+        anatomy.ts             解剖定位练习
   backend/
     app/
-      main.py
-      models.py
-      rag.py
-      workflow.py
-      flask_app.py
-      config.py
+      main.py                  FastAPI 路由、Auth、Agent、训练、RAG、图谱、管理端
+      models.py                Pydantic 模型
+      data_sources.py          管理端数据源加载
+      translation_service.py   双语术语服务
+      obsidian_export_service.py Obsidian Markdown 预览导出
+      embedding_service.py     mock embedding 服务
+      hybrid_retrieval_service.py
+      knowledge_graph_service.py
+      flask_app.py             Flask 辅助模块
   data/
+    admin_users.json
+    data_sources.json
+    textbook_pathways.json
+    knowledge.json
+    medical_kg_bilingual.json
     cases.json
+    anatomy.json
     guidelines.json
-    teacher_dashboard.json
-    medical_kg.json
-  env/
-    .env.example
+  .env.example
 ```
+
+## 系统总体架构图
+
+```mermaid
+flowchart LR
+  Student["学生端"] --> FE["Vue 3 + TS 高端学习工作台"]
+  Teacher["教师端"] --> FE
+  Admin["超级管理员"] --> FE
+  FE --> API["FastAPI 主服务"]
+  API --> Flask["Flask 辅助服务 /flask"]
+  API --> Auth["Mock Auth + localStorage"]
+  API --> Agents["Agent Workflow"]
+  Agents --> Patient["PatientAgent"]
+  Agents --> Tutor["TutorAgent"]
+  Agents --> Score["ScoringAgent"]
+  Agents --> Retrieval["RetrievalAgent"]
+  Agents --> Safety["SafetyAgent"]
+  Agents --> Report["ReportAgent"]
+  API --> RAG["Hybrid RAG"]
+  RAG --> KW["关键词检索"]
+  RAG --> EMB["mock embedding"]
+  RAG --> KG["双语知识图谱扩展"]
+  API --> Data["JSON mock 数据"]
+  Data --> Cases["虚拟病例"]
+  Data --> Know["85 双语知识条目"]
+  Data --> Graph["177 节点 / 162 关系"]
+  Data --> Textbooks["教材学习路径"]
+  API --> Env[".env.example API / TTS / Milvus / Chroma / Neo4j 占位"]
+```
+
+## Agent + Workflow 流程图
+
+```mermaid
+flowchart TD
+  A["学生输入 / 教师指令 / 管理员指令"] --> B["RouterAgent 识别角色和意图"]
+  B --> C["SafetyAgent 教学边界检查"]
+  C --> D{"任务类型"}
+  D -->|病例问诊| E["PatientAgent 读取病例脚本"]
+  D -->|学习引导| F["TutorAgent 生成提示"]
+  D -->|过程评分| G["ScoringAgent 六维评分"]
+  D -->|知识依据| H["RetrievalAgent Hybrid RAG"]
+  D -->|管理任务| I["AdminTool 数据源/图谱/RAG 状态"]
+  E --> J["病人回复不能主动泄露诊断"]
+  H --> K["citation + bilingual_terms + graph_neighbors"]
+  G --> L["遗漏提醒和复训建议"]
+  I --> M["ModelScope / Obsidian / 状态面板"]
+  J --> N["训练记录与报告"]
+  K --> N
+  L --> N
+```
+
+## RAG 检索流程图
+
+```mermaid
+flowchart LR
+  Q["用户问题"] --> T["TranslationService 双语术语匹配"]
+  Q --> KW["keyword_search"]
+  Q --> EV["embed_text_mock"]
+  EV --> VS["vector_search_mock"]
+  Q --> GS["KnowledgeGraphService.search_nodes"]
+  GS --> GN["get_neighbors 一阶/二阶扩展"]
+  KW --> RR["rerank"]
+  VS --> RR
+  T --> Bundle["结果包"]
+  RR --> Bundle
+  GN --> Bundle
+  Bundle --> Out["matched_knowledge / citations / graph_nodes / graph_edges / bilingual_terms / learning_path"]
+```
+
+后续接入真实服务时：`EmbeddingService` 替换为真实 embedding API，mock vector 替换为 ChromaDB 或 Milvus，`KnowledgeGraphService` 替换为 Neo4j 查询，`RetrievalAgent` 可接 LangChain Runnable 或 LangGraph。
+
+## 医学知识图谱示意图
+
+```mermaid
+graph TD
+  Basic["基础医学"] --> AnatomyBook["系统解剖学"]
+  Bridge["桥梁课程"] --> Diagnostics["诊断学"]
+  Clinical["临床核心"] --> Internal["内科学"]
+  Practice["实践能力"] --> OSCE["OSCE 临床技能考试"]
+  Chest["胸痛 / Chest Pain"] --> ACS["急性冠脉综合征 / ACS"]
+  Chest --> AD["主动脉夹层"]
+  Chest --> PE["肺栓塞"]
+  ACS --> ECG["心电图 / ECG"]
+  ACS --> TROP["肌钙蛋白 / Troponin"]
+  Jaundice["黄疸 / Jaundice"] --> Liver["肝脏 / Liver"]
+  Jaundice --> Bili["胆红素分型"]
+  Abd["腹痛 / Abdominal Pain"] --> App["阑尾炎"]
+  Abd --> Pan["胰腺炎"]
+  Liver --> CaseJ["黄疸病例"]
+  ECG --> GuideACS["急性冠脉综合征诊疗指南"]
+```
+
+## ModelScope 数据源接入流程图
+
+```mermaid
+flowchart TD
+  A["超级管理员选择数据源"] --> B["许可与合规审查"]
+  B --> C["字段映射规划"]
+  C --> D["小样本元数据同步 mock"]
+  D --> E["文档切分 / 图像元数据抽取"]
+  E --> F["Embedding 生成"]
+  F --> G{"向量库"}
+  G -->|轻量本地| H["ChromaDB"]
+  G -->|规模化| I["Milvus"]
+  H --> J["Hybrid RAG 检索"]
+  I --> J
+  J --> K["citation 返回与教师复核"]
+```
+
+## Obsidian 图谱导出流程图
+
+```mermaid
+flowchart LR
+  KG["双语医学知识图谱 JSON"] --> Export["ObsidianGraphExportService"]
+  Export --> MD["Markdown Note"]
+  MD --> Link["[[双链]]"]
+  MD --> Meta["YAML 元数据"]
+  MD --> Evidence["source_ids / citation"]
+  Link --> Vault["Obsidian Vault 预览"]
+```
+
+## 主要后端接口
+
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `POST /api/auth/logout`
+- `GET /api/cases`
+- `POST /api/training/chat`
+- `GET /api/training/report`
+- `GET /api/knowledge/search?q=ACS&lang=en`
+- `GET /api/graph?lang=zh`
+- `GET /api/graph/search?query=ACS&lang=en`
+- `POST /api/rag/query`
+- `POST /api/rag/hybrid-query`
+- `GET /api/textbook-pathways`
+- `GET /api/admin/users`
+- `GET /api/admin/data-sources`
+- `POST /api/admin/data-sources/sync`
+- `GET /api/admin/knowledge-status`
+- `GET /api/admin/graph-status`
+- `POST /api/admin/obsidian/export`
 
 ## `.env.example` 配置说明
 
-根目录 `.env.example` 包含：
-
-- LLM API：OpenAI 或兼容模型接口
-- TTS API：语音标准化病人预留
-- Embedding：向量化模型预留
-- Milvus：向量库连接配置
-- ChromaDB：本地向量库路径和集合名
-- Neo4j：医学知识图谱配置
-- Backend：FastAPI 主机、端口和环境
-- Frontend：`VITE_API_BASE_URL`
-
-不要在仓库中写入真实密钥。
+根目录 `.env.example` 保留 LLM API、TTS API、Embedding、Milvus、ChromaDB、Neo4j、Backend、Frontend 配置占位。不要写真实密钥。后端默认没有真实配置时使用 mock 能力。
 
 ## 本地启动步骤
 
-### 后端
+后端：
 
 ```powershell
 cd D:\cc项目\ai+medicine
-conda env create -f environment.yml
-conda activate clinical-sp-ai
-python -m backend.app.main
+.\scripts\start-backend.ps1 -Python .\.venv\Scripts\python.exe
 ```
 
-后端默认地址：`http://127.0.0.1:8000`
+接口文档：`http://127.0.0.1:8000/docs`
 
-### 前端
+前端：
 
 ```powershell
 cd D:\cc项目\ai+medicine\frontend
-pnpm install
 pnpm dev
 ```
 
-前端默认地址：`http://127.0.0.1:5173`
-
-如果要让前端调用后端，在 `.env` 或运行环境中设置：
-
-```env
-VITE_API_BASE_URL=http://127.0.0.1:8000
-```
-
-## 示例 API
-
-- `GET /api/health`
-- `GET /api/site/overview`
-- `GET /api/cases`
-- `POST /api/patient/chat`
-- `GET /api/guidelines`
-- `GET /api/teacher/dashboard`
-- `GET /api/training/report`
-- `GET /api/knowledge-graph`
-- `GET /api/workflow`
-- `POST /api/rag/query`
-- `POST /api/rag/index`
-- `GET /flask/status`
+前端访问：`http://127.0.0.1:5173`
 
 ## 后续可扩展方向
 
-- 接入真实 LLM API，让 PatientAgent 依据病例脚本生成更自然但受控的回复。
-- 接入 TTS，让 AI 标准化病人支持语音问诊。
-- 使用 LangChain Retriever 替换 mock RAG。
-- 接入 Milvus 或 ChromaDB 实现真实向量检索。
-- 接入 Neo4j 管理医学教育知识图谱。
-- 增加教师批改、班级管理、学生历史训练记录和多病例 OSCE 流程。
-- 增加病例脚本编辑器，让教师维护虚拟病例。
-- 增加安全审计日志，记录模型输出、citation 和人工复核状态。
+- 接入真实 LLM、TTS 和数字人视频流。
+- 把教材目录、指南摘要、病例脚本走教师审核后进入 RAG。
+- 将 ChromaDB 用作本地演示，将 Milvus 用作竞赛展示规模化检索。
+- Neo4j 接管双语知识图谱查询和推荐路径生成。
+- 为教师端增加班级、课程、OSCE 站点和批改工作流。
+- 为管理员端增加数据源权限、许可审查、脱敏审计和同步任务队列。

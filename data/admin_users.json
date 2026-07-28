@@ -1,0 +1,73 @@
+[
+  {
+    "id": "u_admin",
+    "name": "超级管理员",
+    "account": "admin",
+    "role": "super_admin",
+    "status": "active",
+    "department": "系统管理",
+    "last_login": "演示环境",
+    "permissions": [
+      "users",
+      "data_sources",
+      "knowledge",
+      "graph",
+      "rag",
+      "obsidian"
+    ]
+  },
+  {
+    "id": "u_teacher_01",
+    "name": "李老师",
+    "account": "teacher01",
+    "role": "teacher",
+    "status": "active",
+    "department": "诊断学教研室",
+    "last_login": "2026-07-27",
+    "permissions": [
+      "dashboard",
+      "cases",
+      "reports"
+    ]
+  },
+  {
+    "id": "u_teacher_02",
+    "name": "周老师",
+    "account": "teacher02",
+    "role": "teacher",
+    "status": "active",
+    "department": "急诊医学教研室",
+    "last_login": "2026-07-26",
+    "permissions": [
+      "dashboard",
+      "reports"
+    ]
+  },
+  {
+    "id": "u_student_01",
+    "name": "学生A",
+    "account": "student01",
+    "role": "student",
+    "status": "active",
+    "department": "临床医学五年制",
+    "last_login": "2026-07-27",
+    "permissions": [
+      "training",
+      "knowledge",
+      "report"
+    ]
+  },
+  {
+    "id": "u_student_02",
+    "name": "学生B",
+    "account": "student02",
+    "role": "student",
+    "status": "review",
+    "department": "临床医学五年制",
+    "last_login": "2026-07-24",
+    "permissions": [
+      "training",
+      "knowledge"
+    ]
+  }
+]

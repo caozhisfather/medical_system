@@ -1,16 +1,31 @@
 export interface Metric { label: string; value: string; trend: string; }
+export type Role = 'student' | 'teacher' | 'admin';
 export interface Overview { name: string; subtitle: string; contest_track: string; positioning: string; metrics: Metric[]; scenarios: string[]; }
 export interface Citation { id: string; title: string; source: string; snippet: string; }
 export interface WorkflowStage { id: string; name: string; agent: string; goal: string; }
 export interface WorkflowTrace { id: string; name: string; agent: string; status: string; detail: string; }
-export interface CaseSummary { id: string; title: string; department: string; chief_complaint: string; difficulty: string; learning_goals: string[]; }
-export interface ChatMessage { role: 'student' | 'patient' | 'tutor'; content: string; citations?: Citation[]; }
+export interface CaseSummary { id: string; title: string; department: string; chief_complaint: string; difficulty: string; learning_goals: string[]; patient_profile?: string; speaking_style?: string; present_illness?: string; past_history?: string; personal_history?: string; family_history?: string; physical_exam?: string; exam_results?: Record<string, string>; opening?: string; available_exams?: string[]; hidden_final_diagnosis?: string; differential_diagnoses?: string[]; key_scoring_points?: string[]; high_risk_omissions?: Array<{ id: string; level: string; text: string; suggestion: string; keywords?: string[] }>; recommended_guidelines?: string[]; graph_node_ids?: string[]; recommended_retraining?: string[]; script?: { opening?: string; answers?: Array<{ keywords: string[]; reply: string }> }; }
+export interface ChatMessage { role: 'student' | 'patient' | 'tutor' | 'agent'; content: string; citations?: Citation[]; }
 export interface ScoreItem { name: string; score: number; max_score: number; feedback: string; }
 export interface MissingPoint { id: string; level: string; text: string; suggestion: string; citation?: Citation | null; }
 export interface PatientChatResponse { patient_reply: ChatMessage; tutor_hint: string; scores: ScoreItem[]; missing_points: MissingPoint[]; workflow_trace: WorkflowTrace[]; citations: Citation[]; safety_notes: string[]; }
 export interface GuidelineDoc { id: string; title: string; source: string; type: string; tags: string[]; content: string; }
-export interface TeacherDashboard { class_average: number; training_sessions: number; teacher_time_saved: string; citation_accuracy: string; improvements: Array<{ label: string; value: number }>; common_missing_points: string[]; }
+export interface TeacherDashboard { class_average: number; completion_rate?: number; training_sessions: number; teacher_time_saved: string; citation_accuracy: string; intervention_needed?: number; improvements: Array<{ label: string; value: number }>; common_missing_points: string[]; risk_rankings?: Array<{ label: string; count: number; level: string }>; students?: Array<{ name: string; sessions: number; average_score: number; last_case: string; weakness: string; needs_intervention: boolean }>; teaching_suggestions?: string[]; }
 export interface TrainingReport { case_id: string; diagnosis_path: string[]; strengths: string[]; improvements: string[]; recommended_cases: string[]; citations: Citation[]; }
-export interface KnowledgeNode { id: string; label: string; group: string; score?: number; }
-export interface KnowledgeEdge { source: string; target: string; relation: string; }
-export interface RagResponse { answer: string; citations: Citation[]; workflow_trace: WorkflowTrace[]; safety_notes: string[]; }
+export interface KnowledgeNode { id: string; label: string; group: string; type?: string; label_zh?: string; label_en?: string; aliases_zh?: string[]; aliases_en?: string[]; summary?: string; description_zh?: string; description_en?: string; embedding?: number[]; score?: number; embedding_id?: string; embedding_text?: string; embedding_text_zh?: string; embedding_text_en?: string; vector_status?: string; source_ids?: string[]; related_case_ids?: string[]; related_knowledge_ids?: string[]; }
+export interface KnowledgeEdge { source: string; target: string; relation: string; relation_zh?: string; relation_en?: string; weight?: number; evidence_source?: string; explanation_zh?: string; explanation_en?: string; }
+export interface RagResponse { answer: string; citations: Citation[]; workflow_trace: WorkflowTrace[]; safety_notes: string[]; matched_knowledge?: KnowledgeItem[]; graph_nodes?: KnowledgeNode[]; graph_edges?: KnowledgeEdge[]; bilingual_terms?: BilingualTerm[]; related_cases?: CaseSummary[]; related_anatomy_exercises?: AnatomyExercise[]; recommended_learning_path?: string[]; }
+export interface KnowledgeItem { id: string; title: string; title_zh?: string; title_en?: string; subject: string; type?: string; category?: string; summary: string; summary_zh?: string; summary_en?: string; keywords: string[]; keywords_en?: string[]; related_diseases: string[]; related_symptoms: string[]; related_exams: string[]; related_anatomy?: string[]; related_cases?: string[]; source?: string; source_type?: string; source_name?: string; data_source?: string; citation?: string; embedding_placeholder?: number[]; embedding_id?: string; embedding_text?: string; embedding_text_zh?: string; embedding_text_en?: string; vector_status?: string; graph_node_id?: string; graph_node_ids?: string[]; }
+export interface AnatomyExercise { id: string; title: string; system?: string; target: string; prompt: string; answer_zone: string; standard_region?: string; explanation: string; clinical_link: string; graph_node_ids?: string[]; }
+export interface AnatomyResult { correct: boolean; score_items: ScoreItem[]; feedback: string; explanation: string; clinical_link: string; }
+export interface AgentResultCard { kind: string; title: string; summary: string; target: string; }
+export interface AgentResponse { intent: string; action: string; target_module?: string | null; target_case_id?: string | null; target_exercise_id?: string | null; reply: string; result_cards: AgentResultCard[]; learning_path: string[]; workflow_trace: WorkflowTrace[]; safety_notes: string[]; }
+export interface TtsResponse { status: string; voice: string; duration_seconds: number; audio_url?: string | null; message: string; }
+
+
+
+export interface AuthUser { id: string; name: string; account: string; role: string; status: string; department: string; permissions: string[]; }
+export interface AuthResponse { token: string; user: AuthUser; }
+export interface DataSourceItem { id: string; name: string; platform: string; type: string; modules: string[]; license: string; connected: boolean; index_status: string; sync_status: string; url: string; mapping: Record<string, unknown>; }
+export interface TextbookStage { id: string; title_zh: string; title_en: string; goal: string; books: string[]; }
+export interface BilingualTerm { id: string; type: string; label_zh: string; label_en: string; aliases_zh?: string[]; aliases_en?: string[]; }
