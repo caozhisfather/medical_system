@@ -1,41 +1,15 @@
 {
-  "name": "AI+医学学科交叉 Agent Workflow",
+  "name": "平台 Agent 助手 Workflow",
   "stages": [
-    {
-      "id": "intake",
-      "name": "场景识别",
-      "agent": "TaskRouterAgent",
-      "goal": "判断问题属于教学、科研、实验实训还是个性化学习。"
-    },
-    {
-      "id": "plan",
-      "name": "学习/科研任务规划",
-      "agent": "DisciplinePlannerAgent",
-      "goal": "拆解医学学科目标、先修知识和交付物。"
-    },
-    {
-      "id": "retrieve",
-      "name": "RAG 证据检索",
-      "agent": "EvidenceRetrieverAgent",
-      "goal": "从课程资料、指南、论文摘要和知识图谱中检索证据。"
-    },
-    {
-      "id": "safety",
-      "name": "医学合规检查",
-      "agent": "MedicalSafetyAgent",
-      "goal": "检查隐私、伦理、诊疗边界和数据授权风险。"
-    },
-    {
-      "id": "teach",
-      "name": "教学活动生成",
-      "agent": "TeachingDesignerAgent",
-      "goal": "生成病例推理任务、学习路径和课堂互动。"
-    },
-    {
-      "id": "evaluate",
-      "name": "效果评价",
-      "agent": "OutcomeEvaluatorAgent",
-      "goal": "输出可量化评价指标和验证方案。"
-    }
+    { "id": "input", "name": "用户输入", "agent": "RouterAgent", "goal": "接收自然语言指令、问诊内容或学习问题。" },
+    { "id": "router", "name": "意图识别", "agent": "RouterAgent", "goal": "判断导航、检索、学习建议、病例训练、解剖练习或报告生成。" },
+    { "id": "safety", "name": "医学安全检查", "agent": "SafetyAgent", "goal": "确认输出仅用于虚拟教学，不包装成真实诊断。" },
+    { "id": "navigation", "name": "页面导航", "agent": "NavigationAgent", "goal": "返回目标模块并触发前端跳转。" },
+    { "id": "retrieval", "name": "站内检索", "agent": "RetrievalAgent", "goal": "检索病例、指南、知识库、解剖练习和图谱节点。" },
+    { "id": "patient", "name": "问诊分流", "agent": "PatientAgent", "goal": "按病例脚本生成标准化病人回复。" },
+    { "id": "anatomy", "name": "解剖练习评判", "agent": "AnatomyAgent", "goal": "判断定位区域并给出解剖与临床关联解释。" },
+    { "id": "graph", "name": "图谱路径推荐", "agent": "KnowledgeGraphAgent", "goal": "返回相关节点、边和学习路径。" },
+    { "id": "scoring", "name": "过程性评分", "agent": "ScoringAgent", "goal": "更新问诊、检查、鉴别、决策、依据和沟通评分。" },
+    { "id": "report", "name": "报告生成", "agent": "ReportAgent", "goal": "生成训练报告和复训建议。" }
   ]
 }

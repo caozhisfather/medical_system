@@ -1,86 +1,52 @@
 from __future__ import annotations
 
-import json
-import re
-from pathlib import Path
-from typing import Any, Protocol
+from typing import Any
 
 from .models import Citation
-
-ROOT_DIR = Path(__file__).resolve().parents[2]
-DATA_DIR = ROOT_DIR / "data"
-
-
-def tokenize(text: str) -> set[str]:
-    tokens = set(re.findall(r"[A-Za-z0-9_]+", text.lower()))
-    for keyword in ["胸痛", "心电图", "肌钙蛋白", "急性冠脉综合征", "主动脉夹层", "肺栓塞", "问诊", "指南", "诊断学"]:
-        if keyword.lower() in text.lower():
-            tokens.add(keyword.lower())
-    return tokens
-
-
-class VectorStoreAdapter(Protocol):
-    def add_documents(self, documents: list[dict[str, Any]]) -> None: ...
-    def search(self, query: str, limit: int = 3) -> list[dict[str, Any]]: ...
-
-
-class MockChromaAdapter:
-    def __init__(self) -> None:
-        self.documents: list[dict[str, Any]] = []
-
-    def add_documents(self, documents: list[dict[str, Any]]) -> None:
-        self.documents = documents
-
-    def search(self, query: str, limit: int = 3) -> list[dict[str, Any]]:
-        query_tokens = tokenize(query)
-        ranked: list[tuple[int, dict[str, Any]]] = []
-        for doc in self.documents:
-            haystack = " ".join([doc.get("title", ""), doc.get("content", ""), " ".join(doc.get("tags", []))])
-            ranked.append((len(query_tokens & tokenize(haystack)), doc))
-        ranked.sort(key=lambda item: item[0], reverse=True)
-        selected = [doc for score, doc in ranked if score > 0][:limit]
-        return selected or self.documents[:limit]
-
-
-class MockMilvusAdapter(MockChromaAdapter):
-    pass
+from .rag_modules import ChromaAdapter, HybridRetriever, MilvusAdapter, MockEmbeddingService, MockVectorAdapter, load_documents, split_documents, to_citations
 
 
 class RagPipeline:
-    def __init__(self, provider: str = "chroma") -> None:
+    def __init__(self, provider: str = "mock") -> None:
         self.provider = provider
-        self.documents = self.load_documents()
-        self.adapter: VectorStoreAdapter = MockMilvusAdapter() if provider == "milvus" else MockChromaAdapter()
-        self.adapter.add_documents(self.chunk_documents(self.documents))
+        self.embedding_service = MockEmbeddingService()
+        self.documents = load_documents()
+        self.chunks = split_documents(self.documents)
+        if provider == "milvus":
+            self.adapter: MockVectorAdapter = MilvusAdapter()
+        elif provider == "chroma":
+            self.adapter = ChromaAdapter()
+        else:
+            self.adapter = MockVectorAdapter()
+        for chunk in self.chunks:
+            chunk["embedding"] = self.embedding_service.embed(chunk.get("content", ""))
+        self.adapter.add_documents(self.chunks)
+        self.retriever = HybridRetriever(self.adapter)
 
     def load_documents(self) -> list[dict[str, Any]]:
-        return json.loads((DATA_DIR / "guidelines.json").read_text(encoding="utf-8"))
+        return self.documents
 
     def chunk_documents(self, documents: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        chunks: list[dict[str, Any]] = []
-        for doc in documents:
-            content = doc["content"]
-            for index, start in enumerate(range(0, len(content), 120)):
-                chunks.append({**doc, "id": f"{doc['id']}-chunk-{index}", "content": content[start : start + 180]})
-        return chunks
+        return split_documents(documents)
 
     def embed(self, text: str) -> list[float]:
-        base = sum(ord(char) for char in text[:64]) or 1
-        return [round(((base + index * 17) % 101) / 100, 3) for index in range(8)]
+        return self.embedding_service.embed(text)
 
     def write_vector_store(self) -> dict[str, Any]:
-        return {"provider": self.provider, "documents": len(self.documents), "chunks": len(self.adapter.search("胸痛", 20))}
+        return {"provider": self.adapter.name, "documents": len(self.documents), "chunks": len(self.chunks), "status": "mock_index_ready"}
+
+    def retrieve_documents(self, query: str, limit: int = 5) -> list[dict[str, Any]]:
+        return self.retriever.retrieve(query, limit)
 
     def retrieve(self, query: str, limit: int = 3) -> list[Citation]:
-        docs = self.adapter.search(query, limit)
-        return [Citation(id=doc["id"], title=doc["title"], source=doc["source"], snippet=doc["content"][:180]) for doc in docs]
+        return to_citations(self.retrieve_documents(query, limit))
 
     def answer(self, question: str, scenario: str) -> tuple[str, list[Citation], list[str]]:
-        citations = self.retrieve(f"{scenario} {question}")
+        citations = self.retrieve(f"{scenario} {question}", limit=4)
         titles = "、".join(c.title for c in citations)
         answer = (
-            f"围绕“{scenario}”，系统已检索指南与教材依据：{titles}。"
-            "建议将学生表现拆为病史采集、检查选择、鉴别诊断、临床决策、指南依据和沟通表达六个维度评分。"
+            f"围绕“{scenario}”，系统已完成 mock embedding 检索，命中依据：{titles}。"
+            "建议把学习任务拆成病史采集、检查选择、鉴别诊断、临床决策、指南依据和沟通表达。"
             "本回答仅用于医学教育训练，不用于真实临床诊断。"
         )
         safety_notes = [

@@ -1,4 +1,4 @@
-[
+export const mockCases = [
   {
     "id": "emergency_chest_pain",
     "title": "急诊胸痛",
@@ -1277,4 +1277,4 @@
       ]
     }
   }
-]
+] as const;
