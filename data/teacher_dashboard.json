@@ -1,0 +1,26 @@
+{
+  "class_average": 82,
+  "completion_rate": 76,
+  "training_sessions": 248,
+  "teacher_time_saved": "41%",
+  "citation_accuracy": "88%",
+  "intervention_needed": 6,
+  "improvements": [
+    { "label": "临床推理分提升", "value": 24 },
+    { "label": "关键问诊遗漏率下降", "value": 32 },
+    { "label": "指南引用准确率提升", "value": 18 }
+  ],
+  "common_missing_points": ["尚未询问胸痛性质", "尚未排除主动脉夹层", "建议申请心电图和肌钙蛋白", "未记录危险因素", "未说明非诊疗边界"],
+  "risk_rankings": [
+    { "label": "未排除主动脉夹层", "count": 34, "level": "高" },
+    { "label": "未及时申请心电图", "count": 29, "level": "高" },
+    { "label": "忽略低氧风险", "count": 18, "level": "中" }
+  ],
+  "students": [
+    { "name": "学生A", "sessions": 12, "average_score": 86, "last_case": "急诊胸痛", "weakness": "指南依据", "needs_intervention": false },
+    { "name": "学生B", "sessions": 8, "average_score": 71, "last_case": "呼吸困难", "weakness": "高危鉴别", "needs_intervention": true },
+    { "name": "学生C", "sessions": 15, "average_score": 91, "last_case": "急性腹痛", "weakness": "治疗原则", "needs_intervention": false },
+    { "name": "学生D", "sessions": 5, "average_score": 64, "last_case": "急诊胸痛", "weakness": "检查选择", "needs_intervention": true }
+  ],
+  "teaching_suggestions": ["下节课建议强化胸痛高危鉴别路径", "增加心电图和肌钙蛋白结果解读练习", "安排腹部分区与急腹症联合教学"]
+}
