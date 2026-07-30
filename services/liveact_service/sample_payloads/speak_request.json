@@ -1,0 +1,9 @@
+{
+  "session_id": "demo-session-001",
+  "text": "同学，胸痛病例首先要识别急性冠脉综合征、主动脉夹层和肺栓塞这些高危疾病。",
+  "emotion": "teaching",
+  "action": "explain",
+  "avatar_id": "medical_tutor_001",
+  "voice": "zh_female_warm",
+  "mode": "mock"
+}
