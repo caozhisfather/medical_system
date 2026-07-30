@@ -1,0 +1,12 @@
+{
+  "name": "ai-medicine-competition-site",
+  "private": true,
+  "version": "0.1.0",
+  "description": "AI+医学学科交叉竞赛网站：Vue 前端 + Python FastAPI/Flask/LangChain/RAG 后端。",
+  "scripts": {
+    "dev:frontend": "pnpm --dir frontend dev",
+    "build:frontend": "pnpm --dir frontend build",
+    "dev:backend": "python -m backend.app.main",
+    "check:backend": "python -m compileall backend"
+  }
+}
