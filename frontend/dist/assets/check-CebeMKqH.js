@@ -1,0 +1,1 @@
+import{p as e}from"./api-Q5cJ-2GQ.js";var t=e(`check`,[[`path`,{d:`M20 6 9 17l-5-5`,key:`1gmf2c`}]]);export{t};
