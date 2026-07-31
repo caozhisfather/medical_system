@@ -22,6 +22,7 @@ from .models import (
     TrainingReport, TrainingScoreRequest, CaseRandomRequest, TrainingStartRequest, TrainingOrderTestRequest, TrainingDiagnosisRequest, CaseValidateRequest,
 )
 from .services.case_generation_service import CaseGenerationService
+from .services.case_citation_service import CaseCitationService
 from .services.case_repository import CaseRepository
 from .services.case_source_adapter import CaseSourceAdapter
 from .services.case_validation_service import CaseValidationService
@@ -40,6 +41,9 @@ hybrid_service = HybridRetrievalService()
 graph_service = KnowledgeGraphService()
 obsidian_service = ObsidianGraphExportService()
 case_repository = CaseRepository()
+case_citation_service = CaseCitationService(
+    json.loads((DATA_DIR / "guidelines.json").read_text(encoding="utf-8"))
+)
 patient_agent = PatientAgent()
 scoring_agent = ScoringAgent()
 case_generator = CaseGenerationService()
@@ -338,7 +342,8 @@ def patient_chat(payload: PatientChatRequest) -> dict[str, Any]:
             session["ordered_tests"].append(answer["ordered_test"])
     transcript = " ".join(item.get("content", "") for item in history) + " " + payload.message
     score_result = scoring_agent.score(case, transcript, (session or {}).get("ordered_tests", []))
-    citations = rag_pipeline.retrieve(f"{case['title_zh']} {payload.message}", limit=3)
+    retrieved = rag_pipeline.retrieve(f"{case['title_zh']} {payload.message}", limit=3)
+    citations = case_citation_service.for_case(case, retrieved, limit=3)
     return {
         "session_id": session["session_id"] if session else None,
         "case_id": case["case_id"],
@@ -422,7 +427,11 @@ def student_reports(student_id: str) -> list[dict[str, Any]]:
 @app.get("/api/training/report", response_model=TrainingReport)
 def training_report(case_id: str = "emergency_chest_pain") -> TrainingReport:
     case = get_case_data(case_id)
-    citations = rag_pipeline.retrieve(f"{case['title']} {' '.join(case.get('recommended_retraining', []))}", limit=4)
+    retrieved = rag_pipeline.retrieve(
+        f"{case['title_zh']} {' '.join(case.get('recommended_retraining', []))}",
+        limit=4,
+    )
+    citations = case_citation_service.for_case(case, retrieved, limit=4)
     return TrainingReport(case_id=case_id, diagnosis_path=[case["chief_complaint"], "补全现病史和高危线索", "提出核心鉴别诊断", "选择必要检查", "依据指南更新诊断路径"], strengths=["能围绕主诉开展问诊", "能提出至少一个重点鉴别"], improvements=[item["text"] for item in case.get("high_risk_omissions", [])[:3]], recommended_cases=case.get("recommended_retraining", [])[:4], citations=citations)
 
 
@@ -495,6 +504,11 @@ def rag_index() -> dict[str, Any]:
 @app.get("/api/textbook-pathways")
 def textbook_pathways() -> list[dict[str, Any]]:
     return load_textbook_pathways()
+
+
+@app.get("/api/data-sources")
+def public_data_sources() -> list[dict[str, Any]]:
+    return load_data_sources()
 
 
 @app.get("/api/admin/users")
@@ -582,6 +596,8 @@ def tts_speak(payload: TTSRequest) -> TTSResponse:
 
 if __name__ == "__main__":
     uvicorn.run("backend.app.main:app", host=settings.backend_host, port=settings.backend_port, reload=True)
+
+
 
 
 
