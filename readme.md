@@ -439,6 +439,10 @@ flowchart LR
 
 每个病例提供 A/B/C 三个变体。变体可改变年龄、表达方式、病史呈现顺序和干扰信息，但 `hidden_final_diagnosis`、核心鉴别和安全逻辑保持不变。ScoringAgent 使用当前病例的 `key_scoring_points`、`high_risk_misses`、问诊记录、已申请检查、初步诊断、鉴别诊断、处理原则和引用证据进行独立评分，不使用固定胸痛量表。
 
+### 病例证据隔离
+
+训练提示和报告引用都通过 `CaseCitationService` 按 `case_id` 校验。RAG 检索结果只有在标题匹配当前病例 `recommended_guidelines` 白名单时才会返回；知识库未收录对应原文时，系统返回该病例自己的“Mock，待教师审核”引用占位，不允许使用胸痛或其他病例的指南兜底。可运行 `python scripts/verify_case_citations.py` 检查全部病例的引用隔离。
+
 ### 病例生成器
 
 病例生成器当前为 Mock 骨架，包含：
@@ -513,3 +517,4 @@ flowchart LR
 - `POST /api/admin/cases/generate-mock`：生成待审核病例草稿。
 - `POST /api/admin/cases/validate`：校验单例或完整病例库。
 - `GET /api/admin/cases/source-plan`：查看公开来源接入与合规计划。
+
