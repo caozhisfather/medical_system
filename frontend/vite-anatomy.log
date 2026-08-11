@@ -1,0 +1,26 @@
+
+  VITE v8.1.5  ready in 322 ms
+
+  ➜  Local:   http://127.0.0.1:5173/
+  ➜  press h + enter to show help
+12:44:57 [vite] (client) hmr update /src/styles.css
+12:47:00 [vite] (client) hmr update /src/styles.css, /src/product.css
+13:08:17 [vite] (client) hmr update /src/components/DigitalHumanPanel.vue
+13:30:53 [vite] (client) page reload src/data/cases.ts
+13:35:50 [vite] (client) hmr update /src/components/DigitalHumanWorkspace.vue, /src/components/DigitalHumanPanel.vue, /src/components/DigitalHumanPlayer.vue
+13:36:15 [vite] (client) page reload src/api.ts
+13:37:07 [vite] (client) page reload src/stores/training.ts
+13:38:05 [vite] (client) hmr update /src/views/CaseLibraryView.vue
+13:38:37 [vite] (client) hmr update /src/views/CaseSetupView.vue
+13:38:57 [vite] (client) hmr update /src/views/CaseSetupView.vue
+13:39:29 [vite] (client) hmr update /src/views/PatientRoomView.vue
+13:40:05 [vite] (client) hmr update /src/components/AgentCommand.vue
+13:40:58 [vite] (client) hmr update /src/styles.css, /src/product.css
+13:42:48 [vite] (client) page reload src/stores/training.ts
+13:42:49 [vite] (client) hmr update /src/components/DigitalHumanWorkspace.vue, /src/components/DigitalHumanPanel.vue, /src/components/DigitalHumanPlayer.vue
+13:43:27 [vite] (client) hmr update /src/components/DigitalHumanWorkspace.vue, /src/components/DigitalHumanPanel.vue, /src/components/DigitalHumanPlayer.vue
+13:46:22 [vite] (client) page reload src/stores/training.ts
+14:09:53 [vite] (client) hmr update /src/views/CaseSetupView.vue
+14:11:17 [vite] (client) hmr update /src/styles.css, /src/product.css
+14:54:16 [vite] (client) page reload src/api.ts
+[ELIFECYCLE] Command failed with exit code 4294967295.
