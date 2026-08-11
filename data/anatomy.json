@@ -3,12 +3,27 @@
     "id": "heart_position",
     "title": "心脏定位",
     "system": "循环系统",
+    "organ": "心脏",
     "target": "心脏",
     "prompt": "请选择心脏的标准解剖位置。",
     "answer_zone": "left_chest",
     "standard_region": "left_chest",
     "explanation": "心脏位于纵隔内，体表投影略偏左。",
     "clinical_link": "点击心脏后推荐 ACS、心电图和胸痛病例。",
+    "substructures": [
+      { "name": "右心房", "category": "心腔", "description": "接收上、下腔静脉与冠状窦回流的静脉血。", "clinical_note": "关注中心静脉压与右心衰体征。" },
+      { "name": "右心室", "category": "心腔", "description": "经肺动脉瓣将血液泵入肺循环。", "clinical_note": "肺动脉高压可导致右心室负荷增加。" },
+      { "name": "左心房", "category": "心腔", "description": "接收四条肺静脉回流的含氧血。", "clinical_note": "房颤相关血栓常与左心耳有关。" },
+      { "name": "左心室", "category": "心腔", "description": "经主动脉瓣将血液泵入体循环，心肌壁最厚。", "clinical_note": "左室射血分数用于评价收缩功能。" },
+      { "name": "三尖瓣", "category": "房室瓣", "description": "位于右心房与右心室之间，防止收缩期血液反流。" },
+      { "name": "二尖瓣", "category": "房室瓣", "description": "位于左心房与左心室之间，由前、后瓣叶构成。" },
+      { "name": "肺动脉瓣", "category": "半月瓣", "description": "位于右心室流出道与肺动脉干之间。" },
+      { "name": "主动脉瓣", "category": "半月瓣", "description": "位于左心室流出道与升主动脉之间。" },
+      { "name": "室间隔", "category": "心脏间隔", "description": "分隔左右心室，包含膜部与肌部。", "clinical_note": "室间隔膜部是室间隔缺损常见部位。" }
+    ],
+    "video_resources": [
+      { "title": "心脏精细解剖讲解", "url": "", "platform": "bilibili", "status": "待收集", "contributor": "待分配" }
+    ],
     "graph_node_ids": [
       "acs",
       "ecg",
@@ -65,12 +80,19 @@
     "id": "left_lung",
     "title": "左肺定位",
     "system": "呼吸系统",
+    "organ": "肺",
     "target": "左肺",
     "prompt": "请选择左肺的标准解剖位置。",
     "answer_zone": "left_lung",
     "standard_region": "left_lung",
     "explanation": "左肺位于左胸腔，分为上叶和下叶。",
     "clinical_link": "点击肺后推荐呼吸困难、肺栓塞和胸部影像。",
+    "substructures": [
+      { "name": "左肺上叶", "category": "肺叶", "description": "包括尖后段、前段和舌段等区域。" },
+      { "name": "左肺下叶", "category": "肺叶", "description": "包含背段和多个基底段。" },
+      { "name": "肺门", "category": "出入结构", "description": "支气管、肺血管、淋巴管和神经出入肺的区域。" },
+      { "name": "胸膜", "category": "被膜", "description": "由脏层胸膜与壁层胸膜构成，二者之间为胸膜腔。" }
+    ],
     "graph_node_ids": [
       "dyspnea",
       "pulmonary_embolism",
@@ -97,12 +119,19 @@
     "id": "liver_position",
     "title": "肝脏定位",
     "system": "消化系统",
+    "organ": "肝脏",
     "target": "肝脏",
     "prompt": "请选择肝脏的标准解剖位置。",
     "answer_zone": "right_upper_abdomen",
     "standard_region": "right_upper_abdomen",
     "explanation": "肝脏主要位于右上腹，部分越过正中线。",
     "clinical_link": "点击肝脏后推荐黄疸、肝功能和腹部超声。",
+    "substructures": [
+      { "name": "肝右叶", "category": "肝叶", "description": "解剖上体积最大的肝叶。" },
+      { "name": "肝左叶", "category": "肝叶", "description": "位于镰状韧带左侧，部分覆盖胃前方。" },
+      { "name": "肝门", "category": "出入结构", "description": "肝固有动脉、门静脉和肝管等结构出入。" },
+      { "name": "肝段", "category": "功能分区", "description": "按门静脉与肝静脉走行可划分为八个功能性肝段。", "clinical_note": "肝段划分用于影像定位与手术规划。" }
+    ],
     "graph_node_ids": [
       "jaundice",
       "liver_function",
@@ -188,12 +217,19 @@
     "id": "kidney_position",
     "title": "肾脏定位",
     "system": "泌尿系统",
+    "organ": "肾脏",
     "target": "肾脏",
     "prompt": "请选择肾脏的标准解剖位置。",
     "answer_zone": "flank_bilateral",
     "standard_region": "flank_bilateral",
     "explanation": "双肾位于腹膜后脊柱两侧。",
     "clinical_link": "与腰痛、尿检和肾功能评估相关。",
+    "substructures": [
+      { "name": "肾皮质", "category": "实质", "description": "位于肾脏外层，包含肾小体和曲细尿管。" },
+      { "name": "肾髓质", "category": "实质", "description": "由肾锥体等结构组成，与尿液浓缩密切相关。" },
+      { "name": "肾盂", "category": "集合系统", "description": "汇集肾大盏尿液并延续为输尿管。" },
+      { "name": "肾门", "category": "出入结构", "description": "肾血管、肾盂、淋巴管和神经出入区域。" }
+    ],
     "graph_node_ids": [
       "urinalysis",
       "renal_function"
@@ -231,12 +267,20 @@
     "id": "brain_position",
     "title": "大脑定位",
     "system": "神经系统",
+    "organ": "大脑",
     "target": "大脑",
     "prompt": "请选择大脑的标准解剖位置。",
     "answer_zone": "head",
     "standard_region": "head",
     "explanation": "大脑位于颅腔内。",
     "clinical_link": "与头痛、脑卒中和头颅影像相关。",
+    "substructures": [
+      { "name": "额叶", "category": "大脑半球", "description": "参与执行功能、随意运动和语言表达。" },
+      { "name": "顶叶", "category": "大脑半球", "description": "整合躯体感觉与空间信息。" },
+      { "name": "颞叶", "category": "大脑半球", "description": "参与听觉、记忆与语言理解。" },
+      { "name": "枕叶", "category": "大脑半球", "description": "包含主要视觉皮层。" },
+      { "name": "基底核", "category": "皮质下结构", "description": "参与运动调节与程序性学习。", "clinical_note": "基底核损害可出现多种运动障碍。" }
+    ],
     "graph_node_ids": [
       "headache",
       "stroke",
