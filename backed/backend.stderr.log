@@ -1,0 +1,6 @@
+D:\ccÏîÄ¿\ai+medicine\.venv\Lib\site-packages\fastapi\middleware\wsgi.py:1: StarletteDeprecationWarning: starlette.middleware.wsgi is deprecated and will be removed in a future release. Please refer to https://github.com/abersheeran/a2wsgi as a replacement.
+  from starlette.middleware.wsgi import (
+INFO:     Started server process [37360]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
