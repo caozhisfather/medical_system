@@ -1,0 +1,121 @@
+D:\cc项目\ai+medicine\.venv\Lib\site-packages\fastapi\middleware\wsgi.py:1: StarletteDeprecationWarning: starlette.middleware.wsgi is deprecated and will be removed in a future release. Please refer to https://github.com/abersheeran/a2wsgi as a replacement.
+  from starlette.middleware.wsgi import (
+INFO:     Will watch for changes in these directories: ['D:\\cc项目\\ai+medicine']
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [3916] using WatchFiles
+D:\cc项目\ai+medicine\.venv\Lib\site-packages\fastapi\middleware\wsgi.py:1: StarletteDeprecationWarning: starlette.middleware.wsgi is deprecated and will be removed in a future release. Please refer to https://github.com/abersheeran/a2wsgi as a replacement.
+  from starlette.middleware.wsgi import (
+INFO:     Started server process [37104]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'scripts\generate_case_library.py'. Reloading...
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 422, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\fastapi\applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\starlette\applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\fastapi\routing.py", line 2692, in app
+    await route.handle(scope, receive, send)
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\fastapi\routing.py", line 1274, in handle
+    await super().handle(scope, receive, send)
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\starlette\routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\fastapi\routing.py", line 156, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\fastapi\routing.py", line 142, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\fastapi\routing.py", line 698, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\fastapi\routing.py", line 352, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\starlette\concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\anyio\to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 2641, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 1033, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\cc项目\ai+medicine\backend\app\main.py", line 241, in cases
+    user = next(item for item in users if item["role"] == "teacher")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\pydantic\main.py", line 263, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for CaseSummary
+patient_profile
+  Input should be a valid string [type=string_type, input_value={'age': 45, 'gender': '...答被问到的内容'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/string_type
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [37104]
+D:\cc项目\ai+medicine\.venv\Lib\site-packages\fastapi\middleware\wsgi.py:1: StarletteDeprecationWarning: starlette.middleware.wsgi is deprecated and will be removed in a future release. Please refer to https://github.com/abersheeran/a2wsgi as a replacement.
+  from starlette.middleware.wsgi import (
+WARNING:  WatchFiles detected changes in 'backend\app\services\case_repository.py', 'backend\app\services\scoring_service.py', 'backend\app\services\case_validation_service.py', 'backend\app\services\patient_agent_service.py', 'backend\app\data\cases.py', 'backend\app\services\case_source_adapter.py', 'backend\app\main.py', 'backend\app\models.py', 'backend\app\services\case_generation_service.py'. Reloading...
+Process SpawnProcess-2:
+Traceback (most recent call last):
+  File "C:\Users\31119\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\31119\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\uvicorn\_subprocess.py", line 76, in subprocess_started
+    config.configure_logging()
+  File "D:\cc项目\ai+medicine\.venv\Lib\site-packages\uvicorn\config.py", line 391, in configure_logging
+    logging.config.dictConfig(self.log_config)
+  File "C:\Users\31119\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\logging\config.py", line 942, in dictConfig
+    dictConfigClass(config).configure()
+  File "C:\Users\31119\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\logging\config.py", line 608, in configure
+    handler = self.configure_handler(handlers[name])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\31119\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\logging\config.py", line 876, in configure_handler
+    result = factory(**kwargs)
+             ^^^^^^^^^^^^^^^^^
+  File "C:\Users\31119\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\logging\__init__.py", line 1132, in __init__
+    Handler.__init__(self)
+  File "C:\Users\31119\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\logging\__init__.py", line 939, in __init__
+    _addHandlerRef(self)
+  File "C:\Users\31119\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\logging\__init__.py", line 896, in _addHandlerRef
+    _acquireLock()
+  File "C:\Users\31119\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\logging\__init__.py", line 241, in _acquireLock
+    _lock.acquire()
+KeyboardInterrupt
+D:\cc项目\ai+medicine\.venv\Lib\site-packages\fastapi\middleware\wsgi.py:1: StarletteDeprecationWarning: starlette.middleware.wsgi is deprecated and will be removed in a future release. Please refer to https://github.com/abersheeran/a2wsgi as a replacement.
+  from starlette.middleware.wsgi import (
+INFO:     Started server process [4580]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
