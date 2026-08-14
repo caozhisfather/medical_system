@@ -11,7 +11,14 @@ const command = ref('');
 const loading = ref(false);
 const feedback = ref('');
 
-function localIntent(message: string) {
+type LocalIntent = { action: string; target: string; reply: string };
+
+function localIntent(message: string): LocalIntent {
+  const role = trainingStore.state.profile.role;
+  if (role === 'student' && /复盘|今天哪里|哪里做得不好|明日计划|今日总结/.test(message)) return { action: 'dailyReview', target: '', reply: '正在打开每日复盘，并生成今日总结、薄弱点和明日计划。' };
+  if (role === 'teacher' && /班级复盘|复盘|教学建议|今日班级/.test(message)) return { action: 'classReview', target: '', reply: '正在打开班级复盘，查看共性薄弱点和教学建议。' };
+  if (role === 'admin' && /复盘策略|复盘配置|教师预警|生成时间/.test(message)) return { action: 'adminReview', target: '', reply: '正在打开复盘策略配置。' };
+  if (role === 'admin' && /数据源|ModelScope|知识库|后台|系统/.test(message)) return { action: 'admin', target: '', reply: '正在打开超级管理员控制台。' };
   if (message.includes('解剖') || message.includes('器官') || message.includes('定位')) return { action: 'anatomy', target: '', reply: '正在打开解剖定位训练。' };
   if (message.includes('随机') && (message.includes('呼吸') || message.includes('气促'))) {
     const candidates = trainingStore.state.cases.filter((item) => item.department.includes('呼吸') || item.symptom_tags?.includes('呼吸困难'));
@@ -25,6 +32,7 @@ function localIntent(message: string) {
   if (message.includes('检索') || message.includes('问诊要点') || message.includes('指南')) return { action: 'knowledge', target: message.replace(/检索|问诊要点|指南/g, '').trim(), reply: '正在检索指南知识网络。' };
   return { action: 'dashboard', target: '', reply: '已返回当前工作台。' };
 }
+
 async function execute() {
   const message = command.value.trim();
   if (!message || loading.value) return;
@@ -33,7 +41,11 @@ async function execute() {
   let intent = localIntent(message);
   try {
     const result = await sendAgentMessage(message, trainingStore.state.profile.role, 'router');
-    if (result.target_case_id) intent = { action: 'case', target: result.target_case_id, reply: result.reply };
+    if (result.target_module === 'daily_review') intent = { action: 'dailyReview', target: '', reply: result.reply };
+    else if (result.target_module === 'class_review') intent = { action: 'classReview', target: '', reply: result.reply };
+    else if (result.target_module === 'admin_review') intent = { action: 'adminReview', target: '', reply: result.reply };
+    else if (result.target_module === 'admin') intent = { action: 'admin', target: '', reply: result.reply };
+    else if (result.target_case_id) intent = { action: 'case', target: result.target_case_id, reply: result.reply };
     else if (result.target_module === 'anatomy') intent = { action: 'anatomy', target: result.target_exercise_id ?? '', reply: result.reply };
     else if (result.target_module === 'report') intent = { action: 'report', target: trainingStore.lastReport.value.id, reply: result.reply };
     else if (result.target_module === 'teacher') intent = { action: 'teacher', target: '', reply: result.reply };
@@ -42,12 +54,15 @@ async function execute() {
     // Local intent keeps navigation available when the backend is offline.
   }
   feedback.value = intent.reply;
-  if (intent.action === 'case') await router.push({ path: '/student/case/new', query: { case: intent.target } });
+  if (intent.action === 'dailyReview') await router.push({ path: '/student/daily-review', query: { source: 'agent' } });
+  else if (intent.action === 'classReview') await router.push('/teacher/class-review');
+  else if (intent.action === 'adminReview' || intent.action === 'admin') await router.push('/admin/dashboard');
+  else if (intent.action === 'case') await router.push({ path: '/student/case/new', query: { case: intent.target } });
   else if (intent.action === 'anatomy') await router.push({ path: '/student/anatomy', query: intent.target ? { exercise: intent.target } : {} });
   else if (intent.action === 'report') await router.push(`/training-report/${intent.target}`);
   else if (intent.action === 'teacher') await router.push('/teacher/reports');
   else if (intent.action === 'knowledge') await router.push({ path: '/knowledge-graph', query: { q: intent.target } });
-  else await router.push(trainingStore.state.profile.role === 'teacher' ? '/teacher/dashboard' : '/student/dashboard');
+  else await router.push(trainingStore.state.profile.role === 'teacher' ? '/teacher/dashboard' : trainingStore.state.profile.role === 'admin' ? '/admin/dashboard' : '/student/dashboard');
   command.value = '';
   loading.value = false;
 }
@@ -59,7 +74,7 @@ async function execute() {
     <input
       v-model="command"
       aria-label="智能导航指令"
-      placeholder="告诉智能体你想训练或查看什么"
+      placeholder="告诉智能体你想训练、复盘或查看什么"
       @keydown.enter.prevent="execute"
     />
     <button type="button" :disabled="loading || !command.trim()" title="执行指令" @click="execute">
@@ -69,4 +84,3 @@ async function execute() {
     <span v-if="feedback" class="agent-feedback">{{ feedback }}</span>
   </div>
 </template>
-

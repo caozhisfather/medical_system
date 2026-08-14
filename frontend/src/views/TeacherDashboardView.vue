@@ -28,10 +28,10 @@ const interventionStudents = computed(() => dashboard.value.students?.filter((it
 
 <template>
   <div class="workspace-page teacher-page">
-    <section class="teacher-dashboard-hero">
+    <section class="teacher-dashboard-hero" data-tour="teacher-dashboard">
       <img :src="teacherDashboardImage" alt="" />
       <div><span class="section-kicker">诊断学课程 · 2023-2 班</span><h1>教学质量与班级临床思维概览</h1><p>聚合训练表现、共性遗漏和教师复核任务，用于下一轮教学干预。</p></div>
-      <button class="button-primary" type="button" @click="router.push('/teacher/reports')">查看待复核报告 <ArrowRight :size="18" /></button>
+      <button class="button-primary" type="button" @click="router.push('/teacher/class-review')">查看班级复盘 <ArrowRight :size="18" /></button>
     </section>
 
     <section class="metric-strip teacher-metrics">
@@ -52,7 +52,7 @@ const interventionStudents = computed(() => dashboard.value.students?.filter((it
         <div class="trend-legend"><span><i></i>临床推理</span><span><i class="secondary"></i>证据引用</span></div>
       </section>
 
-      <section class="surface-panel weakness-panel">
+      <section class="surface-panel weakness-panel" data-tour="common-weakness">
         <div class="section-heading"><div><span class="section-kicker">共性问题</span><h2>班级薄弱项</h2></div><AlertTriangle :size="20" /></div>
         <article v-for="(item, index) in dashboard.common_missing_points.slice(0, 5)" :key="item">
           <span>{{ String(index + 1).padStart(2, '0') }}</span><div><strong>{{ item }}</strong><small>{{ 34 - index * 5 }} 名学生出现</small></div><b :style="{ width: `${88 - index * 12}%` }"></b>
@@ -61,7 +61,7 @@ const interventionStudents = computed(() => dashboard.value.students?.filter((it
     </div>
 
     <div class="teacher-dashboard-grid lower">
-      <section class="surface-panel intervention-list">
+      <section class="surface-panel intervention-list" data-tour="student-alert">
         <div class="section-heading"><div><span class="section-kicker">需要关注</span><h2>教学干预名单</h2></div><button class="text-button" type="button" @click="router.push('/teacher/reports')">全部报告 <ArrowRight :size="15" /></button></div>
         <article v-for="student in interventionStudents" :key="student.name">
           <span>{{ student.name.slice(-1) }}</span><div><strong>{{ student.name }}</strong><small>{{ student.last_case }} · 薄弱项：{{ student.weakness }}</small></div><b>{{ student.average_score }}</b><button type="button" @click="router.push('/teacher/reports')">查看</button>

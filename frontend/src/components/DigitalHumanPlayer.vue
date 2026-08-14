@@ -18,7 +18,8 @@ const stateLabels: Record<DigitalHumanState, string> = {
   listening: '正在倾听',
   speaking: '正在讲解',
   warning: '风险提醒',
-  scoring: '正在评分'
+  scoring: '正在评分',
+  reviewing: '复盘讲解'
 };
 const videoRef = ref<HTMLVideoElement | null>(null);
 const mediaFailed = ref(false);

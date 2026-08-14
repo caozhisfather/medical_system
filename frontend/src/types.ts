@@ -24,6 +24,7 @@ export interface CaseSummary {
   recommended_minutes?: number;
   completion_status?: string;
   patient_profile: PatientProfile;
+  patient_image?: string;
   patient_profile_text?: string;
   speaking_style?: string;
   opening?: string;
@@ -63,6 +64,50 @@ export interface PatientChatResponse { session_id?: string | null; case_id?: str
 export interface GuidelineDoc { id: string; title: string; source: string; type: string; tags: string[]; content: string; }
 export interface TeacherDashboard { class_average: number; completion_rate?: number; training_sessions: number; teacher_time_saved: string; citation_accuracy: string; intervention_needed?: number; improvements: Array<{ label: string; value: number }>; common_missing_points: string[]; risk_rankings?: Array<{ label: string; count: number; level: string }>; students?: Array<{ name: string; sessions: number; average_score: number; last_case: string; weakness: string; needs_intervention: boolean }>; teaching_suggestions?: string[]; }
 export interface TrainingReport { case_id: string; diagnosis_path: string[]; strengths: string[]; improvements: string[]; recommended_cases: string[]; citations: Citation[]; }
+export interface DailyReview {
+  review_id: string;
+  student_id: string;
+  date: string;
+  status: '已生成' | '待补充训练' | '需要教师关注';
+  summary: string;
+  completed_cases: number;
+  anatomy_practices: number;
+  knowledge_searches: number;
+  average_score: number;
+  high_risk_misses: string[];
+  performance: Record<string, number>;
+  weak_points: string[];
+  strengths: string[];
+  recommended_cases: string[];
+  recommended_knowledge: string[];
+  recommended_anatomy: string[];
+  recommended_graph_path: string[];
+  tomorrow_plan: string[];
+  teacher_attention_required: boolean;
+}
+export interface DailyReviewClassSummary {
+  class_id: string;
+  date: string;
+  summary: string;
+  trained_students: number;
+  review_completion_rate: number;
+  average_score: number;
+  high_risk_rankings: Array<{ label: string; count: number; level: string }>;
+  common_weak_points: string[];
+  attention_students: Array<{ student_id: string; name: string; reason: string; average_score: number }>;
+  teaching_suggestions: string[];
+}
+export interface DailyReviewPolicy {
+  generate_time: string;
+  score_weights: Record<string, number>;
+  recommended_case_count: number;
+  recommended_knowledge_count: number;
+  digital_human_review_enabled: boolean;
+  teacher_alert_enabled: boolean;
+  service_status: string;
+  last_generated_at: string;
+  policy_note: string;
+}
 export interface KnowledgeNode { id: string; label: string; group: string; type?: string; label_zh?: string; label_en?: string; aliases_zh?: string[]; aliases_en?: string[]; summary?: string; description_zh?: string; description_en?: string; embedding?: number[]; score?: number; embedding_id?: string; embedding_text?: string; embedding_text_zh?: string; embedding_text_en?: string; vector_status?: string; source_ids?: string[]; related_case_ids?: string[]; related_knowledge_ids?: string[]; }
 export interface KnowledgeEdge { source: string; target: string; relation: string; relation_zh?: string; relation_en?: string; weight?: number; evidence_source?: string; explanation_zh?: string; explanation_en?: string; }
 export interface RagResponse { answer: string; citations: Citation[]; workflow_trace: WorkflowTrace[]; safety_notes: string[]; matched_knowledge?: KnowledgeItem[]; graph_nodes?: KnowledgeNode[]; graph_edges?: KnowledgeEdge[]; bilingual_terms?: BilingualTerm[]; related_cases?: CaseSummary[]; related_anatomy_exercises?: AnatomyExercise[]; recommended_learning_path?: string[]; }
@@ -81,7 +126,7 @@ export interface DataSourceItem { id: string; name: string; platform: string; ty
 export interface TextbookStage { id: string; title_zh: string; title_en: string; goal: string; books: string[]; }
 export interface BilingualTerm { id: string; type: string; label_zh: string; label_en: string; aliases_zh?: string[]; aliases_en?: string[]; }
 
-export type DigitalHumanState = 'idle' | 'listening' | 'speaking' | 'warning' | 'scoring';
+export type DigitalHumanState = 'idle' | 'listening' | 'speaking' | 'warning' | 'scoring' | 'reviewing';
 export type DigitalHumanMode = 'mock' | 'liveact';
 export interface DigitalHumanSpeakRequest {
   session_id: string;
@@ -117,5 +162,7 @@ export interface DigitalHumanModesResponse {
   liveact_available: boolean;
   fallback_enabled: boolean;
 }
+
+
 
 

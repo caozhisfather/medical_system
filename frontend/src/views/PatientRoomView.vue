@@ -96,6 +96,10 @@ function finishTraining() {
     <div class="room-layout">
       <aside class="case-rail">
         <section>
+          <figure v-if="caseData.patient_image" class="case-patient-portrait">
+            <img :src="caseData.patient_image" :alt="caseData.title + '标准化病人'" />
+            <figcaption>虚拟标准化病人</figcaption>
+          </figure>
           <span class="rail-section-label"><Stethoscope :size="15" /> 病例概览</span>
           <h1>{{ caseData.chief_complaint }}</h1>
           <p>{{ caseData.patient_profile_text }}</p>
@@ -184,4 +188,6 @@ function finishTraining() {
     </div>
   </main>
 </template>
+
+
 

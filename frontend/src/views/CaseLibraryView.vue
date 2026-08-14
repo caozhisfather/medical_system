@@ -97,6 +97,7 @@ async function randomCase() {
     <section class="case-library-grid">
       <article v-for="(item, index) in filtered" :key="item.id" class="case-library-card">
         <div class="case-card-visual" :class="`clinical-tone-${index % 4}`">
+          <img v-if="item.patient_image" :src="item.patient_image" :alt="item.title + '标准化病人'" loading="lazy" />
           <span>{{ item.department }} · {{ item.specialty }}</span>
           <b>{{ String(index + 1).padStart(2, '0') }}</b>
           <div class="ecg-line"></div>
@@ -114,3 +115,4 @@ async function randomCase() {
     </section>
   </div>
 </template>
+

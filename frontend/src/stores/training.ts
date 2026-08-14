@@ -1,9 +1,9 @@
 import { computed, reactive } from 'vue';
-import { getCases, orderTrainingTest, sendPatientMessage, startTraining, submitTrainingDiagnosis } from '../api';
+import { getCases, login, orderTrainingTest, sendPatientMessage, startTraining, submitTrainingDiagnosis } from '../api';
 import { mockCases } from '../data/cases';
 import type { CaseSummary, ChatMessage, Citation, MissingPoint, ScoreItem } from '../types';
 
-export type WorkspaceRole = 'student' | 'teacher';
+export type WorkspaceRole = 'student' | 'teacher' | 'admin';
 
 export interface UserProfile {
   role: WorkspaceRole;
@@ -74,6 +74,14 @@ const defaultProfile: UserProfile = {
   direction: '急诊与内科临床思维',
   completed: false
 };
+
+function storedToken() {
+  try {
+    return localStorage.getItem('medical_auth_token') ?? '';
+  } catch {
+    return '';
+  }
+}
 
 const initialHistory: TrainingReportRecord[] = [
   {
@@ -152,7 +160,7 @@ function persist(key: string, value: unknown) {
 }
 
 const state = reactive({
-  authenticated: readStored('medical_auth', false),
+  authenticated: Boolean(storedToken()),
   profile: readStored<UserProfile>('medical_profile', defaultProfile),
   cases: mockCases as unknown as CaseSummary[],
   casesLoaded: false,
@@ -173,11 +181,20 @@ function openingFor(caseData: CaseSummary, variantId = 'A') {
 }
 
 function citationsFor(caseData: CaseSummary): Citation[] {
-  return (caseData.recommended_guidelines ?? []).map((title, index) => ({
+  const configured = caseData.recommended_guidelines ?? [];
+  if (!configured.length) {
+    return [{
+      id: `${caseData.id}-evidence-placeholder`,
+      title: `《${caseData.title}教学证据待补充》`,
+      source: '病例教学证据索引（Mock，待教师审核）',
+      snippet: '当前病例尚未配置指南条目，不能使用其他病例的证据替代。'
+    }];
+  }
+  return configured.map((title, index) => ({
     id: `${caseData.id}-E${index + 1}`,
-    title,
-    source: '可追溯医学教育知识库',
-    snippet: `${caseData.title}训练依据，提交临床思维后可查看完整证据片段。`
+    title: title.startsWith('《') ? title : `《${title}》`,
+    source: '病例教学证据索引（Mock，待教师审核）',
+    snippet: `该条目来自“${caseData.title}”病例配置。当前原型未收录指南原文，正式使用前需接入合法来源并由教师审核。`
   }));
 }
 
@@ -234,8 +251,36 @@ export const trainingStore = {
     persist('medical_profile', state.profile);
   },
 
+  async authenticate(account: string, password: string, role: WorkspaceRole, rememberAccount = true) {
+    let response;
+    try {
+      response = await login(account, password, role);
+    } catch (error) {
+      if (error instanceof TypeError) throw new Error('登录服务暂时无法连接，请确认后端服务已启动。');
+      throw error;
+    }
+    const responseRole: WorkspaceRole = response.user.role === 'super_admin' ? 'admin' : response.user.role as WorkspaceRole;
+    if (responseRole !== role) throw new Error('该账号不属于当前选择的身份，请切换身份后重试。');
+
+    const roleProfile = role === 'teacher'
+      ? { grade: response.user.department || '诊断学教研室', specialty: '诊断学与临床技能', className: '临床医学 2023-2 班', direction: '诊断学与临床技能' }
+      : role === 'admin'
+        ? { grade: response.user.department || '系统管理中心', specialty: '平台运维与知识工程', className: '全校医学教学空间', direction: '数据源与复盘策略' }
+        : { grade: response.user.department || '临床医学四年级', specialty: '临床医学', className: '临床医学 2023-2 班', direction: '急诊与内科临床思维' };
+
+    state.authenticated = true;
+    state.profile = { ...state.profile, ...roleProfile, role, name: response.user.name, completed: true };
+    localStorage.setItem('medical_auth_token', response.token);
+    persist('medical_auth', true);
+    persist('medical_profile', state.profile);
+    if (rememberAccount) localStorage.setItem(`medical_login_account_${role}`, account);
+    else localStorage.removeItem(`medical_login_account_${role}`);
+    return response;
+  },
+
   signOut() {
     state.authenticated = false;
+    localStorage.removeItem('medical_auth_token');
     persist('medical_auth', false);
   },
 
@@ -373,6 +418,7 @@ export const trainingStore = {
     return state.history.find((item) => item.id === id) ?? state.history[0];
   }
 };
+
 
 
 

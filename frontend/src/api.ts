@@ -1,20 +1,34 @@
-import type { AgentResponse, AnatomyExercise, AnatomyResult, AuthResponse, CaseSummary, ChatMessage, DataSourceItem, GuidelineDoc, KnowledgeEdge, KnowledgeItem, KnowledgeNode, Overview, PatientChatResponse, RagResponse, TeacherDashboard, TextbookStage, TrainingReport, TtsResponse } from './types';
+import type { AgentResponse, AnatomyExercise, AnatomyResult, AuthResponse, CaseSummary, ChatMessage, DailyReview, DailyReviewClassSummary, DailyReviewPolicy, DataSourceItem, GuidelineDoc, KnowledgeEdge, KnowledgeItem, KnowledgeNode, Overview, PatientChatResponse, RagResponse, TeacherDashboard, TextbookStage, TrainingReport, TtsResponse } from './types';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
+function authHeaders(): Record<string, string> {
+  const token = localStorage.getItem('medical_auth_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+async function requestError(response: Response) {
+  try {
+    const payload = await response.json() as { detail?: string; message?: string };
+    return payload.detail || payload.message || `请求失败（${response.status}）`;
+  } catch {
+    return `请求失败（${response.status}）`;
+  }
+}
+
 async function readJson<T>(url: string): Promise<T> {
-  const response = await fetch(`${baseUrl}${url}`);
-  if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+  const response = await fetch(`${baseUrl}${url}`, { headers: authHeaders() });
+  if (!response.ok) throw new Error(await requestError(response));
   return response.json() as Promise<T>;
 }
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
   const response = await fetch(`${baseUrl}${url}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(body)
   });
-  if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+  if (!response.ok) throw new Error(await requestError(response));
   return response.json() as Promise<T>;
 }
 
@@ -31,6 +45,7 @@ export function getCase(caseId: string) { return readJson<Record<string, unknown
 export function getWorkflow() { return readJson<{ name: string; stages: Array<{ id: string; name: string; agent: string; goal: string }> }>('/api/workflow'); }
 export function getGuidelines() { return readJson<GuidelineDoc[]>('/api/guidelines'); }
 export function getKnowledge() { return readJson<KnowledgeItem[]>('/api/knowledge'); }
+export function getDataSources() { return readJson<DataSourceItem[]>('/api/data-sources'); }
 export function searchKnowledge(q: string, lang = 'zh') { return readJson<{ query: string; count: number; items: Array<{ kind: string; title: string; summary: string; target: string }> }>(`/api/knowledge/search?q=${encodeURIComponent(q)}&lang=${encodeURIComponent(lang)}`); }
 export function getTeacherDashboard() { return readJson<TeacherDashboard>('/api/teacher/dashboard'); }
 export function getTrainingReport(caseId = 'emergency_chest_pain') { return readJson<TrainingReport>(`/api/training/report?case_id=${encodeURIComponent(caseId)}`); }
@@ -56,6 +71,12 @@ export function submitTrainingDiagnosis(sessionId: string, payload: { preliminar
   return postJson<Record<string, unknown>>('/api/training/submit-diagnosis', { session_id: sessionId, ...payload });
 }
 
+export function getTodayDailyReview(studentId: string) { return readJson<DailyReview>(`/api/daily-review/today/${encodeURIComponent(studentId)}`); }
+export function getDailyReviewHistory(studentId: string) { return readJson<DailyReview[]>(`/api/daily-review/history/${encodeURIComponent(studentId)}`); }
+export function generateDailyReview(studentId: string) { return postJson<DailyReview>('/api/daily-review/generate', { student_id: studentId, force: true }); }
+export function getDailyReviewRecommendations(studentId: string) { return readJson<Pick<DailyReview, 'student_id' | 'date' | 'recommended_cases' | 'recommended_knowledge' | 'recommended_anatomy' | 'recommended_graph_path' | 'tomorrow_plan'>>(`/api/daily-review/recommendations/${encodeURIComponent(studentId)}`); }
+export function getClassDailyReview(classId = 'clinical-2023-2') { return readJson<DailyReviewClassSummary>(`/api/daily-review/class/${encodeURIComponent(classId)}`); }
+export function getDailyReviewPolicy() { return readJson<DailyReviewPolicy>('/api/daily-review/admin/config'); }
 export function getTrainingRecommendations(caseId: string) {
   return readJson<{ today: CaseSummary[]; retraining: CaseSummary[]; similar: CaseSummary[] }>(`/api/training/recommendations?case_id=${encodeURIComponent(caseId)}`);
 }
@@ -77,4 +98,5 @@ export function getKnowledgeStatus() { return readJson<Record<string, unknown>>(
 export function getGraphStatus() { return readJson<Record<string, unknown>>('/api/admin/graph-status'); }
 export function exportObsidian() { return postJson<{ status: string; message: string; note_count: number; vault_name: string; notes: Array<{ filename: string; content: string }> }>('/api/admin/obsidian/export', {}); }
 export function getTextbookPathways() { return readJson<TextbookStage[]>('/api/textbook-pathways'); }
+
 

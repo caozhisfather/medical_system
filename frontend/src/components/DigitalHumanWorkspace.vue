@@ -74,7 +74,7 @@ async function generate() {
       session_id: sessionId.value,
       text,
       emotion: props.state === 'warning' ? 'warning' : 'teaching',
-      action: props.state === 'scoring' ? 'score' : 'explain',
+      action: props.state === 'scoring' ? 'score' : props.state === 'reviewing' ? 'review' : 'explain',
       avatar_id: 'medical_tutor_001',
       voice: 'zh_female_warm',
       mode: requestedMode.value

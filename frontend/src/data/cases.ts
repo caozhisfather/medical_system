@@ -1,4 +1,5 @@
 import type { CaseSummary } from '../types';
+import patientChestPainImage from '../assets/medical/patient-chest-pain.png';
 
 export const mockCases: CaseSummary[] = [
   {
@@ -38,6 +39,7 @@ export const mockCases: CaseSummary[] = [
       "communication_style": "语速急促，担心病情，但只回答被问到的内容"
     },
     "patient_profile_text": "45岁男性，项目经理，虚拟教学病例",
+    "patient_image": patientChestPainImage,
     "speaking_style": "语速急促，担心病情，但只回答被问到的内容",
     "opening_statement": "医生，我胸口疼了两个小时，还一直出汗。",
     "opening": "医生，我胸口疼了两个小时，还一直出汗。",
@@ -13386,3 +13388,4 @@ export const mockCases: CaseSummary[] = [
     }
   }
 ];
+
