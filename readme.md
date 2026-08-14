@@ -439,6 +439,10 @@ flowchart LR
 
 每个病例提供 A/B/C 三个变体。变体可改变年龄、表达方式、病史呈现顺序和干扰信息，但 `hidden_final_diagnosis`、核心鉴别和安全逻辑保持不变。ScoringAgent 使用当前病例的 `key_scoring_points`、`high_risk_misses`、问诊记录、已申请检查、初步诊断、鉴别诊断、处理原则和引用证据进行独立评分，不使用固定胸痛量表。
 
+### 病例证据隔离
+
+训练提示和报告引用都通过 `CaseCitationService` 按 `case_id` 校验。RAG 检索结果只有在标题匹配当前病例 `recommended_guidelines` 白名单时才会返回；知识库未收录对应原文时，系统返回该病例自己的“Mock，待教师审核”引用占位，不允许使用胸痛或其他病例的指南兜底。可运行 `python scripts/verify_case_citations.py` 检查全部病例的引用隔离。
+
 ### 病例生成器
 
 病例生成器当前为 Mock 骨架，包含：
@@ -513,3 +517,180 @@ flowchart LR
 - `POST /api/admin/cases/generate-mock`：生成待审核病例草稿。
 - `POST /api/admin/cases/validate`：校验单例或完整病例库。
 - `GET /api/admin/cases/source-plan`：查看公开来源接入与合规计划。
+
+
+---
+
+## 2026-08-01 更新：每日复盘、角色化工作台与首次使用引导
+
+本次迭代在现有“临思智训：AI 标准化病人临床思维训练平台”上增量优化，不从零重建，不删除既有病例训练、知识图谱、解剖训练、教师看板、报告复核和数字人能力。
+
+### 每日复盘功能设计
+
+每日复盘面向学生端为主，教师端和超级管理员端提供统计与策略配置。系统每天基于学生训练记录、错题、高风险遗漏、病例表现、知识图谱学习路径和解剖练习结果，生成结构化复盘报告。
+
+学生端新增 `/student/daily-review`，包含：
+
+- 今日训练概览：完成病例数、解剖练习次数、知识库检索次数、平均得分、高风险遗漏次数。
+- 今日表现分析：问诊完整性、鉴别诊断能力、检查选择能力、指南依据使用、解剖定位准确率、临床安全意识。
+- 主要薄弱点：点击后可跳转病例、知识图谱或解剖训练。
+- AI 复盘总结：自然语言总结今天表现。
+- 明日计划：推荐 2-3 个病例、3-5 个知识点、1 个解剖练习和 1 条知识图谱路径。
+- 复盘状态：已生成、待补充训练、需要教师关注。
+
+### 每日复盘数据结构
+
+```ts
+interface DailyReview {
+  review_id: string;
+  student_id: string;
+  date: string;
+  status: '已生成' | '待补充训练' | '需要教师关注';
+  summary: string;
+  completed_cases: number;
+  anatomy_practices: number;
+  knowledge_searches: number;
+  average_score: number;
+  high_risk_misses: string[];
+  performance: Record<string, number>;
+  weak_points: string[];
+  strengths: string[];
+  recommended_cases: string[];
+  recommended_knowledge: string[];
+  recommended_anatomy: string[];
+  recommended_graph_path: string[];
+  tomorrow_plan: string[];
+  teacher_attention_required: boolean;
+}
+```
+
+### DailyReviewService 说明
+
+新增后端模块：
+
+- `backend/app/services/daily_review_service.py`：生成学生今日复盘、历史复盘、推荐计划、班级复盘统计和管理员策略 mock。
+- `backend/app/api/daily_review.py`：暴露每日复盘 API。
+
+API：
+
+```text
+GET  /api/daily-review/today/{student_id}
+GET  /api/daily-review/history/{student_id}
+POST /api/daily-review/generate
+GET  /api/daily-review/recommendations/{student_id}
+GET  /api/daily-review/class/{class_id}
+GET  /api/daily-review/admin/config
+```
+
+### Agent + 数字人 + 每日复盘联动流程
+
+Agent 已识别以下意图：
+
+- 学生：“帮我复盘今天的训练”“我今天哪里做得不好？” -> 自动打开 `/student/daily-review`。
+- 教师：“查看班级复盘”“生成教学建议” -> 自动打开 `/teacher/class-review`。
+- 管理员：“复盘策略配置”“教师预警配置” -> 自动打开 `/admin/dashboard`。
+
+数字人导师新增 `reviewing` 状态。学生复盘页中，如果存在高风险遗漏或需要教师关注，数字人进入 `warning` 状态；否则进入 `reviewing` 状态，并朗读或展示复盘摘要。
+
+```mermaid
+flowchart TD
+  A[学生发起复盘请求] --> B[RouterAgent 识别 daily_review 意图]
+  B --> C[打开学生每日复盘页]
+  C --> D[DailyReviewService 生成今日复盘]
+  D --> E{是否存在高风险遗漏}
+  E -- 是 --> F[数字人进入 warning 提醒状态]
+  E -- 否 --> G[数字人进入 reviewing 复盘讲解状态]
+  F --> H[展示薄弱点与明日计划]
+  G --> H
+  H --> I[跳转病例 / 知识图谱 / 解剖训练]
+```
+
+### 学习闭环流程图
+
+```mermaid
+flowchart LR
+  A[今日学习任务] --> B[AI 标准化病人训练]
+  B --> C[提交诊断与检查决策]
+  C --> D[AI 评分与指南依据]
+  D --> E[每日复盘]
+  E --> F[明日学习建议]
+  F --> G[推荐复训病例]
+  F --> H[推荐知识图谱路径]
+  F --> I[推荐解剖练习]
+  G --> B
+```
+
+### 学生端 / 教师端 / 管理员端首页差异
+
+```mermaid
+flowchart TD
+  R[角色化首页信息架构] --> S[学生首页]
+  R --> T[教师首页]
+  R --> A[管理员首页]
+  S --> S1[今日任务]
+  S --> S2[病例训练入口]
+  S --> S3[每日复盘与薄弱点]
+  S --> S4[推荐路径与数字人导师]
+  T --> T1[班级概览]
+  T --> T2[共性问题]
+  T --> T3[学生预警]
+  T --> T4[班级复盘与教学建议]
+  A --> A1[数据源]
+  A --> A2[知识库与图谱状态]
+  A --> A3[Agent 工作流]
+  A --> A4[复盘策略配置]
+```
+
+### 新手引导设计
+
+新增组件与服务：
+
+- `frontend/src/components/onboarding/OnboardingTour.vue`
+- `frontend/src/components/onboarding/TourStep.vue`
+- `frontend/src/services/onboarding.ts`
+
+引导支持学生、教师、超级管理员三种版本。首次进入对应角色工作台会自动出现，用户可跳过、上一步、下一步、完成，并通过帮助中心重新打开。完成状态使用 `localStorage` 按角色记录。
+
+```mermaid
+flowchart TD
+  A[首次进入角色工作台] --> B{localStorage 是否已完成}
+  B -- 是 --> C[直接进入工作台]
+  B -- 否 --> D[显示遮罩和高亮区域]
+  D --> E[按角色展示 4-6 步说明]
+  E --> F{跳过或完成}
+  F --> G[写入 localStorage]
+  G --> C
+  C --> H[帮助中心可重新打开]
+```
+
+### UI 优化说明
+
+本次使用 `impeccable` 的 Operate 模式原则完成 UI 优化：
+
+- 保留“临床教学工作台”视觉基线，继续使用浅色医学工作台、青绿色结构色、橙色风险提醒。
+- 重新梳理顶部导航、左侧导航、主内容区和 Agent/数字人区域。
+- 学生端突出“学习任务 -> AI 训练 -> 反馈复盘 -> 明日计划”。
+- 教师端突出班级概览、共性薄弱点、学生预警和教学建议。
+- 管理员端突出数据源、知识库、图谱、Agent 和复盘策略配置。
+- 增加 hover、active、页面 transition、复盘生成 loading、Agent typing 反馈和数字人 reviewing/warning 状态。
+- 移动端将主网格折叠为单列，侧边导航变为横向滚动入口。
+
+### 帮助中心说明
+
+新增 `/help` 轻量帮助中心，包含：
+
+- 平台能做什么。
+- 学生怎么完成一次病例训练。
+- 如何查看每日复盘。
+- 如何使用知识图谱。
+- 如何进行解剖定位训练。
+- 教师如何查看班级分析。
+- 管理员如何管理数据源。
+- 医学安全声明：仅用于教学训练，不用于真实临床诊断。
+
+### 安全边界
+
+- 不写真实 API key。
+- 不使用真实患者隐私数据。
+- 所有病例、复盘和推荐均为虚拟教学或 mock 数据。
+- 系统反馈仅用于医学教育训练，不构成真实临床诊断或治疗建议。
