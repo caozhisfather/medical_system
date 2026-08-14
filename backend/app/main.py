@@ -9,6 +9,7 @@ from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.wsgi import WSGIMiddleware
 
+from .api.daily_review import router as daily_review_router
 from .api.digital_human import router as digital_human_router
 from .config import ROOT_DIR, settings
 from .data_sources import load_admin_users, load_data_sources, load_textbook_pathways
@@ -22,9 +23,11 @@ from .models import (
     TrainingReport, TrainingScoreRequest, CaseRandomRequest, TrainingStartRequest, TrainingOrderTestRequest, TrainingDiagnosisRequest, CaseValidateRequest,
 )
 from .services.case_generation_service import CaseGenerationService
+from .services.case_citation_service import CaseCitationService
 from .services.case_repository import CaseRepository
 from .services.case_source_adapter import CaseSourceAdapter
 from .services.case_validation_service import CaseValidationService
+from .services.daily_review_service import DailyReviewService
 from .services.patient_agent_service import PatientAgent
 from .services.scoring_service import ScoringAgent
 from .rag import RagPipeline
@@ -34,12 +37,16 @@ DATA_DIR = ROOT_DIR / "data"
 app = FastAPI(title="AI标准化病人临床思维训练平台", version="0.4.0")
 app.add_middleware(CORSMiddleware, allow_origins=[settings.frontend_origin, "http://localhost:5173", "http://127.0.0.1:5173"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.mount("/flask", WSGIMiddleware(create_flask_app()))
+app.include_router(daily_review_router)
 app.include_router(digital_human_router)
 rag_pipeline = RagPipeline(settings.rag_provider)
 hybrid_service = HybridRetrievalService()
 graph_service = KnowledgeGraphService()
 obsidian_service = ObsidianGraphExportService()
 case_repository = CaseRepository()
+case_citation_service = CaseCitationService(
+    json.loads((DATA_DIR / "guidelines.json").read_text(encoding="utf-8"))
+)
 patient_agent = PatientAgent()
 scoring_agent = ScoringAgent()
 case_generator = CaseGenerationService()
@@ -167,7 +174,29 @@ def resolve_agent(message: str, role: str, active_module: str) -> AgentChatRespo
     reply = f"已检索到 {len(cards)} 条站内资源，并生成学习路径。"
     case = match_case(msg)
     exercise = match_anatomy(msg)
-    if role_key == "admin" and any(key in msg.lower() for key in ["modelscope", "数据源", "同步", "rag配置", "后台"]):
+    if role_key == "student" and any(key in msg for key in ["复盘", "今天哪里", "哪里做得不好", "明日计划", "今日总结"]):
+        review = DailyReviewService().today("student_001")
+        intent, action, target_module = "daily_review", "open_daily_review", "daily_review"
+        reply = f"{review['summary']} 我已为你生成明日复训计划。"
+        cards = [
+            {"kind": "AI复盘总结", "title": "今日复盘", "summary": review["summary"], "target": review["review_id"]},
+            {"kind": "薄弱点", "title": review["weak_points"][0], "summary": "点击后可进入病例、知识图谱或解剖训练。", "target": "acute_abdominal_pain"},
+            {"kind": "明日计划", "title": "复训病例与图谱路径", "summary": "、".join(review["tomorrow_plan"][:2]), "target": "daily_review"},
+        ]
+        learning_path = review["recommended_graph_path"]
+    elif role_key == "teacher" and any(key in msg for key in ["班级复盘", "复盘", "教学建议", "今日班级"]):
+        class_review = DailyReviewService().class_review()
+        intent, action, target_module = "class_daily_review", "open_class_review", "class_review"
+        reply = class_review["summary"]
+        cards = [{"kind": "班级薄弱点", "title": item, "summary": "建议加入明日课堂讲评", "target": item} for item in class_review["common_weak_points"]]
+        learning_path = class_review["teaching_suggestions"]
+    elif role_key == "admin" and any(key in msg for key in ["复盘策略", "复盘配置", "生成时间", "教师预警"]):
+        config = DailyReviewService().admin_config()
+        intent, action, target_module = "admin_daily_review_config", "open_review_policy", "admin_review"
+        reply = f"已打开复盘策略配置，当前生成时间为 {config['generate_time']}，复盘服务状态为 {config['service_status']}。"
+        cards = [{"kind": "复盘策略", "title": "每日复盘配置", "summary": config["policy_note"], "target": "daily_review_policy"}]
+        learning_path = ["评分权重", "推荐数量", "数字人复盘", "教师预警", "Mock 数据生成"]
+    elif role_key == "admin" and any(key in msg.lower() for key in ["modelscope", "数据源", "同步", "rag配置", "后台"]):
         intent, action, target_module = "admin_control", "open_admin_data_sources", "admin"
         sources = load_data_sources()
         reply = "已打开超级管理员工作台，并定位到 ModelScope 数据源与 RAG 配置。"
@@ -243,6 +272,13 @@ def auth_login(payload: AuthLoginRequest) -> AuthLoginResponse:
         user = next(item for item in users if item["role"] == "student")
     if user is None:
         raise HTTPException(status_code=401, detail="账号未配置")
+    requested_role = "super_admin" if payload.role == "admin" else payload.role
+    if requested_role not in {"student", "teacher", "super_admin"}:
+        raise HTTPException(status_code=400, detail="登录身份无效")
+    if user["role"] != requested_role:
+        raise HTTPException(status_code=403, detail="该账号不属于当前选择的身份")
+    if user.get("status") != "active":
+        raise HTTPException(status_code=403, detail="该账号当前不可用")
     token = f"mock-{user['role']}-{user['account']}-token"
     return AuthLoginResponse(token=token, user=AuthUser(**user))
 
@@ -338,7 +374,8 @@ def patient_chat(payload: PatientChatRequest) -> dict[str, Any]:
             session["ordered_tests"].append(answer["ordered_test"])
     transcript = " ".join(item.get("content", "") for item in history) + " " + payload.message
     score_result = scoring_agent.score(case, transcript, (session or {}).get("ordered_tests", []))
-    citations = rag_pipeline.retrieve(f"{case['title_zh']} {payload.message}", limit=3)
+    retrieved = rag_pipeline.retrieve(f"{case['title_zh']} {payload.message}", limit=3)
+    citations = case_citation_service.for_case(case, retrieved, limit=3)
     return {
         "session_id": session["session_id"] if session else None,
         "case_id": case["case_id"],
@@ -422,7 +459,11 @@ def student_reports(student_id: str) -> list[dict[str, Any]]:
 @app.get("/api/training/report", response_model=TrainingReport)
 def training_report(case_id: str = "emergency_chest_pain") -> TrainingReport:
     case = get_case_data(case_id)
-    citations = rag_pipeline.retrieve(f"{case['title']} {' '.join(case.get('recommended_retraining', []))}", limit=4)
+    retrieved = rag_pipeline.retrieve(
+        f"{case['title_zh']} {' '.join(case.get('recommended_retraining', []))}",
+        limit=4,
+    )
+    citations = case_citation_service.for_case(case, retrieved, limit=4)
     return TrainingReport(case_id=case_id, diagnosis_path=[case["chief_complaint"], "补全现病史和高危线索", "提出核心鉴别诊断", "选择必要检查", "依据指南更新诊断路径"], strengths=["能围绕主诉开展问诊", "能提出至少一个重点鉴别"], improvements=[item["text"] for item in case.get("high_risk_omissions", [])[:3]], recommended_cases=case.get("recommended_retraining", [])[:4], citations=citations)
 
 
@@ -495,6 +536,11 @@ def rag_index() -> dict[str, Any]:
 @app.get("/api/textbook-pathways")
 def textbook_pathways() -> list[dict[str, Any]]:
     return load_textbook_pathways()
+
+
+@app.get("/api/data-sources")
+def public_data_sources() -> list[dict[str, Any]]:
+    return load_data_sources()
 
 
 @app.get("/api/admin/users")
@@ -582,6 +628,8 @@ def tts_speak(payload: TTSRequest) -> TTSResponse:
 
 if __name__ == "__main__":
     uvicorn.run("backend.app.main:app", host=settings.backend_host, port=settings.backend_port, reload=True)
+
+
 
 
 
