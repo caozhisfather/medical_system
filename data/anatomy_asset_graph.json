@@ -1,0 +1,1981 @@
+{
+  "nodes": [
+    {
+      "id": "anatomy_system_内分泌系统",
+      "label_zh": "内分泌系统",
+      "label_en": "内分泌系统",
+      "type": "anatomy_system",
+      "group": "解剖系统",
+      "summary": "内分泌系统解剖素材与分层结构"
+    },
+    {
+      "id": "anatomy_system_呼吸系统",
+      "label_zh": "呼吸系统",
+      "label_en": "呼吸系统",
+      "type": "anatomy_system",
+      "group": "解剖系统",
+      "summary": "呼吸系统解剖素材与分层结构"
+    },
+    {
+      "id": "anatomy_system_循环系统",
+      "label_zh": "循环系统",
+      "label_en": "循环系统",
+      "type": "anatomy_system",
+      "group": "解剖系统",
+      "summary": "循环系统解剖素材与分层结构"
+    },
+    {
+      "id": "anatomy_system_泌尿系统",
+      "label_zh": "泌尿系统",
+      "label_en": "泌尿系统",
+      "type": "anatomy_system",
+      "group": "解剖系统",
+      "summary": "泌尿系统解剖素材与分层结构"
+    },
+    {
+      "id": "anatomy_system_消化系统",
+      "label_zh": "消化系统",
+      "label_en": "消化系统",
+      "type": "anatomy_system",
+      "group": "解剖系统",
+      "summary": "消化系统解剖素材与分层结构"
+    },
+    {
+      "id": "anatomy_system_生殖系统",
+      "label_zh": "生殖系统",
+      "label_en": "生殖系统",
+      "type": "anatomy_system",
+      "group": "解剖系统",
+      "summary": "生殖系统解剖素材与分层结构"
+    },
+    {
+      "id": "anatomy_system_神经系统",
+      "label_zh": "神经系统",
+      "label_en": "神经系统",
+      "type": "anatomy_system",
+      "group": "解剖系统",
+      "summary": "神经系统解剖素材与分层结构"
+    },
+    {
+      "id": "anatomy_system_运动系统",
+      "label_zh": "运动系统",
+      "label_en": "运动系统",
+      "type": "anatomy_system",
+      "group": "解剖系统",
+      "summary": "运动系统解剖素材与分层结构"
+    },
+    {
+      "id": "anatomy_asset_NI001",
+      "label_zh": "颅骨精细图",
+      "label_en": "颅骨精细图",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "颅骨精细图 · 器官/精细结构",
+      "source_ids": [
+        "NI001"
+      ],
+      "asset_id": "NI001",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Skull_(Cranial_&_Facial).png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI002",
+      "label_zh": "颅骨精细图",
+      "label_en": "颅骨精细图",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "颅骨精细图 · 精细结构",
+      "source_ids": [
+        "NI002"
+      ],
+      "asset_id": "NI002",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Skull_Bones_Part_2.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI003",
+      "label_zh": "脊柱分段图",
+      "label_en": "脊柱分段图",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "脊柱分段图 · 器官/精细结构",
+      "source_ids": [
+        "NI003"
+      ],
+      "asset_id": "NI003",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Human_vertebral_column.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI004",
+      "label_zh": "脊椎精细结构",
+      "label_en": "脊椎精细结构",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "脊椎精细结构 · 精细结构",
+      "source_ids": [
+        "NI004"
+      ],
+      "asset_id": "NI004",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Vertebral_Anatomy.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI005",
+      "label_zh": "轴骨骼",
+      "label_en": "轴骨骼",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "轴骨骼 · 系统/器官",
+      "source_ids": [
+        "NI005"
+      ],
+      "asset_id": "NI005",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Axial_Skeleton.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI006",
+      "label_zh": "附肢骨骼",
+      "label_en": "附肢骨骼",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "附肢骨骼 · 系统/器官",
+      "source_ids": [
+        "NI006"
+      ],
+      "asset_id": "NI006",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Appendicular_Skeleton.png",
+      "license": "CC BY-SA 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI009",
+      "label_zh": "肩关节",
+      "label_en": "肩关节",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "肩关节 · 精细结构",
+      "source_ids": [
+        "NI009"
+      ],
+      "asset_id": "NI009",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0797_ShoulderJoint.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI010",
+      "label_zh": "髋关节",
+      "label_en": "髋关节",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "髋关节 · 精细结构",
+      "source_ids": [
+        "NI010"
+      ],
+      "asset_id": "NI010",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0488_HipAnatomy.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI011",
+      "label_zh": "膝关节",
+      "label_en": "膝关节",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "膝关节 · 精细结构",
+      "source_ids": [
+        "NI011"
+      ],
+      "asset_id": "NI011",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0596_KneeAnatomy_Front.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI012",
+      "label_zh": "膝关节",
+      "label_en": "膝关节",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "膝关节 · 精细结构",
+      "source_ids": [
+        "NI012"
+      ],
+      "asset_id": "NI012",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0597_KneeAnatomy_Side.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI013",
+      "label_zh": "骨骼肌组织",
+      "label_en": "骨骼肌组织",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "骨骼肌组织 · 精细结构",
+      "source_ids": [
+        "NI013"
+      ],
+      "asset_id": "NI013",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0801_SkeletalMuscle.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI014",
+      "label_zh": "肌肉类型",
+      "label_en": "肌肉类型",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "肌肉类型 · 精细结构",
+      "source_ids": [
+        "NI014"
+      ],
+      "asset_id": "NI014",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Muscle_Types.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI015",
+      "label_zh": "消化系统总览",
+      "label_en": "消化系统总览",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "消化系统总览 · 系统",
+      "source_ids": [
+        "NI015"
+      ],
+      "asset_id": "NI015",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0316_DigestiveSystem.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI016",
+      "label_zh": "成人消化系统",
+      "label_en": "成人消化系统",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "成人消化系统 · 系统",
+      "source_ids": [
+        "NI016"
+      ],
+      "asset_id": "NI016",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Adult_Digestive_System.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI017",
+      "label_zh": "胃肠系统",
+      "label_en": "胃肠系统",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "胃肠系统 · 系统/器官",
+      "source_ids": [
+        "NI017"
+      ],
+      "asset_id": "NI017",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0432_GastroIntestinalSystem.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI018",
+      "label_zh": "口腔",
+      "label_en": "口腔",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "口腔 · 器官",
+      "source_ids": [
+        "NI018"
+      ],
+      "asset_id": "NI018",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0653_MouthAnatomy.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI019",
+      "label_zh": "口腔与咽部",
+      "label_en": "口腔与咽部",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "口腔与咽部 · 器官",
+      "source_ids": [
+        "NI019"
+      ],
+      "asset_id": "NI019",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Mouth_and_pharynx.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI020",
+      "label_zh": "小肠",
+      "label_en": "小肠",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "小肠 · 器官",
+      "source_ids": [
+        "NI020"
+      ],
+      "asset_id": "NI020",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0817_SmallIntestine_Anatomy.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI021",
+      "label_zh": "大肠",
+      "label_en": "大肠",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "大肠 · 器官",
+      "source_ids": [
+        "NI021"
+      ],
+      "asset_id": "NI021",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0603_LargeIntestine_Anatomy.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI022",
+      "label_zh": "大肠",
+      "label_en": "大肠",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "大肠 · 器官",
+      "source_ids": [
+        "NI022"
+      ],
+      "asset_id": "NI022",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0604_LargeIntestine2.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI023",
+      "label_zh": "肝脏位置",
+      "label_en": "肝脏位置",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "肝脏位置 · 器官",
+      "source_ids": [
+        "NI023"
+      ],
+      "asset_id": "NI023",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0616_Liver_Location.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI024",
+      "label_zh": "肝脏",
+      "label_en": "肝脏",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "肝脏 · 器官",
+      "source_ids": [
+        "NI024"
+      ],
+      "asset_id": "NI024",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Liver_(organ).png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI025",
+      "label_zh": "胆囊",
+      "label_en": "胆囊",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "胆囊 · 器官",
+      "source_ids": [
+        "NI025"
+      ],
+      "asset_id": "NI025",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Gallbladder_(organ).png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI026",
+      "label_zh": "肝胆胰位置",
+      "label_en": "肝胆胰位置",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "肝胆胰位置 · 器官",
+      "source_ids": [
+        "NI026"
+      ],
+      "asset_id": "NI026",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0428_Gallbladder-Liver-Pancreas_Location.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI027",
+      "label_zh": "胰腺",
+      "label_en": "胰腺",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "胰腺 · 器官",
+      "source_ids": [
+        "NI027"
+      ],
+      "asset_id": "NI027",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0698_PancreasAnatomy.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI028",
+      "label_zh": "胰腺/胆囊/十二指肠关系",
+      "label_en": "胰腺/胆囊/十二指肠关系",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "胰腺/胆囊/十二指肠关系 · 器官",
+      "source_ids": [
+        "NI028"
+      ],
+      "asset_id": "NI028",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0699_PancreasAnatomy2.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI029",
+      "label_zh": "肝胆胰位置",
+      "label_en": "肝胆胰位置",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "肝胆胰位置 · 器官",
+      "source_ids": [
+        "NI029"
+      ],
+      "asset_id": "NI029",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Location_of_the_Gallbladder%2C_Liver%2C_and_Pancreas.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI030",
+      "label_zh": "呼吸系统总览",
+      "label_en": "呼吸系统总览",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "呼吸系统总览 · 系统",
+      "source_ids": [
+        "NI030"
+      ],
+      "asset_id": "NI030",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0770_RespiratorySystem_02.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI031",
+      "label_zh": "呼吸系统总览",
+      "label_en": "呼吸系统总览",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "呼吸系统总览 · 系统",
+      "source_ids": [
+        "NI031"
+      ],
+      "asset_id": "NI031",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Respiratory_System_(Illustration).png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI032",
+      "label_zh": "上呼吸道",
+      "label_en": "上呼吸道",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "上呼吸道 · 器官",
+      "source_ids": [
+        "NI032"
+      ],
+      "asset_id": "NI032",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0872_UpperRespiratorySystem.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI033",
+      "label_zh": "咽喉",
+      "label_en": "咽喉",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "咽喉 · 器官",
+      "source_ids": [
+        "NI033"
+      ],
+      "asset_id": "NI033",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0860_Tonsils&Throat_Anatomy.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI034",
+      "label_zh": "气管",
+      "label_en": "气管",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "气管 · 器官",
+      "source_ids": [
+        "NI034"
+      ],
+      "asset_id": "NI034",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0865_TracheaAnatomy.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI035",
+      "label_zh": "呼吸上皮",
+      "label_en": "呼吸上皮",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "呼吸上皮 · 精细结构",
+      "source_ids": [
+        "NI035"
+      ],
+      "asset_id": "NI035",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0766_RespiratoryEpithelium.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI036",
+      "label_zh": "肺/气道",
+      "label_en": "肺/气道",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "肺/气道 · 器官",
+      "source_ids": [
+        "NI036"
+      ],
+      "asset_id": "NI036",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0620_Lungs_NormalvsInflamedAirway.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI037",
+      "label_zh": "泌尿系统总览女性",
+      "label_en": "泌尿系统总览女性",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "泌尿系统总览女性 · 系统",
+      "source_ids": [
+        "NI037"
+      ],
+      "asset_id": "NI037",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Urinary_System_(Female).png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI038",
+      "label_zh": "泌尿系统总览男性",
+      "label_en": "泌尿系统总览男性",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "泌尿系统总览男性 · 系统",
+      "source_ids": [
+        "NI038"
+      ],
+      "asset_id": "NI038",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Urinary_System_(Male).png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI039",
+      "label_zh": "泌尿系统总览男性",
+      "label_en": "泌尿系统总览男性",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "泌尿系统总览男性 · 系统",
+      "source_ids": [
+        "NI039"
+      ],
+      "asset_id": "NI039",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:UrinarySystemMale.jpg",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI040",
+      "label_zh": "儿童泌尿系统",
+      "label_en": "儿童泌尿系统",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "儿童泌尿系统 · 系统",
+      "source_ids": [
+        "NI040"
+      ],
+      "asset_id": "NI040",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Urinary_System_(Child).png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI041",
+      "label_zh": "肾整体结构",
+      "label_en": "肾整体结构",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "肾整体结构 · 器官",
+      "source_ids": [
+        "NI041"
+      ],
+      "asset_id": "NI041",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0592_KidneyAnatomy_01.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI042",
+      "label_zh": "肾冠状剖面",
+      "label_en": "肾冠状剖面",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "肾冠状剖面 · 器官",
+      "source_ids": [
+        "NI042"
+      ],
+      "asset_id": "NI042",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0593_KidneyAnatomy_02.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI043",
+      "label_zh": "肾单位",
+      "label_en": "肾单位",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "肾单位 · 精细结构",
+      "source_ids": [
+        "NI043"
+      ],
+      "asset_id": "NI043",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Nephron_Anatomy.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI044",
+      "label_zh": "尿道括约肌",
+      "label_en": "尿道括约肌",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "尿道括约肌 · 精细结构",
+      "source_ids": [
+        "NI044"
+      ],
+      "asset_id": "NI044",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Urinary_Sphincter.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI045",
+      "label_zh": "女性生殖系统总览",
+      "label_en": "女性生殖系统总览",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "女性生殖系统总览 · 系统",
+      "source_ids": [
+        "NI045"
+      ],
+      "asset_id": "NI045",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0399_FemaleReproSystem_01.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI046",
+      "label_zh": "女性生殖系统总览",
+      "label_en": "女性生殖系统总览",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "女性生殖系统总览 · 系统",
+      "source_ids": [
+        "NI046"
+      ],
+      "asset_id": "NI046",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0400_FemaleReproSystem_02.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI047",
+      "label_zh": "女性生殖系统总览",
+      "label_en": "女性生殖系统总览",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "女性生殖系统总览 · 系统",
+      "source_ids": [
+        "NI047"
+      ],
+      "asset_id": "NI047",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0400_FemaleReproSystem_02b.png",
+      "license": "Attribution"
+    },
+    {
+      "id": "anatomy_asset_NI048",
+      "label_zh": "女性会阴",
+      "label_en": "女性会阴",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "女性会阴 · 精细结构",
+      "source_ids": [
+        "NI048"
+      ],
+      "asset_id": "NI048",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Female_Perineum.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI049",
+      "label_zh": "盆腔",
+      "label_en": "盆腔",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "盆腔 · 器官",
+      "source_ids": [
+        "NI049"
+      ],
+      "asset_id": "NI049",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0723_Pelvis.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI050",
+      "label_zh": "女性盆底肌",
+      "label_en": "女性盆底肌",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "女性盆底肌 · 精细结构",
+      "source_ids": [
+        "NI050"
+      ],
+      "asset_id": "NI050",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Pelvic_Muscles_(Female_Inferior).png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI051",
+      "label_zh": "女性盆底肌",
+      "label_en": "女性盆底肌",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "女性盆底肌 · 精细结构",
+      "source_ids": [
+        "NI051"
+      ],
+      "asset_id": "NI051",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Pelvic_Muscles_(Female_Side).png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI052",
+      "label_zh": "男性盆底肌",
+      "label_en": "男性盆底肌",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "男性盆底肌 · 精细结构",
+      "source_ids": [
+        "NI052"
+      ],
+      "asset_id": "NI052",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Pelvic_Muscles_(Male_Side).png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI053",
+      "label_zh": "前列腺",
+      "label_en": "前列腺",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "前列腺 · 器官",
+      "source_ids": [
+        "NI053"
+      ],
+      "asset_id": "NI053",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Prostate_Cancer.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI054",
+      "label_zh": "输卵管手术示意",
+      "label_en": "输卵管手术示意",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "输卵管手术示意 · 器官",
+      "source_ids": [
+        "NI054"
+      ],
+      "asset_id": "NI054",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Fallopian_Tube_Surgical_Procedures.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI055",
+      "label_zh": "循环系统总览",
+      "label_en": "循环系统总览",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "循环系统总览 · 系统",
+      "source_ids": [
+        "NI055"
+      ],
+      "asset_id": "NI055",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0168_CardiovascularSystem.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI056",
+      "label_zh": "心脏前面观",
+      "label_en": "心脏前面观",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "心脏前面观 · 器官",
+      "source_ids": [
+        "NI056"
+      ],
+      "asset_id": "NI056",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0451_Heart_Anterior.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI057",
+      "label_zh": "心脏血流",
+      "label_en": "心脏血流",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "心脏血流 · 器官/精细结构",
+      "source_ids": [
+        "NI057"
+      ],
+      "asset_id": "NI057",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0452_Heart_BloodFlow.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI058",
+      "label_zh": "心脏后面观",
+      "label_en": "心脏后面观",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "心脏后面观 · 器官",
+      "source_ids": [
+        "NI058"
+      ],
+      "asset_id": "NI058",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0456_Heart_Posterior.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI059",
+      "label_zh": "心脏剖面",
+      "label_en": "心脏剖面",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "心脏剖面 · 器官/精细结构",
+      "source_ids": [
+        "NI059"
+      ],
+      "asset_id": "NI059",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0457_Heart_SectionalAnatomy.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI060",
+      "label_zh": "心脏位置",
+      "label_en": "心脏位置",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "心脏位置 · 器官",
+      "source_ids": [
+        "NI060"
+      ],
+      "asset_id": "NI060",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0458_Heart_ThoracicCavity.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI061",
+      "label_zh": "心室收缩",
+      "label_en": "心室收缩",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "心室收缩 · 精细结构",
+      "source_ids": [
+        "NI061"
+      ],
+      "asset_id": "NI061",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0459_Heart_VentriclesContract.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI062",
+      "label_zh": "心室舒张",
+      "label_en": "心室舒张",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "心室舒张 · 精细结构",
+      "source_ids": [
+        "NI062"
+      ],
+      "asset_id": "NI062",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0460_Heart_VentriclesRelaxed.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI063",
+      "label_zh": "心脏结构",
+      "label_en": "心脏结构",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "心脏结构 · 器官/精细结构",
+      "source_ids": [
+        "NI063"
+      ],
+      "asset_id": "NI063",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0462_HeartAnatomy.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI064",
+      "label_zh": "心脏位置",
+      "label_en": "心脏位置",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "心脏位置 · 器官",
+      "source_ids": [
+        "NI064"
+      ],
+      "asset_id": "NI064",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0467_HeartLocation.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI065",
+      "label_zh": "冠状动脉",
+      "label_en": "冠状动脉",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "冠状动脉 · 精细结构",
+      "source_ids": [
+        "NI065"
+      ],
+      "asset_id": "NI065",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0256_CoronaryArteries_02.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI066",
+      "label_zh": "冠状血管前面观",
+      "label_en": "冠状血管前面观",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "冠状血管前面观 · 精细结构",
+      "source_ids": [
+        "NI066"
+      ],
+      "asset_id": "NI066",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0260_CoronaryVessels_Anterior.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI067",
+      "label_zh": "冠状血管后面观",
+      "label_en": "冠状血管后面观",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "冠状血管后面观 · 精细结构",
+      "source_ids": [
+        "NI067"
+      ],
+      "asset_id": "NI067",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0261_CoronaryVessels_Posterior.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI068",
+      "label_zh": "动脉壁",
+      "label_en": "动脉壁",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "动脉壁 · 精细结构",
+      "source_ids": [
+        "NI068"
+      ],
+      "asset_id": "NI068",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0055_ArteryWallStructure.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI069",
+      "label_zh": "腿部静脉",
+      "label_en": "腿部静脉",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "腿部静脉 · 器官/系统",
+      "source_ids": [
+        "NI069"
+      ],
+      "asset_id": "NI069",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0609_LegVeins.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI071",
+      "label_zh": "大脑运动感觉区",
+      "label_en": "大脑运动感觉区",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "大脑运动感觉区 · 精细结构",
+      "source_ids": [
+        "NI071"
+      ],
+      "asset_id": "NI071",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0102_Brain_Motor&Sensory.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI072",
+      "label_zh": "大脑感觉运动区",
+      "label_en": "大脑感觉运动区",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "大脑感觉运动区 · 精细结构",
+      "source_ids": [
+        "NI072"
+      ],
+      "asset_id": "NI072",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0103_Brain_Sensory&Motor.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI073",
+      "label_zh": "脑切面平面",
+      "label_en": "脑切面平面",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "脑切面平面 · 精细结构",
+      "source_ids": [
+        "NI073"
+      ],
+      "asset_id": "NI073",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0104_Brain_x-secs_SectionalPlanes.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI074",
+      "label_zh": "脑膜/脑层",
+      "label_en": "脑膜/脑层",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "脑膜/脑层 · 精细结构",
+      "source_ids": [
+        "NI074"
+      ],
+      "asset_id": "NI074",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0110_BrainLayers.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI075",
+      "label_zh": "脑叶",
+      "label_en": "脑叶",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "脑叶 · 精细结构",
+      "source_ids": [
+        "NI075"
+      ],
+      "asset_id": "NI075",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0111_BrainLobes.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI076",
+      "label_zh": "脑干",
+      "label_en": "脑干",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "脑干 · 精细结构",
+      "source_ids": [
+        "NI076"
+      ],
+      "asset_id": "NI076",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0114_BrainstemAnatomy.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI077",
+      "label_zh": "脑结构",
+      "label_en": "脑结构",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "脑结构 · 精细结构",
+      "source_ids": [
+        "NI077"
+      ],
+      "asset_id": "NI077",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0115_BrainStructures.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI078",
+      "label_zh": "脑神经",
+      "label_en": "脑神经",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "脑神经 · 精细结构",
+      "source_ids": [
+        "NI078"
+      ],
+      "asset_id": "NI078",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0284_CranialNerves.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI079",
+      "label_zh": "脑室",
+      "label_en": "脑室",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "脑室 · 精细结构",
+      "source_ids": [
+        "NI079"
+      ],
+      "asset_id": "NI079",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0896_Ventricles_Brain.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI080",
+      "label_zh": "脑脊液系统",
+      "label_en": "脑脊液系统",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "脑脊液系统 · 精细结构",
+      "source_ids": [
+        "NI080"
+      ],
+      "asset_id": "NI080",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0216_CerebrospinalSystem.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI081",
+      "label_zh": "脊髓横断面",
+      "label_en": "脊髓横断面",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "脊髓横断面 · 精细结构",
+      "source_ids": [
+        "NI081"
+      ],
+      "asset_id": "NI081",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Spinal_Cord_Sectional_Anatomy.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI082",
+      "label_zh": "脊髓感觉通路",
+      "label_en": "脊髓感觉通路",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "脊髓感觉通路 · 精细结构",
+      "source_ids": [
+        "NI082"
+      ],
+      "asset_id": "NI082",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Spinal_Cord_Sensory_Pathways.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI083",
+      "label_zh": "脊髓运动通路",
+      "label_en": "脊髓运动通路",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "脊髓运动通路 · 精细结构",
+      "source_ids": [
+        "NI083"
+      ],
+      "asset_id": "NI083",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Spinal_Cord_Motor_Pathways.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI084",
+      "label_zh": "运动神经通路",
+      "label_en": "运动神经通路",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "运动神经通路 · 精细结构",
+      "source_ids": [
+        "NI084"
+      ],
+      "asset_id": "NI084",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Motor_Nerve_Pathways_Descending.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI085",
+      "label_zh": "腹内侧神经通路",
+      "label_en": "腹内侧神经通路",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "腹内侧神经通路 · 精细结构",
+      "source_ids": [
+        "NI085"
+      ],
+      "asset_id": "NI085",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Ventromedial_Nerve_Pathways_Descending.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI086",
+      "label_zh": "神经元",
+      "label_en": "神经元",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "神经元 · 精细结构",
+      "source_ids": [
+        "NI086"
+      ],
+      "asset_id": "NI086",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0657_MultipolarNeuron.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI087",
+      "label_zh": "交感神经",
+      "label_en": "交感神经",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "交感神经 · 系统/精细结构",
+      "source_ids": [
+        "NI087"
+      ],
+      "asset_id": "NI087",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0838_Sympathetic_Innervation.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI088",
+      "label_zh": "副交感神经",
+      "label_en": "副交感神经",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "副交感神经 · 系统/精细结构",
+      "source_ids": [
+        "NI088"
+      ],
+      "asset_id": "NI088",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0703_Parasympathetic_Innervation.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI089",
+      "label_zh": "三叉神经",
+      "label_en": "三叉神经",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "三叉神经 · 精细结构",
+      "source_ids": [
+        "NI089"
+      ],
+      "asset_id": "NI089",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Trigeminal_Nerve.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI090",
+      "label_zh": "尺神经",
+      "label_en": "尺神经",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "尺神经 · 精细结构",
+      "source_ids": [
+        "NI090"
+      ],
+      "asset_id": "NI090",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Ulnar_Nerve.png",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "anatomy_asset_NI091",
+      "label_zh": "女性内分泌总览",
+      "label_en": "女性内分泌总览",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "女性内分泌总览 · 系统",
+      "source_ids": [
+        "NI091"
+      ],
+      "asset_id": "NI091",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0345_EndocrineSystem_Female2.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI092",
+      "label_zh": "男性内分泌总览",
+      "label_en": "男性内分泌总览",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "男性内分泌总览 · 系统",
+      "source_ids": [
+        "NI092"
+      ],
+      "asset_id": "NI092",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0346_EndocrineSystem_Male2.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI093",
+      "label_zh": "胰腺/胰岛",
+      "label_en": "胰腺/胰岛",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "胰腺/胰岛 · 精细结构",
+      "source_ids": [
+        "NI093"
+      ],
+      "asset_id": "NI093",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Blausen_0701_PancreaticTissue.png",
+      "license": "CC BY 3.0"
+    },
+    {
+      "id": "anatomy_asset_NI094",
+      "label_zh": "垂体位置/病变手术",
+      "label_en": "垂体位置/病变手术",
+      "type": "anatomy_asset",
+      "group": "解剖素材",
+      "summary": "垂体位置/病变手术 · 器官",
+      "source_ids": [
+        "NI094"
+      ],
+      "asset_id": "NI094",
+      "asset_url": "https://commons.wikimedia.org/wiki/File:Pituitary_Tumor_Removal.png",
+      "license": "CC BY-SA 4.0"
+    }
+  ],
+  "edges": [
+    {
+      "source": "anatomy_system_运动系统",
+      "target": "anatomy_asset_NI001",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI001"
+    },
+    {
+      "source": "anatomy_system_运动系统",
+      "target": "anatomy_asset_NI002",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI002"
+    },
+    {
+      "source": "anatomy_system_运动系统",
+      "target": "anatomy_asset_NI003",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI003"
+    },
+    {
+      "source": "anatomy_system_运动系统",
+      "target": "anatomy_asset_NI004",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI004"
+    },
+    {
+      "source": "anatomy_system_运动系统",
+      "target": "anatomy_asset_NI005",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI005"
+    },
+    {
+      "source": "anatomy_system_运动系统",
+      "target": "anatomy_asset_NI006",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI006"
+    },
+    {
+      "source": "anatomy_system_运动系统",
+      "target": "anatomy_asset_NI009",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI009"
+    },
+    {
+      "source": "anatomy_system_运动系统",
+      "target": "anatomy_asset_NI010",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI010"
+    },
+    {
+      "source": "anatomy_system_运动系统",
+      "target": "anatomy_asset_NI011",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI011"
+    },
+    {
+      "source": "anatomy_system_运动系统",
+      "target": "anatomy_asset_NI012",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI012"
+    },
+    {
+      "source": "anatomy_system_运动系统",
+      "target": "anatomy_asset_NI013",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI013"
+    },
+    {
+      "source": "anatomy_system_运动系统",
+      "target": "anatomy_asset_NI014",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI014"
+    },
+    {
+      "source": "anatomy_system_消化系统",
+      "target": "anatomy_asset_NI015",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI015"
+    },
+    {
+      "source": "anatomy_system_消化系统",
+      "target": "anatomy_asset_NI016",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI016"
+    },
+    {
+      "source": "anatomy_system_消化系统",
+      "target": "anatomy_asset_NI017",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI017"
+    },
+    {
+      "source": "anatomy_system_消化系统",
+      "target": "anatomy_asset_NI018",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI018"
+    },
+    {
+      "source": "anatomy_system_消化系统",
+      "target": "anatomy_asset_NI019",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI019"
+    },
+    {
+      "source": "anatomy_system_消化系统",
+      "target": "anatomy_asset_NI020",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI020"
+    },
+    {
+      "source": "anatomy_system_消化系统",
+      "target": "anatomy_asset_NI021",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI021"
+    },
+    {
+      "source": "anatomy_system_消化系统",
+      "target": "anatomy_asset_NI022",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI022"
+    },
+    {
+      "source": "anatomy_system_消化系统",
+      "target": "anatomy_asset_NI023",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI023"
+    },
+    {
+      "source": "anatomy_system_消化系统",
+      "target": "anatomy_asset_NI024",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI024"
+    },
+    {
+      "source": "anatomy_system_消化系统",
+      "target": "anatomy_asset_NI025",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI025"
+    },
+    {
+      "source": "anatomy_system_消化系统",
+      "target": "anatomy_asset_NI026",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI026"
+    },
+    {
+      "source": "anatomy_system_消化系统",
+      "target": "anatomy_asset_NI027",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI027"
+    },
+    {
+      "source": "anatomy_system_消化系统",
+      "target": "anatomy_asset_NI028",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI028"
+    },
+    {
+      "source": "anatomy_system_消化系统",
+      "target": "anatomy_asset_NI029",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI029"
+    },
+    {
+      "source": "anatomy_system_呼吸系统",
+      "target": "anatomy_asset_NI030",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI030"
+    },
+    {
+      "source": "anatomy_system_呼吸系统",
+      "target": "anatomy_asset_NI031",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI031"
+    },
+    {
+      "source": "anatomy_system_呼吸系统",
+      "target": "anatomy_asset_NI032",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI032"
+    },
+    {
+      "source": "anatomy_system_呼吸系统",
+      "target": "anatomy_asset_NI033",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI033"
+    },
+    {
+      "source": "anatomy_system_呼吸系统",
+      "target": "anatomy_asset_NI034",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI034"
+    },
+    {
+      "source": "anatomy_system_呼吸系统",
+      "target": "anatomy_asset_NI035",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI035"
+    },
+    {
+      "source": "anatomy_system_呼吸系统",
+      "target": "anatomy_asset_NI036",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI036"
+    },
+    {
+      "source": "anatomy_system_泌尿系统",
+      "target": "anatomy_asset_NI037",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI037"
+    },
+    {
+      "source": "anatomy_system_泌尿系统",
+      "target": "anatomy_asset_NI038",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI038"
+    },
+    {
+      "source": "anatomy_system_泌尿系统",
+      "target": "anatomy_asset_NI039",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI039"
+    },
+    {
+      "source": "anatomy_system_泌尿系统",
+      "target": "anatomy_asset_NI040",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI040"
+    },
+    {
+      "source": "anatomy_system_泌尿系统",
+      "target": "anatomy_asset_NI041",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI041"
+    },
+    {
+      "source": "anatomy_system_泌尿系统",
+      "target": "anatomy_asset_NI042",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI042"
+    },
+    {
+      "source": "anatomy_system_泌尿系统",
+      "target": "anatomy_asset_NI043",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI043"
+    },
+    {
+      "source": "anatomy_system_泌尿系统",
+      "target": "anatomy_asset_NI044",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI044"
+    },
+    {
+      "source": "anatomy_system_生殖系统",
+      "target": "anatomy_asset_NI045",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI045"
+    },
+    {
+      "source": "anatomy_system_生殖系统",
+      "target": "anatomy_asset_NI046",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI046"
+    },
+    {
+      "source": "anatomy_system_生殖系统",
+      "target": "anatomy_asset_NI047",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI047"
+    },
+    {
+      "source": "anatomy_system_生殖系统",
+      "target": "anatomy_asset_NI048",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI048"
+    },
+    {
+      "source": "anatomy_system_生殖系统",
+      "target": "anatomy_asset_NI049",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI049"
+    },
+    {
+      "source": "anatomy_system_生殖系统",
+      "target": "anatomy_asset_NI050",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI050"
+    },
+    {
+      "source": "anatomy_system_生殖系统",
+      "target": "anatomy_asset_NI051",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI051"
+    },
+    {
+      "source": "anatomy_system_生殖系统",
+      "target": "anatomy_asset_NI052",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI052"
+    },
+    {
+      "source": "anatomy_system_生殖系统",
+      "target": "anatomy_asset_NI053",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI053"
+    },
+    {
+      "source": "anatomy_system_生殖系统",
+      "target": "anatomy_asset_NI054",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI054"
+    },
+    {
+      "source": "anatomy_system_循环系统",
+      "target": "anatomy_asset_NI055",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI055"
+    },
+    {
+      "source": "anatomy_system_循环系统",
+      "target": "anatomy_asset_NI056",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI056"
+    },
+    {
+      "source": "anatomy_system_循环系统",
+      "target": "anatomy_asset_NI057",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI057"
+    },
+    {
+      "source": "anatomy_system_循环系统",
+      "target": "anatomy_asset_NI058",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI058"
+    },
+    {
+      "source": "anatomy_system_循环系统",
+      "target": "anatomy_asset_NI059",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI059"
+    },
+    {
+      "source": "anatomy_system_循环系统",
+      "target": "anatomy_asset_NI060",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI060"
+    },
+    {
+      "source": "anatomy_system_循环系统",
+      "target": "anatomy_asset_NI061",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI061"
+    },
+    {
+      "source": "anatomy_system_循环系统",
+      "target": "anatomy_asset_NI062",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI062"
+    },
+    {
+      "source": "anatomy_system_循环系统",
+      "target": "anatomy_asset_NI063",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI063"
+    },
+    {
+      "source": "anatomy_system_循环系统",
+      "target": "anatomy_asset_NI064",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI064"
+    },
+    {
+      "source": "anatomy_system_循环系统",
+      "target": "anatomy_asset_NI065",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI065"
+    },
+    {
+      "source": "anatomy_system_循环系统",
+      "target": "anatomy_asset_NI066",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI066"
+    },
+    {
+      "source": "anatomy_system_循环系统",
+      "target": "anatomy_asset_NI067",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI067"
+    },
+    {
+      "source": "anatomy_system_循环系统",
+      "target": "anatomy_asset_NI068",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI068"
+    },
+    {
+      "source": "anatomy_system_循环系统",
+      "target": "anatomy_asset_NI069",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI069"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI071",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI071"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI072",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI072"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI073",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI073"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI074",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI074"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI075",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI075"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI076",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI076"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI077",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI077"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI078",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI078"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI079",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI079"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI080",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI080"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI081",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI081"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI082",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI082"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI083",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI083"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI084",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI084"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI085",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI085"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI086",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI086"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI087",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI087"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI088",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI088"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI089",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI089"
+    },
+    {
+      "source": "anatomy_system_神经系统",
+      "target": "anatomy_asset_NI090",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI090"
+    },
+    {
+      "source": "anatomy_system_内分泌系统",
+      "target": "anatomy_asset_NI091",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI091"
+    },
+    {
+      "source": "anatomy_system_内分泌系统",
+      "target": "anatomy_asset_NI092",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI092"
+    },
+    {
+      "source": "anatomy_system_内分泌系统",
+      "target": "anatomy_asset_NI093",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI093"
+    },
+    {
+      "source": "anatomy_system_内分泌系统",
+      "target": "anatomy_asset_NI094",
+      "relation_zh": "包含解剖素材",
+      "relation_en": "contains anatomy asset",
+      "evidence_source": "NI094"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "session_id": "demo-session-001",
+  "text": "请注意，你尚未排除主动脉夹层和肺栓塞。",
+  "emotion": "warning",
+  "action": "risk_alert",
+  "avatar_id": "medical_tutor_001",
+  "voice": "zh_female_warm",
+  "mode": "liveact"
+}

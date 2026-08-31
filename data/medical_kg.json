@@ -1,0 +1,1536 @@
+{
+  "nodes": [
+    {
+      "id": "case_emergency_chest_pain",
+      "label": "急诊胸痛",
+      "group": "Case",
+      "summary": "胸痛2小时",
+      "embedding_id": "emb_case_emergency_chest_pain",
+      "embedding_text": "急诊胸痛 胸痛2小时",
+      "vector_status": "mock"
+    },
+    {
+      "id": "急诊医学",
+      "label": "急诊医学",
+      "group": "Department",
+      "summary": "急诊医学教学科室",
+      "embedding_id": "emb_急诊医学",
+      "embedding_text": "急诊医学 急诊医学教学科室",
+      "vector_status": "mock"
+    },
+    {
+      "id": "chest_pain",
+      "label": "chest_pain",
+      "group": "LearningObjective",
+      "summary": "与急诊胸痛相关节点",
+      "embedding_id": "emb_chest_pain",
+      "embedding_text": "chest_pain 与急诊胸痛相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "acs",
+      "label": "acs",
+      "group": "LearningObjective",
+      "summary": "与急诊胸痛相关节点",
+      "embedding_id": "emb_acs",
+      "embedding_text": "acs 与急诊胸痛相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "ecg",
+      "label": "ecg",
+      "group": "LearningObjective",
+      "summary": "与急诊胸痛相关节点",
+      "embedding_id": "emb_ecg",
+      "embedding_text": "ecg 与急诊胸痛相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "troponin",
+      "label": "troponin",
+      "group": "LearningObjective",
+      "summary": "与急诊胸痛相关节点",
+      "embedding_id": "emb_troponin",
+      "embedding_text": "troponin 与急诊胸痛相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "aortic_dissection",
+      "label": "aortic_dissection",
+      "group": "LearningObjective",
+      "summary": "与急诊胸痛相关节点",
+      "embedding_id": "emb_aortic_dissection",
+      "embedding_text": "aortic_dissection 与急诊胸痛相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "pulmonary_embolism",
+      "label": "肺栓塞",
+      "group": "Disease",
+      "summary": "肺栓塞教学鉴别节点",
+      "embedding_id": "emb_pulmonary_embolism",
+      "embedding_text": "肺栓塞 肺栓塞教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "气胸",
+      "label": "气胸",
+      "group": "Disease",
+      "summary": "气胸教学鉴别节点",
+      "embedding_id": "emb_气胸",
+      "embedding_text": "气胸 气胸教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "case_acute_abdominal_pain",
+      "label": "急性腹痛",
+      "group": "Case",
+      "summary": "右下腹痛6小时",
+      "embedding_id": "emb_case_acute_abdominal_pain",
+      "embedding_text": "急性腹痛 右下腹痛6小时",
+      "vector_status": "mock"
+    },
+    {
+      "id": "消化与急诊",
+      "label": "消化与急诊",
+      "group": "Department",
+      "summary": "消化与急诊教学科室",
+      "embedding_id": "emb_消化与急诊",
+      "embedding_text": "消化与急诊 消化与急诊教学科室",
+      "vector_status": "mock"
+    },
+    {
+      "id": "abdominal_pain",
+      "label": "abdominal_pain",
+      "group": "LearningObjective",
+      "summary": "与急性腹痛相关节点",
+      "embedding_id": "emb_abdominal_pain",
+      "embedding_text": "abdominal_pain 与急性腹痛相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "appendicitis",
+      "label": "appendicitis",
+      "group": "LearningObjective",
+      "summary": "与急性腹痛相关节点",
+      "embedding_id": "emb_appendicitis",
+      "embedding_text": "appendicitis 与急性腹痛相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "abdominal_ct",
+      "label": "abdominal_ct",
+      "group": "LearningObjective",
+      "summary": "与急性腹痛相关节点",
+      "embedding_id": "emb_abdominal_ct",
+      "embedding_text": "abdominal_ct 与急性腹痛相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "amylase",
+      "label": "amylase",
+      "group": "LearningObjective",
+      "summary": "与急性腹痛相关节点",
+      "embedding_id": "emb_amylase",
+      "embedding_text": "amylase 与急性腹痛相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "阑尾炎",
+      "label": "阑尾炎",
+      "group": "Disease",
+      "summary": "阑尾炎教学鉴别节点",
+      "embedding_id": "emb_阑尾炎",
+      "embedding_text": "阑尾炎 阑尾炎教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "胆囊炎",
+      "label": "胆囊炎",
+      "group": "Disease",
+      "summary": "胆囊炎教学鉴别节点",
+      "embedding_id": "emb_胆囊炎",
+      "embedding_text": "胆囊炎 胆囊炎教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "胰腺炎",
+      "label": "胰腺炎",
+      "group": "Disease",
+      "summary": "胰腺炎教学鉴别节点",
+      "embedding_id": "emb_胰腺炎",
+      "embedding_text": "胰腺炎 胰腺炎教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "消化道穿孔",
+      "label": "消化道穿孔",
+      "group": "Disease",
+      "summary": "消化道穿孔教学鉴别节点",
+      "embedding_id": "emb_消化道穿孔",
+      "embedding_text": "消化道穿孔 消化道穿孔教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "异位妊娠",
+      "label": "异位妊娠",
+      "group": "Disease",
+      "summary": "异位妊娠教学鉴别节点",
+      "embedding_id": "emb_异位妊娠",
+      "embedding_text": "异位妊娠 异位妊娠教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "case_fever_unknown",
+      "label": "发热待查",
+      "group": "Case",
+      "summary": "反复发热3天",
+      "embedding_id": "emb_case_fever_unknown",
+      "embedding_text": "发热待查 反复发热3天",
+      "vector_status": "mock"
+    },
+    {
+      "id": "感染与内科",
+      "label": "感染与内科",
+      "group": "Department",
+      "summary": "感染与内科教学科室",
+      "embedding_id": "emb_感染与内科",
+      "embedding_text": "感染与内科 感染与内科教学科室",
+      "vector_status": "mock"
+    },
+    {
+      "id": "fever",
+      "label": "fever",
+      "group": "LearningObjective",
+      "summary": "与发热待查相关节点",
+      "embedding_id": "emb_fever",
+      "embedding_text": "fever 与发热待查相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "infection",
+      "label": "infection",
+      "group": "LearningObjective",
+      "summary": "与发热待查相关节点",
+      "embedding_id": "emb_infection",
+      "embedding_text": "infection 与发热待查相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "crp",
+      "label": "crp",
+      "group": "LearningObjective",
+      "summary": "与发热待查相关节点",
+      "embedding_id": "emb_crp",
+      "embedding_text": "crp 与发热待查相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "pct",
+      "label": "pct",
+      "group": "LearningObjective",
+      "summary": "与发热待查相关节点",
+      "embedding_id": "emb_pct",
+      "embedding_text": "pct 与发热待查相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "blood_culture",
+      "label": "blood_culture",
+      "group": "LearningObjective",
+      "summary": "与发热待查相关节点",
+      "embedding_id": "emb_blood_culture",
+      "embedding_text": "blood_culture 与发热待查相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "感染性fever",
+      "label": "感染性发热",
+      "group": "Disease",
+      "summary": "感染性发热教学鉴别节点",
+      "embedding_id": "emb_感染性fever",
+      "embedding_text": "感染性发热 感染性发热教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "结核",
+      "label": "结核",
+      "group": "Disease",
+      "summary": "结核教学鉴别节点",
+      "embedding_id": "emb_结核",
+      "embedding_text": "结核 结核教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "风湿免疫病",
+      "label": "风湿免疫病",
+      "group": "Disease",
+      "summary": "风湿免疫病教学鉴别节点",
+      "embedding_id": "emb_风湿免疫病",
+      "embedding_text": "风湿免疫病 风湿免疫病教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "肿瘤性fever",
+      "label": "肿瘤性发热",
+      "group": "Disease",
+      "summary": "肿瘤性发热教学鉴别节点",
+      "embedding_id": "emb_肿瘤性fever",
+      "embedding_text": "肿瘤性发热 肿瘤性发热教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "case_dyspnea",
+      "label": "呼吸困难",
+      "group": "Case",
+      "summary": "活动后气促加重1天",
+      "embedding_id": "emb_case_dyspnea",
+      "embedding_text": "呼吸困难 活动后气促加重1天",
+      "vector_status": "mock"
+    },
+    {
+      "id": "呼吸与急诊",
+      "label": "呼吸与急诊",
+      "group": "Department",
+      "summary": "呼吸与急诊教学科室",
+      "embedding_id": "emb_呼吸与急诊",
+      "embedding_text": "呼吸与急诊 呼吸与急诊教学科室",
+      "vector_status": "mock"
+    },
+    {
+      "id": "dyspnea",
+      "label": "dyspnea",
+      "group": "LearningObjective",
+      "summary": "与呼吸困难相关节点",
+      "embedding_id": "emb_dyspnea",
+      "embedding_text": "dyspnea 与呼吸困难相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "copd",
+      "label": "copd",
+      "group": "LearningObjective",
+      "summary": "与呼吸困难相关节点",
+      "embedding_id": "emb_copd",
+      "embedding_text": "copd 与呼吸困难相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "heart_failure",
+      "label": "heart_failure",
+      "group": "LearningObjective",
+      "summary": "与呼吸困难相关节点",
+      "embedding_id": "emb_heart_failure",
+      "embedding_text": "heart_failure 与呼吸困难相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "bnp",
+      "label": "bnp",
+      "group": "LearningObjective",
+      "summary": "与呼吸困难相关节点",
+      "embedding_id": "emb_bnp",
+      "embedding_text": "bnp 与呼吸困难相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "oxygen_saturation",
+      "label": "oxygen_saturation",
+      "group": "LearningObjective",
+      "summary": "与呼吸困难相关节点",
+      "embedding_id": "emb_oxygen_saturation",
+      "embedding_text": "oxygen_saturation 与呼吸困难相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "哮喘",
+      "label": "哮喘",
+      "group": "Disease",
+      "summary": "哮喘教学鉴别节点",
+      "embedding_id": "emb_哮喘",
+      "embedding_text": "哮喘 哮喘教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "copd急性加重",
+      "label": "COPD急性加重",
+      "group": "Disease",
+      "summary": "COPD急性加重教学鉴别节点",
+      "embedding_id": "emb_copd急性加重",
+      "embedding_text": "COPD急性加重 COPD急性加重教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "心衰",
+      "label": "心衰",
+      "group": "Disease",
+      "summary": "心衰教学鉴别节点",
+      "embedding_id": "emb_心衰",
+      "embedding_text": "心衰 心衰教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "case_diabetes_education",
+      "label": "糖尿病健康宣教",
+      "group": "Case",
+      "summary": "血糖控制不佳3个月",
+      "embedding_id": "emb_case_diabetes_education",
+      "embedding_text": "糖尿病健康宣教 血糖控制不佳3个月",
+      "vector_status": "mock"
+    },
+    {
+      "id": "全科医学",
+      "label": "全科医学",
+      "group": "Department",
+      "summary": "全科医学教学科室",
+      "embedding_id": "emb_全科医学",
+      "embedding_text": "全科医学 全科医学教学科室",
+      "vector_status": "mock"
+    },
+    {
+      "id": "diabetes",
+      "label": "diabetes",
+      "group": "LearningObjective",
+      "summary": "与糖尿病健康宣教相关节点",
+      "embedding_id": "emb_diabetes",
+      "embedding_text": "diabetes 与糖尿病健康宣教相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "hba1c",
+      "label": "hba1c",
+      "group": "LearningObjective",
+      "summary": "与糖尿病健康宣教相关节点",
+      "embedding_id": "emb_hba1c",
+      "embedding_text": "hba1c 与糖尿病健康宣教相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "hypoglycemia",
+      "label": "hypoglycemia",
+      "group": "LearningObjective",
+      "summary": "与糖尿病健康宣教相关节点",
+      "embedding_id": "emb_hypoglycemia",
+      "embedding_text": "hypoglycemia 与糖尿病健康宣教相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "microalbuminuria",
+      "label": "microalbuminuria",
+      "group": "LearningObjective",
+      "summary": "与糖尿病健康宣教相关节点",
+      "embedding_id": "emb_microalbuminuria",
+      "embedding_text": "microalbuminuria 与糖尿病健康宣教相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "用药依从性差",
+      "label": "用药依从性差",
+      "group": "Disease",
+      "summary": "用药依从性差教学鉴别节点",
+      "embedding_id": "emb_用药依从性差",
+      "embedding_text": "用药依从性差 用药依从性差教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "饮食运动不足",
+      "label": "饮食运动不足",
+      "group": "Disease",
+      "summary": "饮食运动不足教学鉴别节点",
+      "embedding_id": "emb_饮食运动不足",
+      "embedding_text": "饮食运动不足 饮食运动不足教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "低血糖风险",
+      "label": "低血糖风险",
+      "group": "Disease",
+      "summary": "低血糖风险教学鉴别节点",
+      "embedding_id": "emb_低血糖风险",
+      "embedding_text": "低血糖风险 低血糖风险教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "并发症风险",
+      "label": "并发症风险",
+      "group": "Disease",
+      "summary": "并发症风险教学鉴别节点",
+      "embedding_id": "emb_并发症风险",
+      "embedding_text": "并发症风险 并发症风险教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "case_headache_case",
+      "label": "头痛病例",
+      "group": "Case",
+      "summary": "突发头痛4小时",
+      "embedding_id": "emb_case_headache_case",
+      "embedding_text": "头痛病例 突发头痛4小时",
+      "vector_status": "mock"
+    },
+    {
+      "id": "神经内科",
+      "label": "神经内科",
+      "group": "Department",
+      "summary": "神经内科教学科室",
+      "embedding_id": "emb_神经内科",
+      "embedding_text": "神经内科 神经内科教学科室",
+      "vector_status": "mock"
+    },
+    {
+      "id": "headache",
+      "label": "headache",
+      "group": "LearningObjective",
+      "summary": "与头痛病例相关节点",
+      "embedding_id": "emb_headache",
+      "embedding_text": "headache 与头痛病例相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "intracranial_hemorrhage",
+      "label": "intracranial_hemorrhage",
+      "group": "LearningObjective",
+      "summary": "与头痛病例相关节点",
+      "embedding_id": "emb_intracranial_hemorrhage",
+      "embedding_text": "intracranial_hemorrhage 与头痛病例相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "hypertensive_emergency",
+      "label": "hypertensive_emergency",
+      "group": "LearningObjective",
+      "summary": "与头痛病例相关节点",
+      "embedding_id": "emb_hypertensive_emergency",
+      "embedding_text": "hypertensive_emergency 与头痛病例相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "head_ct",
+      "label": "head_ct",
+      "group": "LearningObjective",
+      "summary": "与头痛病例相关节点",
+      "embedding_id": "emb_head_ct",
+      "embedding_text": "head_ct 与头痛病例相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "偏headache",
+      "label": "偏头痛",
+      "group": "Disease",
+      "summary": "偏头痛教学鉴别节点",
+      "embedding_id": "emb_偏headache",
+      "embedding_text": "偏头痛 偏头痛教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "脑出血",
+      "label": "脑出血",
+      "group": "Disease",
+      "summary": "脑出血教学鉴别节点",
+      "embedding_id": "emb_脑出血",
+      "embedding_text": "脑出血 脑出血教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "脑膜炎",
+      "label": "脑膜炎",
+      "group": "Disease",
+      "summary": "脑膜炎教学鉴别节点",
+      "embedding_id": "emb_脑膜炎",
+      "embedding_text": "脑膜炎 脑膜炎教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "hypertension急症",
+      "label": "高血压急症",
+      "group": "Disease",
+      "summary": "高血压急症教学鉴别节点",
+      "embedding_id": "emb_hypertension急症",
+      "embedding_text": "高血压急症 高血压急症教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "case_anemia_case",
+      "label": "贫血病例",
+      "group": "Case",
+      "summary": "乏力面色苍白1个月",
+      "embedding_id": "emb_case_anemia_case",
+      "embedding_text": "贫血病例 乏力面色苍白1个月",
+      "vector_status": "mock"
+    },
+    {
+      "id": "血液内科",
+      "label": "血液内科",
+      "group": "Department",
+      "summary": "血液内科教学科室",
+      "embedding_id": "emb_血液内科",
+      "embedding_text": "血液内科 血液内科教学科室",
+      "vector_status": "mock"
+    },
+    {
+      "id": "anemia",
+      "label": "anemia",
+      "group": "LearningObjective",
+      "summary": "与贫血病例相关节点",
+      "embedding_id": "emb_anemia",
+      "embedding_text": "anemia 与贫血病例相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "iron_deficiency_anemia",
+      "label": "iron_deficiency_anemia",
+      "group": "LearningObjective",
+      "summary": "与贫血病例相关节点",
+      "embedding_id": "emb_iron_deficiency_anemia",
+      "embedding_text": "iron_deficiency_anemia 与贫血病例相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "ferritin",
+      "label": "ferritin",
+      "group": "LearningObjective",
+      "summary": "与贫血病例相关节点",
+      "embedding_id": "emb_ferritin",
+      "embedding_text": "ferritin 与贫血病例相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "reticulocyte",
+      "label": "reticulocyte",
+      "group": "LearningObjective",
+      "summary": "与贫血病例相关节点",
+      "embedding_id": "emb_reticulocyte",
+      "embedding_text": "reticulocyte 与贫血病例相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "缺铁性anemia",
+      "label": "缺铁性贫血",
+      "group": "Disease",
+      "summary": "缺铁性贫血教学鉴别节点",
+      "embedding_id": "emb_缺铁性anemia",
+      "embedding_text": "缺铁性贫血 缺铁性贫血教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "巨幼细胞anemia",
+      "label": "巨幼细胞贫血",
+      "group": "Disease",
+      "summary": "巨幼细胞贫血教学鉴别节点",
+      "embedding_id": "emb_巨幼细胞anemia",
+      "embedding_text": "巨幼细胞贫血 巨幼细胞贫血教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "溶血性anemia",
+      "label": "溶血性贫血",
+      "group": "Disease",
+      "summary": "溶血性贫血教学鉴别节点",
+      "embedding_id": "emb_溶血性anemia",
+      "embedding_text": "溶血性贫血 溶血性贫血教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "慢性病anemia",
+      "label": "慢性病贫血",
+      "group": "Disease",
+      "summary": "慢性病贫血教学鉴别节点",
+      "embedding_id": "emb_慢性病anemia",
+      "embedding_text": "慢性病贫血 慢性病贫血教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "case_jaundice_case",
+      "label": "黄疸病例",
+      "group": "Case",
+      "summary": "皮肤眼黄5天",
+      "embedding_id": "emb_case_jaundice_case",
+      "embedding_text": "黄疸病例 皮肤眼黄5天",
+      "vector_status": "mock"
+    },
+    {
+      "id": "消化内科",
+      "label": "消化内科",
+      "group": "Department",
+      "summary": "消化内科教学科室",
+      "embedding_id": "emb_消化内科",
+      "embedding_text": "消化内科 消化内科教学科室",
+      "vector_status": "mock"
+    },
+    {
+      "id": "jaundice",
+      "label": "jaundice",
+      "group": "LearningObjective",
+      "summary": "与黄疸病例相关节点",
+      "embedding_id": "emb_jaundice",
+      "embedding_text": "jaundice 与黄疸病例相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "bilirubin",
+      "label": "bilirubin",
+      "group": "LearningObjective",
+      "summary": "与黄疸病例相关节点",
+      "embedding_id": "emb_bilirubin",
+      "embedding_text": "bilirubin 与黄疸病例相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "liver_function",
+      "label": "liver_function",
+      "group": "LearningObjective",
+      "summary": "与黄疸病例相关节点",
+      "embedding_id": "emb_liver_function",
+      "embedding_text": "liver_function 与黄疸病例相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "abdominal_ultrasound",
+      "label": "abdominal_ultrasound",
+      "group": "LearningObjective",
+      "summary": "与黄疸病例相关节点",
+      "embedding_id": "emb_abdominal_ultrasound",
+      "embedding_text": "abdominal_ultrasound 与黄疸病例相关节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "肝细胞性jaundice",
+      "label": "肝细胞性黄疸",
+      "group": "Disease",
+      "summary": "肝细胞性黄疸教学鉴别节点",
+      "embedding_id": "emb_肝细胞性jaundice",
+      "embedding_text": "肝细胞性黄疸 肝细胞性黄疸教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "梗阻性jaundice",
+      "label": "梗阻性黄疸",
+      "group": "Disease",
+      "summary": "梗阻性黄疸教学鉴别节点",
+      "embedding_id": "emb_梗阻性jaundice",
+      "embedding_text": "梗阻性黄疸 梗阻性黄疸教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "溶血性jaundice",
+      "label": "溶血性黄疸",
+      "group": "Disease",
+      "summary": "溶血性黄疸教学鉴别节点",
+      "embedding_id": "emb_溶血性jaundice",
+      "embedding_text": "溶血性黄疸 溶血性黄疸教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "病毒性肝炎",
+      "label": "病毒性肝炎",
+      "group": "Disease",
+      "summary": "病毒性肝炎教学鉴别节点",
+      "embedding_id": "emb_病毒性肝炎",
+      "embedding_text": "病毒性肝炎 病毒性肝炎教学鉴别节点",
+      "vector_status": "mock"
+    },
+    {
+      "id": "k_001",
+      "label": "内科学：胸痛评估框架",
+      "group": "Guideline",
+      "summary": "胸痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "embedding_id": "emb_k_001",
+      "embedding_text": "内科学：胸痛评估框架 胸痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "vector_status": "mock"
+    },
+    {
+      "id": "heart",
+      "label": "heart",
+      "group": "LearningObjective",
+      "summary": "知识库映射节点 heart",
+      "embedding_id": "emb_heart",
+      "embedding_text": "heart 知识库映射节点 heart",
+      "vector_status": "mock"
+    },
+    {
+      "id": "k_002",
+      "label": "急诊医学：胸痛鉴别路径",
+      "group": "Guideline",
+      "summary": "胸痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "embedding_id": "emb_k_002",
+      "embedding_text": "急诊医学：胸痛鉴别路径 胸痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "vector_status": "mock"
+    },
+    {
+      "id": "k_003",
+      "label": "生理学：胸痛检查选择",
+      "group": "Guideline",
+      "summary": "胸痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "embedding_id": "emb_k_003",
+      "embedding_text": "生理学：胸痛检查选择 胸痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "vector_status": "mock"
+    },
+    {
+      "id": "k_004",
+      "label": "药理学：胸痛临床关联",
+      "group": "Guideline",
+      "summary": "胸痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "embedding_id": "emb_k_004",
+      "embedding_text": "药理学：胸痛临床关联 胸痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "vector_status": "mock"
+    },
+    {
+      "id": "k_005",
+      "label": "医学影像学：胸痛教学要点",
+      "group": "Guideline",
+      "summary": "胸痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "embedding_id": "emb_k_005",
+      "embedding_text": "医学影像学：胸痛教学要点 胸痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "vector_status": "mock"
+    },
+    {
+      "id": "k_006",
+      "label": "专家共识：胸痛安全提醒",
+      "group": "Guideline",
+      "summary": "胸痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "embedding_id": "emb_k_006",
+      "embedding_text": "专家共识：胸痛安全提醒 胸痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "vector_status": "mock"
+    },
+    {
+      "id": "k_007",
+      "label": "药理学：腹痛评估框架",
+      "group": "Guideline",
+      "summary": "腹痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "embedding_id": "emb_k_007",
+      "embedding_text": "药理学：腹痛评估框架 腹痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "vector_status": "mock"
+    },
+    {
+      "id": "cbc",
+      "label": "cbc",
+      "group": "LearningObjective",
+      "summary": "知识库映射节点 cbc",
+      "embedding_id": "emb_cbc",
+      "embedding_text": "cbc 知识库映射节点 cbc",
+      "vector_status": "mock"
+    },
+    {
+      "id": "淀粉酶",
+      "label": "淀粉酶",
+      "group": "LearningObjective",
+      "summary": "知识库映射节点 淀粉酶",
+      "embedding_id": "emb_淀粉酶",
+      "embedding_text": "淀粉酶 知识库映射节点 淀粉酶",
+      "vector_status": "mock"
+    },
+    {
+      "id": "阑尾",
+      "label": "阑尾",
+      "group": "LearningObjective",
+      "summary": "知识库映射节点 阑尾",
+      "embedding_id": "emb_阑尾",
+      "embedding_text": "阑尾 知识库映射节点 阑尾",
+      "vector_status": "mock"
+    },
+    {
+      "id": "k_008",
+      "label": "医学影像学：腹痛鉴别路径",
+      "group": "Guideline",
+      "summary": "腹痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "embedding_id": "emb_k_008",
+      "embedding_text": "医学影像学：腹痛鉴别路径 腹痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "vector_status": "mock"
+    },
+    {
+      "id": "k_009",
+      "label": "专家共识：腹痛检查选择",
+      "group": "Guideline",
+      "summary": "腹痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "embedding_id": "emb_k_009",
+      "embedding_text": "专家共识：腹痛检查选择 腹痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "vector_status": "mock"
+    },
+    {
+      "id": "k_010",
+      "label": "常用影像检查：腹痛临床关联",
+      "group": "Guideline",
+      "summary": "腹痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "embedding_id": "emb_k_010",
+      "embedding_text": "常用影像检查：腹痛临床关联 腹痛教学条目用于训练学生把症状、疾病、检查、解剖和指南依据串联为可追溯的临床思维路径。",
+      "vector_status": "mock"
+    }
+  ],
+  "edges": [
+    {
+      "source": "case_emergency_chest_pain",
+      "target": "急诊医学",
+      "relation": "属于科室"
+    },
+    {
+      "source": "case_emergency_chest_pain",
+      "target": "chest_pain",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_emergency_chest_pain",
+      "target": "acs",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_emergency_chest_pain",
+      "target": "ecg",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_emergency_chest_pain",
+      "target": "troponin",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_emergency_chest_pain",
+      "target": "aortic_dissection",
+      "relation": "关联病例"
+    },
+    {
+      "source": "chest_pain",
+      "target": "acs",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_emergency_chest_pain",
+      "target": "acs",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "chest_pain",
+      "target": "aortic_dissection",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_emergency_chest_pain",
+      "target": "aortic_dissection",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "chest_pain",
+      "target": "pulmonary_embolism",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_emergency_chest_pain",
+      "target": "pulmonary_embolism",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "chest_pain",
+      "target": "气胸",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_emergency_chest_pain",
+      "target": "气胸",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_acute_abdominal_pain",
+      "target": "消化与急诊",
+      "relation": "属于科室"
+    },
+    {
+      "source": "case_acute_abdominal_pain",
+      "target": "abdominal_pain",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_acute_abdominal_pain",
+      "target": "appendicitis",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_acute_abdominal_pain",
+      "target": "abdominal_ct",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_acute_abdominal_pain",
+      "target": "amylase",
+      "relation": "关联病例"
+    },
+    {
+      "source": "右下abdominal_pain",
+      "target": "阑尾炎",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_acute_abdominal_pain",
+      "target": "阑尾炎",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "右下abdominal_pain",
+      "target": "胆囊炎",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_acute_abdominal_pain",
+      "target": "胆囊炎",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "右下abdominal_pain",
+      "target": "胰腺炎",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_acute_abdominal_pain",
+      "target": "胰腺炎",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "右下abdominal_pain",
+      "target": "消化道穿孔",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_acute_abdominal_pain",
+      "target": "消化道穿孔",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "右下abdominal_pain",
+      "target": "异位妊娠",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_acute_abdominal_pain",
+      "target": "异位妊娠",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_fever_unknown",
+      "target": "感染与内科",
+      "relation": "属于科室"
+    },
+    {
+      "source": "case_fever_unknown",
+      "target": "fever",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_fever_unknown",
+      "target": "infection",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_fever_unknown",
+      "target": "crp",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_fever_unknown",
+      "target": "pct",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_fever_unknown",
+      "target": "blood_culture",
+      "relation": "关联病例"
+    },
+    {
+      "source": "反复fever",
+      "target": "感染性fever",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_fever_unknown",
+      "target": "感染性fever",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "反复fever",
+      "target": "结核",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_fever_unknown",
+      "target": "结核",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "反复fever",
+      "target": "风湿免疫病",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_fever_unknown",
+      "target": "风湿免疫病",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "反复fever",
+      "target": "肿瘤性fever",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_fever_unknown",
+      "target": "肿瘤性fever",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_dyspnea",
+      "target": "呼吸与急诊",
+      "relation": "属于科室"
+    },
+    {
+      "source": "case_dyspnea",
+      "target": "dyspnea",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_dyspnea",
+      "target": "copd",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_dyspnea",
+      "target": "heart_failure",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_dyspnea",
+      "target": "bnp",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_dyspnea",
+      "target": "oxygen_saturation",
+      "relation": "关联病例"
+    },
+    {
+      "source": "活动后气促加重",
+      "target": "哮喘",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_dyspnea",
+      "target": "哮喘",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "活动后气促加重",
+      "target": "copd急性加重",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_dyspnea",
+      "target": "copd急性加重",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "活动后气促加重",
+      "target": "心衰",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_dyspnea",
+      "target": "心衰",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "活动后气促加重",
+      "target": "pulmonary_embolism",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_dyspnea",
+      "target": "pulmonary_embolism",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_diabetes_education",
+      "target": "全科医学",
+      "relation": "属于科室"
+    },
+    {
+      "source": "case_diabetes_education",
+      "target": "diabetes",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_diabetes_education",
+      "target": "hba1c",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_diabetes_education",
+      "target": "hypoglycemia",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_diabetes_education",
+      "target": "microalbuminuria",
+      "relation": "关联病例"
+    },
+    {
+      "source": "血糖控制不佳",
+      "target": "用药依从性差",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_diabetes_education",
+      "target": "用药依从性差",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "血糖控制不佳",
+      "target": "饮食运动不足",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_diabetes_education",
+      "target": "饮食运动不足",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "血糖控制不佳",
+      "target": "低血糖风险",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_diabetes_education",
+      "target": "低血糖风险",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "血糖控制不佳",
+      "target": "并发症风险",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_diabetes_education",
+      "target": "并发症风险",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_headache_case",
+      "target": "神经内科",
+      "relation": "属于科室"
+    },
+    {
+      "source": "case_headache_case",
+      "target": "headache",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_headache_case",
+      "target": "intracranial_hemorrhage",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_headache_case",
+      "target": "hypertensive_emergency",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_headache_case",
+      "target": "head_ct",
+      "relation": "关联病例"
+    },
+    {
+      "source": "突发headache",
+      "target": "偏headache",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_headache_case",
+      "target": "偏headache",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "突发headache",
+      "target": "脑出血",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_headache_case",
+      "target": "脑出血",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "突发headache",
+      "target": "脑膜炎",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_headache_case",
+      "target": "脑膜炎",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "突发headache",
+      "target": "hypertension急症",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_headache_case",
+      "target": "hypertension急症",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_anemia_case",
+      "target": "血液内科",
+      "relation": "属于科室"
+    },
+    {
+      "source": "case_anemia_case",
+      "target": "anemia",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_anemia_case",
+      "target": "iron_deficiency_anemia",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_anemia_case",
+      "target": "ferritin",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_anemia_case",
+      "target": "reticulocyte",
+      "relation": "关联病例"
+    },
+    {
+      "source": "乏力面色苍白",
+      "target": "缺铁性anemia",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_anemia_case",
+      "target": "缺铁性anemia",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "乏力面色苍白",
+      "target": "巨幼细胞anemia",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_anemia_case",
+      "target": "巨幼细胞anemia",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "乏力面色苍白",
+      "target": "溶血性anemia",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_anemia_case",
+      "target": "溶血性anemia",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "乏力面色苍白",
+      "target": "慢性病anemia",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_anemia_case",
+      "target": "慢性病anemia",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_jaundice_case",
+      "target": "消化内科",
+      "relation": "属于科室"
+    },
+    {
+      "source": "case_jaundice_case",
+      "target": "jaundice",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_jaundice_case",
+      "target": "bilirubin",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_jaundice_case",
+      "target": "liver_function",
+      "relation": "关联病例"
+    },
+    {
+      "source": "case_jaundice_case",
+      "target": "abdominal_ultrasound",
+      "relation": "关联病例"
+    },
+    {
+      "source": "皮肤眼黄",
+      "target": "肝细胞性jaundice",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_jaundice_case",
+      "target": "肝细胞性jaundice",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "皮肤眼黄",
+      "target": "梗阻性jaundice",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_jaundice_case",
+      "target": "梗阻性jaundice",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "皮肤眼黄",
+      "target": "溶血性jaundice",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_jaundice_case",
+      "target": "溶血性jaundice",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "皮肤眼黄",
+      "target": "病毒性肝炎",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "case_jaundice_case",
+      "target": "病毒性肝炎",
+      "relation": "需要鉴别"
+    },
+    {
+      "source": "k_001",
+      "target": "chest_pain",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_001",
+      "target": "acs",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_001",
+      "target": "aortic_dissection",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_001",
+      "target": "ecg",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_001",
+      "target": "troponin",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_001",
+      "target": "heart",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_002",
+      "target": "chest_pain",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_002",
+      "target": "acs",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_002",
+      "target": "aortic_dissection",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_002",
+      "target": "ecg",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_002",
+      "target": "troponin",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_002",
+      "target": "heart",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_003",
+      "target": "chest_pain",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_003",
+      "target": "acs",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_003",
+      "target": "aortic_dissection",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_003",
+      "target": "ecg",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_003",
+      "target": "troponin",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_003",
+      "target": "heart",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_004",
+      "target": "chest_pain",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_004",
+      "target": "acs",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_004",
+      "target": "aortic_dissection",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_004",
+      "target": "ecg",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_004",
+      "target": "troponin",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_004",
+      "target": "heart",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_005",
+      "target": "chest_pain",
+      "relation": "来源依据"
+    },
+    {
+      "source": "k_005",
+      "target": "acs",
+      "relation": "来源依据"
+    }
+  ]
+}
