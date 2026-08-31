@@ -1,0 +1,53 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from .models import WorkflowStep
+
+ROOT_DIR = Path(__file__).resolve().parents[2]
+DATA_DIR = ROOT_DIR / "data"
+
+FALLBACK_STAGES = [
+    {"id": "input", "name": "用户输入", "agent": "路由智能体", "goal": "接收自然语言指令、问诊内容或学习问题。"},
+    {"id": "router", "name": "意图识别", "agent": "路由智能体", "goal": "判断导航、检索、学习建议、病例训练、解剖练习或报告生成。"},
+    {"id": "safety", "name": "医学安全检查", "agent": "医学安全智能体", "goal": "确认输出仅用于虚拟教学，不包装成真实诊断。"},
+    {"id": "navigation", "name": "页面导航", "agent": "导航智能体", "goal": "返回目标模块并触发前端跳转。"},
+    {"id": "retrieval", "name": "站内检索", "agent": "检索智能体", "goal": "检索病例、指南、知识库、解剖练习和图谱节点。"},
+    {"id": "patient", "name": "问诊分流", "agent": "标准化病人智能体", "goal": "按病例脚本生成标准化病人回复。"},
+    {"id": "anatomy", "name": "解剖练习评判", "agent": "解剖训练智能体", "goal": "判断定位区域并给出解剖与临床关联解释。"},
+    {"id": "graph", "name": "图谱路径推荐", "agent": "知识图谱智能体", "goal": "返回相关节点、边和学习路径。"},
+    {"id": "scoring", "name": "过程性评分", "agent": "评分智能体", "goal": "更新问诊、检查、鉴别、决策、依据和沟通评分。"},
+    {"id": "report", "name": "报告生成", "agent": "报告智能体", "goal": "生成训练报告和复训建议。"},
+]
+
+
+def load_workflow() -> dict:
+    path = DATA_DIR / "workflow.json"
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
+    return {"name": "平台智能助手工作流", "stages": FALLBACK_STAGES}
+
+
+def build_trace(question: str, scenario: str, intent: str = "training") -> list[WorkflowStep]:
+    trace: list[WorkflowStep] = []
+    for stage in load_workflow()["stages"]:
+        active = stage["id"] in {"input", "router", "safety", "retrieval", "scoring", "report"}
+        if intent == "navigation":
+            active = stage["id"] in {"input", "router", "safety", "navigation"}
+        if intent == "anatomy":
+            active = stage["id"] in {"input", "router", "safety", "anatomy", "scoring"}
+        if intent == "patient":
+            active = stage["id"] in {"input", "router", "safety", "patient", "retrieval", "scoring"}
+        if intent == "graph":
+            active = stage["id"] in {"input", "router", "safety", "retrieval", "graph"}
+        trace.append(
+            WorkflowStep(
+                id=stage["id"],
+                name=stage["name"],
+                agent=stage["agent"],
+                status="done" if active else "standby",
+                detail=f"{stage['agent']} 已针对“{scenario}”处理：{stage['goal']}",
+            )
+        )
+    return trace
