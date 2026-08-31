@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="100%" height="100%" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 17600 14068"
+xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs>
+    <style type="text/css">
+        <![CDATA[
+            .str0 {stroke:#999999;stroke-width:100;stroke-linecap:round;stroke-linejoin:round}
+            .str1 {stroke:#990000;stroke-width:150;stroke-linecap:round;stroke-linejoin:round}
+            .str2 {stroke:#003399;stroke-width:150;stroke-linecap:round;stroke-linejoin:round}
+            .str3 {stroke:black;stroke-width:150;stroke-linecap:round;stroke-linejoin:round}
+            .fil0 {fill:none}
+            .fnt0 {font-weight:normal;font-size:423.33px;font-family:'Arial',sans-serif;fill:black}
+            .fnt1 {font-weight:normal;font-size:564.44px;font-family:'Arial',sans-serif;fill:black}
+        ]]>
+    </style>
+</defs>
+<g id="Aortic_valve">
+    <path class="fil0 str0" d="M9708 4763c0,549 445,995 995,995"/>
+    <path class="fil0 str0" d="M9708 4763c0,549 -446,995 -996,995"/>
+</g>
+<g id="Pulmonary_valve">
+    <path class="fil0 str0" d="M7717 4763c0,549 446,995 995,995"/>
+    <path class="fil0 str0" d="M7717 4763c0,549 -446,995 -995,995"/>
+</g>
+<g id="Mitral_valve">
+    <path class="fil0 str0" d="M12117 7901c0,-780 633,-1413 1413,-1413"/>
+<path class="fil0 str0" d="M12117 7901c0,-780 -633,-1413 -1414,-1413"/>
+</g>
+<g id="Tricuspid_valve">
+    <path class="fil0 str0" d="M5308 7901c0,-780 -633,-1413 -1413,-1413"/>
+<path class="fil0 str0" d="M5308 7901c0,-780 633,-1413 1414,-1413"/>
+</g>
+<g id="LA-LV">
+    <path class="fil0 str1" d="M17338 4803c-206,-236 -574,-557 -1021,-896l-172 583c446,339 814,659 1020,896"/>
+    <path class="fil0 str1" d="M17525 4175c-882,-907 -3366,-2347 -5958,-2772"/>
+    <path class="fil0 str1" d="M11322 1929c852,47 2076,545 2912,931 -195,-34 -718,5 -1184,139 -628,-289 -1234,-544 -1873,-579"/>
+    <path class="fil0 str1" d="M10703 4517c218,-347 737,-905 1524,-1224 -415,-192 -760,-332 -1183,-356"/>
+    <path class="fil0 str1" d="M8713 9434c0,1413 -80,4559 3464,4559 3543,0 3682,-3384 3682,-4479 0,-1095 -955,-3026 -2329,-3026 1434,-159 1797,-671 2355,-1507 446,338 814,659 1020,896"/>
+    <path class="fil0 str1" d="M10703 6826l0 -2903c0,-741 347,-2522 929,-3104"/>
+    <path class="fil0 str1" d="M8712 3593c0,-825 386,-2809 1035,-3458"/>
+</g>
+<g id="RA-RV">
+    <path class="fil0 str2" d="M75 6220c67,-1062 753,-3794 2252,-5077"/>
+    <path class="fil0 str2" d="M8712 9434c0,1413 80,4559 -3463,4559 -3544,0 -3683,-3384 -3683,-4479 0,-1095 955,-3026 2329,-3026 -1433,-159 -1797,-671 -2355,-1507m-267 1331c20,-313 118,-791 267,-1331"/>
+    <path class="fil0 str2" d="M6722 4517c-455,-597 -1987,-1821 -4400,-1374 272,-513 511,-920 920,-1270"/>
+    <path class="fil0 str2" d="M8712 3593c0,-825 -386,-2809 -1034,-3458"/>
+    <path class="fil0 str2" d="M6722 6826l0 -2903c0,-741 -347,-2522 -929,-3104"/>
+</g>
+<line id="Septum" class="fil0 str3" x1="8712" y1="9434" x2="8712" y2= "3593" />
+<g transform="matrix(0.889113 0.457688 -0.457688 0.889113 9642.53 -9963.19)">
+    <text x="9134" y="8185" id="Pulmonary_veins" class="fnt0">Pulmonary veins</text>
+</g>
+<text x="274" y="6956" id="IVC" class="fnt0">IVC</text>
+<text x="2765" y="1434" id="SVC" class="fnt0">SVC</text>
+<text x="9152" y="4410" id="Aortic" class="fnt0">Aortic</text>
+<text x="7351" y="3937" id="Pulmonary1" class="fnt0">Pul-</text>
+<text x="7022" y="4410" id="Pulmonary2" class="fnt0">monary</text>
+<text x="12531" y="7723" id="Mitral" class="fnt0">Mitral</text>
+<text x="3118" y="7723" id="Tricuspid" class="fnt0">Tricuspid</text>
+<text x="3922" y="404" id="Pulmonary_artery" class="fnt0">Pulmonary artery</text>
+<text x="10205" y="404" id="Aorta" class="fnt0">Aorta</text>
+<text x="4615" y="10197" id="RV1" class="fnt1">Right</text>
+<text x="4223" y="10827" id="RV2" class="fnt1">ventricle</text>
+<text x="3202" y="4642" id="RA1" class="fnt1">Right</text>
+<text x="3077" y="5272" id="RA2" class="fnt1">atrium</text>
+<text x="13071" y="4642" id="LA1" class="fnt1">Left</text>
+<text x="12758" y="5272" id="LA2" class="fnt1">atrium</text>
+<text x="11656" y="10197" id="LV1" class="fnt1">Left</text>
+<text x="11076" y="10827" id="LV2" class="fnt1">ventricle</text>
+</svg>

@@ -1,0 +1,166 @@
+{
+  "TS-ce53b78031c5": {
+    "session_id": "TS-ce53b78031c5",
+    "case_id": "emergency_chest_pain",
+    "variant_id": "A",
+    "difficulty": "进阶",
+    "mode": "完整训练",
+    "history": [],
+    "patient_state": {
+      "stage": "chief_complaint",
+      "completed": [],
+      "progress": 0
+    },
+    "ordered_tests": [],
+    "diagnosis_submission": {}
+  },
+  "TS-4140181eea34": {
+    "session_id": "TS-4140181eea34",
+    "case_id": "fever_unknown",
+    "variant_id": "A",
+    "difficulty": "标准",
+    "mode": "完整训练",
+    "history": [
+      {
+        "role": "student",
+        "content": "发热是什么时候开始的，怎么变化的？"
+      },
+      {
+        "role": "patient",
+        "content": "大概三天前开始的，一开始有点低热，后来慢慢高起来，最高烧到39度1。中间有反复，每次发热前觉得发冷，还浑身没劲。"
+      },
+      {
+        "role": "student",
+        "content": "有没有寒战，具体是什么情况？"
+      },
+      {
+        "role": "patient",
+        "content": "有寒战，特别在烧起来之前觉得身上发冷，想盖被子。烧起来后就好点，但还是没力气。"
+      }
+    ],
+    "patient_state": {
+      "stage": "chief_complaint",
+      "completed": [],
+      "progress": 0
+    },
+    "ordered_tests": [
+      "血常规",
+      "CRP",
+      "血培养",
+      "胸部CT"
+    ],
+    "diagnosis_submission": {
+      "preliminary_diagnosis": "",
+      "differentials": [],
+      "treatment_principles": "",
+      "medication_plan": "",
+      "citations": []
+    }
+  },
+  "TS-ddc127b23e07": {
+    "session_id": "TS-ddc127b23e07",
+    "case_id": "emergency_chest_pain",
+    "variant_id": "A",
+    "difficulty": "标准",
+    "mode": "完整训练",
+    "history": [],
+    "patient_state": {
+      "stage": "chief_complaint",
+      "completed": [],
+      "progress": 0
+    },
+    "ordered_tests": [],
+    "diagnosis_submission": {
+      "preliminary_diagnosis": "",
+      "differentials": [],
+      "treatment_principles": "",
+      "medication_plan": "",
+      "citations": []
+    }
+  },
+  "TS-ab08a622a15e": {
+    "session_id": "TS-ab08a622a15e",
+    "case_id": "emergency_chest_pain",
+    "variant_id": "A",
+    "difficulty": "标准",
+    "mode": "完整训练",
+    "history": [
+      {
+        "role": "student",
+        "content": "胸痛是什么时候开始的，怎么变化的？"
+      },
+      {
+        "role": "patient",
+        "content": "上楼时突发胸骨后压榨样疼痛；向左肩放射；休息后未完全缓解；伴恶心和大汗"
+      }
+    ],
+    "patient_state": {
+      "stage": "chief_complaint",
+      "completed": [],
+      "progress": 0
+    },
+    "ordered_tests": [],
+    "diagnosis_submission": {}
+  },
+  "TS-bc58162fb37a": {
+    "session_id": "TS-bc58162fb37a",
+    "case_id": "emergency_chest_pain",
+    "variant_id": "A",
+    "difficulty": "标准",
+    "mode": "完整训练",
+    "history": [],
+    "patient_state": {
+      "stage": "chief_complaint",
+      "completed": [],
+      "progress": 0
+    },
+    "ordered_tests": [],
+    "diagnosis_submission": {}
+  },
+  "TS-6fbb1874089d": {
+    "session_id": "TS-6fbb1874089d",
+    "case_id": "emergency_chest_pain",
+    "variant_id": "A",
+    "difficulty": "标准",
+    "mode": "完整训练",
+    "history": [
+      {
+        "role": "student",
+        "content": "胸痛是什么时候开始的，怎么变化的？"
+      },
+      {
+        "role": "patient",
+        "content": "上楼时突发胸骨后压榨样疼痛；向左肩放射；休息后未完全缓解；伴恶心和大汗"
+      },
+      {
+        "role": "student",
+        "content": "有没有出汗，具体是什么情况？"
+      },
+      {
+        "role": "patient",
+        "content": "上楼时突发胸骨后压榨样疼痛"
+      }
+    ],
+    "patient_state": {
+      "stage": "chief_complaint",
+      "completed": [
+        "present_illness"
+      ],
+      "progress": 12,
+      "last_collected": "现病史"
+    },
+    "ordered_tests": [
+      "心电图",
+      "高敏肌钙蛋白",
+      "D-二聚体",
+      "主动脉CTA"
+    ],
+    "diagnosis_submission": {
+      "preliminary_diagnosis": "",
+      "differentials": [],
+      "treatment_principles": "",
+      "medication_plan": "",
+      "citations": []
+    }
+  }
+}

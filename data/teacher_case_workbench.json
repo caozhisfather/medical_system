@@ -1,0 +1,684 @@
+{
+  "drafts": [
+    {
+      "draft_id": "teacher_case_c2bdce89",
+      "case": {
+        "case_id": "teacher_case_c2bdce89",
+        "id": "teacher_case_c2bdce89",
+        "title_zh": "神经系统疾病病例整合训练",
+        "title_en": "Teacher reviewed AI-assisted teaching case",
+        "title": "神经系统疾病病例整合训练",
+        "department": "神经系统疾病",
+        "specialty": "结合病例知识库素材，训练神经系统疾病问诊、鉴别与处置能力",
+        "difficulty": "进阶",
+        "scenario": "教师围绕“结合病例知识库素材，训练神经系统疾病问诊、鉴别与处置能力”创建的合成虚拟教学病例。",
+        "chief_complaint": "教师整合病例待补充主诉",
+        "symptom_tags": [
+          "教师整合病例待补充主诉"
+        ],
+        "training_goals": [
+          "结合病例知识库素材，训练神经系统疾病问诊、鉴别与处置能力",
+          "结构化问诊",
+          "检查选择",
+          "安全决策"
+        ],
+        "learning_goals": [
+          "结合病例知识库素材，训练神经系统疾病问诊、鉴别与处置能力",
+          "形成可解释的临床推理路径"
+        ],
+        "recommended_minutes": 20,
+        "completion_status": "未训练",
+        "patient_profile": {
+          "age": 48,
+          "gender": "待教师设定",
+          "occupation": "虚拟角色",
+          "personality": "配合教学问诊，不主动补充未被问及的信息",
+          "communication_style": "简洁回答，仅陈述病例脚本内事实"
+        },
+        "patient_profile_text": "48岁虚拟标准化病人，具体信息待教师复核",
+        "speaking_style": "简洁回答，仅陈述病例脚本内事实",
+        "opening_statement": "医生，我主要是教师整合病例待补充主诉。",
+        "opening": "医生，我主要是教师整合病例待补充主诉。",
+        "history": {
+          "present_illness": [
+            "由 1 条脱敏病例整合：高血压病例（神经系统疾病/高血压病例）。核心现病史线索：待教师补充"
+          ],
+          "past_history": [
+            "相关既往史待教师补充"
+          ],
+          "medication_history": [
+            "既往用药待教师补充"
+          ],
+          "allergy_history": [
+            "过敏史待教师补充"
+          ],
+          "personal_history": [
+            "个人史待教师补充"
+          ],
+          "family_history": [
+            "家族史待教师补充"
+          ]
+        },
+        "present_illness": "由 1 条脱敏病例整合：高血压病例（神经系统疾病/高血压病例）。核心现病史线索：待教师补充",
+        "past_history": "相关既往史待教师补充",
+        "physical_exam": [
+          "生命体征待教师设定",
+          "目标系统查体待教师设定"
+        ],
+        "available_tests": [],
+        "available_exams": [],
+        "exam_results": {},
+        "hidden_final_diagnosis": "高血压病例",
+        "differential_diagnoses": [
+          "核心鉴别诊断A",
+          "高风险鉴别诊断B",
+          "常见鉴别诊断C"
+        ],
+        "key_scoring_points": [
+          "本次起病经过（注意该病后期易累及呼吸、循环系统：以咳嗽、咳痰、发热心功能不全、高血压起病），尿量、颜色，有无水肿、乏力、腰酸、夜尿增多、尿液性状（有无泡沫、颜色）",
+          "有无消化道症状（食欲减退、恶心、呕吐、消化道出血），既往有无肾病史，有无高血压病、糖尿病史，有无特殊服药病史，有无关节疼痛、皮疹、畏寒、发热，有无气短、气促、呼吸困难、不能平卧，注意神经系统症状（疲乏、失眠、注意力减退，甚至反应淡漠、谵妄、幻觉、昏迷）等病史",
+          "结合病例知识库素材，训练神经系统疾病问诊、鉴别与处置能力",
+          "主诉特征",
+          "现病史结构",
+          "危险因素",
+          "检查选择",
+          "风险处置"
+        ],
+        "high_risk_misses": [
+          "未排除主动脉夹层",
+          "未及时申请心电图"
+        ],
+        "high_risk_omissions": [
+          {
+            "id": "teacher_case_c2bdce89_risk_1",
+            "level": "warning",
+            "text": "尚未询问胸痛性质",
+            "suggestion": "围绕“尚未询问胸痛性质”设置评分点。",
+            "keywords": [
+              "尚未询问胸痛性质"
+            ]
+          },
+          {
+            "id": "teacher_case_c2bdce89_risk_2",
+            "level": "warning",
+            "text": "尚未排除主动脉夹层",
+            "suggestion": "围绕“尚未排除主动脉夹层”设置评分点。",
+            "keywords": [
+              "尚未排除主动脉夹层"
+            ]
+          },
+          {
+            "id": "teacher_case_c2bdce89_risk_3",
+            "level": "warning",
+            "text": "建议申请心电图和肌钙蛋白",
+            "suggestion": "围绕“建议申请心电图和肌钙蛋白”设置评分点。",
+            "keywords": [
+              "建议申请心电图和肌钙蛋白"
+            ]
+          }
+        ],
+        "common_student_errors": [
+          "尚未询问胸痛性质",
+          "尚未排除主动脉夹层",
+          "建议申请心电图和肌钙蛋白"
+        ],
+        "recommended_guidelines": [
+          "相关专科指南待教师确认"
+        ],
+        "recommended_retraining": [
+          "结合病例知识库素材，训练神经系统疾病问诊、鉴别与处置能力"
+        ],
+        "patient_answer_rules": {
+          "can_only_answer_known_facts": true,
+          "do_not_reveal_final_diagnosis": true,
+          "unknown_answer": "这个我不太清楚，医生您能再具体问一下吗？"
+        },
+        "case_variants": [],
+        "script": {
+          "opening": "医生，我主要是教师整合病例待补充主诉。",
+          "answers": []
+        },
+        "source": {
+          "type": "synthetic",
+          "name": "病例知识库整合",
+          "contains_real_patient_data": false
+        },
+        "review_status": "已批准",
+        "teacher_note": "",
+        "recommendation_id": null,
+        "knowledge_entry_ids": [
+          "ckb_c73bd880ef"
+        ],
+        "source_summary": "由 1 条脱敏病例整合：高血压病例（神经系统疾病/高血压病例）。核心现病史线索：待教师补充",
+        "history_taking_reference": {
+          "department": "肾内科",
+          "title": "慢性肾脏病",
+          "sections": {
+            "鉴别诊断": "通常因肌酐升高为主诉，病程大于3个月。",
+            "问诊要点": "本次起病经过（注意该病后期易累及呼吸、循环系统：以咳嗽、咳痰、发热心功能不全、高血压起病），尿量、颜色，有无水肿、乏力、腰酸、夜尿增多、尿液性状（有无泡沫、颜色）；有无消化道症状（食欲减退、恶心、呕吐、消化道出血），既往有无肾病史，有无高血压病、糖尿病史，有无特殊服药病史，有无关节疼痛、皮疹、畏寒、发热，有无气短、气促、呼吸困难、不能平卧，注意神经系统症状（疲乏、失眠、注意力减退，甚至反应淡漠、谵妄、幻觉、昏迷）等病史。"
+          },
+          "source": "《内科规培技能问诊总结》 · 肾内科 · 慢性肾脏病"
+        }
+      },
+      "validation": {
+        "case_id": "teacher_case_c2bdce89",
+        "valid": true,
+        "checks": {
+          "has_final_diagnosis": true,
+          "has_three_differentials": true,
+          "has_five_scoring_points": true,
+          "has_high_risk_misses": true,
+          "has_source": true,
+          "is_synthetic_teaching_case": true,
+          "contains_no_real_identity": true
+        },
+        "errors": []
+      },
+      "workflow": [
+        {
+          "id": "knowledge_base",
+          "name": "病例知识库整合",
+          "agent": "CaseKnowledgeAgent",
+          "status": "done",
+          "detail": "合并 1 条脱敏病例，提取主诉、现病史与诊断线索。"
+        },
+        {
+          "id": "history_standard",
+          "name": "问诊标准匹配",
+          "agent": "HistoryTakingAgent",
+          "status": "done",
+          "detail": "匹配问诊模板「慢性肾脏病」，用于生成问诊要点与评分依据。"
+        },
+        {
+          "id": "analytics",
+          "name": "学习结果分析",
+          "agent": "LearningAnalyticsAgent",
+          "status": "done",
+          "detail": "分析 248 次训练及共性薄弱项。"
+        },
+        {
+          "id": "design",
+          "name": "病例结构设计",
+          "agent": "CaseDesignerAgent",
+          "status": "done",
+          "detail": "围绕“结合病例知识库素材，训练神经系统疾病问诊、鉴别与处置能力”生成病例结构。"
+        },
+        {
+          "id": "patient",
+          "name": "病人脚本生成",
+          "agent": "PatientScriptAgent",
+          "status": "done",
+          "detail": "生成受病例事实约束的标准化病人脚本。"
+        },
+        {
+          "id": "scoring",
+          "name": "评分规则生成",
+          "agent": "ScoringAgent",
+          "status": "done",
+          "detail": "将学生薄弱项转化为关键得分点和风险扣分项。"
+        },
+        {
+          "id": "safety",
+          "name": "安全与隐私检查",
+          "agent": "SafetyAgent",
+          "status": "done",
+          "detail": "确认病例为合成教学内容且不含真实身份信息。"
+        },
+        {
+          "id": "teacher",
+          "name": "教师最终决策",
+          "agent": "HumanReviewGate",
+          "status": "done",
+          "detail": "教师决策：已批准。"
+        }
+      ],
+      "decision": {
+        "action": "approve",
+        "note": "",
+        "decided_by": "李老师"
+      }
+    },
+    {
+      "draft_id": "teacher_case_39983eee",
+      "case": {
+        "case_id": "teacher_case_39983eee",
+        "id": "teacher_case_39983eee",
+        "title_zh": "神经系统疾病病例整合训练",
+        "title_en": "Teacher reviewed AI-assisted teaching case",
+        "title": "神经系统疾病病例整合训练",
+        "department": "神经系统疾病",
+        "specialty": "结合病例知识库素材，训练神经系统疾病问诊、鉴别与处置能力",
+        "difficulty": "进阶",
+        "scenario": "教师围绕“结合病例知识库素材，训练神经系统疾病问诊、鉴别与处置能力”创建的合成虚拟教学病例。",
+        "chief_complaint": "教师整合病例待补充主诉",
+        "symptom_tags": [
+          "教师整合病例待补充主诉"
+        ],
+        "training_goals": [
+          "结合病例知识库素材，训练神经系统疾病问诊、鉴别与处置能力",
+          "结构化问诊",
+          "检查选择",
+          "安全决策"
+        ],
+        "learning_goals": [
+          "结合病例知识库素材，训练神经系统疾病问诊、鉴别与处置能力",
+          "形成可解释的临床推理路径"
+        ],
+        "recommended_minutes": 20,
+        "completion_status": "未训练",
+        "patient_profile": {
+          "age": 48,
+          "gender": "待教师设定",
+          "occupation": "虚拟角色",
+          "personality": "配合教学问诊，不主动补充未被问及的信息",
+          "communication_style": "简洁回答，仅陈述病例脚本内事实"
+        },
+        "patient_profile_text": "48岁虚拟标准化病人，具体信息待教师复核",
+        "speaking_style": "简洁回答，仅陈述病例脚本内事实",
+        "opening_statement": "医生，我主要是教师整合病例待补充主诉。",
+        "opening": "医生，我主要是教师整合病例待补充主诉。",
+        "history": {
+          "present_illness": [
+            "患者于入院半月前开始因受凉后，出现咳嗽，咳痰，伴有气短，恶心，持续时间短暂，有时可自行缓解；有时自服药物后可缓解。曾在当地医院就诊治疗，症状未见彻底改善。此次于入院前2天开始，因受凉感冒后出现上述症状加重，咳嗽、咳痰加重，活动时上述症状加重，伴有胸闷，气短，无尿少及下肢浮肿，间断服药治疗，上述症状无明显减轻，感明显头晕、头昏，伴有大便不通，无呕吐，无耳鸣及听力下降，无晕厥及昏迷，今日前来我院就诊，门诊以“间质性肺炎”收住我科"
+          ],
+          "past_history": [
+            "相关既往史待教师补充"
+          ],
+          "medication_history": [
+            "既往用药待教师补充"
+          ],
+          "allergy_history": [
+            "过敏史待教师补充"
+          ],
+          "personal_history": [
+            "个人史待教师补充"
+          ],
+          "family_history": [
+            "家族史待教师补充"
+          ]
+        },
+        "present_illness": "患者于入院半月前开始因受凉后，出现咳嗽，咳痰，伴有气短，恶心，持续时间短暂，有时可自行缓解；有时自服药物后可缓解。曾在当地医院就诊治疗，症状未见彻底改善。此次于入院前2天开始，因受凉感冒后出现上述症状加重，咳嗽、咳痰加重，活动时上述症状加重，伴有胸闷，气短，无尿少及下肢浮肿，间断服药治疗，上述症状无明显减轻，感明显头晕、头昏，伴有大便不通，无呕吐，无耳鸣及听力下降，无晕厥及昏迷，今日前来我院就诊，门诊以“间质性肺炎”收住我科",
+        "past_history": "相关既往史待教师补充",
+        "physical_exam": [
+          "生命体征待教师设定",
+          "目标系统查体待教师设定"
+        ],
+        "available_tests": [],
+        "available_exams": [],
+        "exam_results": {},
+        "hidden_final_diagnosis": "入院诊断",
+        "differential_diagnoses": [
+          "核心鉴别诊断A",
+          "高风险鉴别诊断B",
+          "常见鉴别诊断C"
+        ],
+        "key_scoring_points": [
+          "结合病例知识库素材，训练神经系统疾病问诊、鉴别与处置能力",
+          "主诉特征",
+          "现病史结构",
+          "危险因素",
+          "检查选择",
+          "风险处置"
+        ],
+        "high_risk_misses": [
+          "未排除主动脉夹层",
+          "未及时申请心电图"
+        ],
+        "high_risk_omissions": [
+          {
+            "id": "teacher_case_39983eee_risk_1",
+            "level": "warning",
+            "text": "尚未询问胸痛性质",
+            "suggestion": "围绕“尚未询问胸痛性质”设置评分点。",
+            "keywords": [
+              "尚未询问胸痛性质"
+            ]
+          },
+          {
+            "id": "teacher_case_39983eee_risk_2",
+            "level": "warning",
+            "text": "尚未排除主动脉夹层",
+            "suggestion": "围绕“尚未排除主动脉夹层”设置评分点。",
+            "keywords": [
+              "尚未排除主动脉夹层"
+            ]
+          },
+          {
+            "id": "teacher_case_39983eee_risk_3",
+            "level": "warning",
+            "text": "建议申请心电图和肌钙蛋白",
+            "suggestion": "围绕“建议申请心电图和肌钙蛋白”设置评分点。",
+            "keywords": [
+              "建议申请心电图和肌钙蛋白"
+            ]
+          }
+        ],
+        "common_student_errors": [
+          "尚未询问胸痛性质",
+          "尚未排除主动脉夹层",
+          "建议申请心电图和肌钙蛋白"
+        ],
+        "recommended_guidelines": [
+          "相关专科指南待教师确认"
+        ],
+        "recommended_retraining": [
+          "结合病例知识库素材，训练神经系统疾病问诊、鉴别与处置能力"
+        ],
+        "patient_answer_rules": {
+          "can_only_answer_known_facts": true,
+          "do_not_reveal_final_diagnosis": true,
+          "unknown_answer": "这个我不太清楚，医生您能再具体问一下吗？"
+        },
+        "case_variants": [],
+        "script": {
+          "opening": "医生，我主要是教师整合病例待补充主诉。",
+          "answers": []
+        },
+        "source": {
+          "type": "synthetic",
+          "name": "病例知识库整合",
+          "contains_real_patient_data": false
+        },
+        "review_status": "已批准",
+        "teacher_note": "",
+        "recommendation_id": null,
+        "knowledge_entry_ids": [
+          "ckb_d94bb8d065"
+        ],
+        "source_summary": "由 1 条脱敏病例整合：间质性肺炎病例（神经系统疾病/间质性肺炎）。核心现病史线索：患者于入院半月前开始因受凉后，出现咳嗽，咳痰，伴有气短，恶心，持续时间短暂，有时可自行缓解；有时自服药物后可缓解。曾在当地医院就诊治疗，症状未见彻底改善。此次于入院前2天开始，因受凉感冒后出现上述症状加重，咳嗽、咳痰加重，活动时上述症状加重，伴有胸闷，气短，无尿少及下肢浮肿，间断服药治疗，上述症状无明显减轻，感明显头晕、头昏，伴有大便不通，无呕吐，无耳鸣及听力下降，无晕厥及昏迷，今日前来我院就诊，门诊以“间质性肺炎”收住我科"
+      },
+      "validation": {
+        "case_id": "teacher_case_39983eee",
+        "valid": true,
+        "checks": {
+          "has_final_diagnosis": true,
+          "has_three_differentials": true,
+          "has_five_scoring_points": true,
+          "has_high_risk_misses": true,
+          "has_source": true,
+          "is_synthetic_teaching_case": true,
+          "contains_no_real_identity": true
+        },
+        "errors": []
+      },
+      "workflow": [
+        {
+          "id": "knowledge_base",
+          "name": "病例知识库整合",
+          "agent": "CaseKnowledgeAgent",
+          "status": "done",
+          "detail": "合并 1 条脱敏病例，提取主诉、现病史与诊断线索。"
+        },
+        {
+          "id": "analytics",
+          "name": "学习结果分析",
+          "agent": "LearningAnalyticsAgent",
+          "status": "done",
+          "detail": "分析 248 次训练及共性薄弱项。"
+        },
+        {
+          "id": "design",
+          "name": "病例结构设计",
+          "agent": "CaseDesignerAgent",
+          "status": "done",
+          "detail": "围绕“结合病例知识库素材，训练神经系统疾病问诊、鉴别与处置能力”生成病例结构。"
+        },
+        {
+          "id": "patient",
+          "name": "病人脚本生成",
+          "agent": "PatientScriptAgent",
+          "status": "done",
+          "detail": "生成受病例事实约束的标准化病人脚本。"
+        },
+        {
+          "id": "scoring",
+          "name": "评分规则生成",
+          "agent": "ScoringAgent",
+          "status": "done",
+          "detail": "将学生薄弱项转化为关键得分点和风险扣分项。"
+        },
+        {
+          "id": "safety",
+          "name": "安全与隐私检查",
+          "agent": "SafetyAgent",
+          "status": "done",
+          "detail": "确认病例为合成教学内容且不含真实身份信息。"
+        },
+        {
+          "id": "teacher",
+          "name": "教师最终决策",
+          "agent": "HumanReviewGate",
+          "status": "done",
+          "detail": "教师决策：已批准。"
+        }
+      ],
+      "decision": {
+        "action": "approve",
+        "note": "",
+        "decided_by": "李老师"
+      }
+    },
+    {
+      "draft_id": "teacher_case_197c7478",
+      "case": {
+        "case_id": "teacher_case_197c7478",
+        "id": "teacher_case_197c7478",
+        "title_zh": "心血管疾病病例整合训练",
+        "title_en": "Teacher reviewed AI-assisted teaching case",
+        "title": "心血管疾病病例整合训练",
+        "department": "心血管疾病",
+        "specialty": "结合病例知识库素材，训练心血管疾病问诊、鉴别与处置能力",
+        "difficulty": "进阶",
+        "scenario": "教师围绕“结合病例知识库素材，训练心血管疾病问诊、鉴别与处置能力”创建的合成虚拟教学病例。",
+        "chief_complaint": "教师整合病例待补充主诉",
+        "symptom_tags": [
+          "教师整合病例待补充主诉"
+        ],
+        "training_goals": [
+          "结合病例知识库素材，训练心血管疾病问诊、鉴别与处置能力",
+          "结构化问诊",
+          "检查选择",
+          "安全决策"
+        ],
+        "learning_goals": [
+          "结合病例知识库素材，训练心血管疾病问诊、鉴别与处置能力",
+          "形成可解释的临床推理路径"
+        ],
+        "recommended_minutes": 20,
+        "completion_status": "未训练",
+        "patient_profile": {
+          "age": 48,
+          "gender": "待教师设定",
+          "occupation": "虚拟角色",
+          "personality": "配合教学问诊，不主动补充未被问及的信息",
+          "communication_style": "简洁回答，仅陈述病例脚本内事实"
+        },
+        "patient_profile_text": "48岁虚拟标准化病人，具体信息待教师复核",
+        "speaking_style": "简洁回答，仅陈述病例脚本内事实",
+        "opening_statement": "医生，我主要是教师整合病例待补充主诉。",
+        "opening": "医生，我主要是教师整合病例待补充主诉。",
+        "history": {
+          "present_illness": [
+            "患者于入院前患者于入院前3天，无明显诱因出现头晕，有时感天旋地转，但不剧烈，有时伴恶心、心慌、气短，在本院门诊测血压150/100mmHg给予降压药卡托普利治疗血压一直控制在140/90mmHg。于入院前1天上述症状再次加重，在当地卫生所输液治疗（具体药物不详）未见好转，来我院门诊就诊。门诊查心电图示：窦性心律，电轴正常，心电图部分导联ST段改变，门诊以上述诊断收住我科。饮食睡眠尚可，大小便正常，无“糖尿病”病史"
+          ],
+          "past_history": [
+            "相关既往史待教师补充"
+          ],
+          "medication_history": [
+            "既往用药待教师补充"
+          ],
+          "allergy_history": [
+            "过敏史待教师补充"
+          ],
+          "personal_history": [
+            "个人史待教师补充"
+          ],
+          "family_history": [
+            "家族史待教师补充"
+          ]
+        },
+        "present_illness": "患者于入院前患者于入院前3天，无明显诱因出现头晕，有时感天旋地转，但不剧烈，有时伴恶心、心慌、气短，在本院门诊测血压150/100mmHg给予降压药卡托普利治疗血压一直控制在140/90mmHg。于入院前1天上述症状再次加重，在当地卫生所输液治疗（具体药物不详）未见好转，来我院门诊就诊。门诊查心电图示：窦性心律，电轴正常，心电图部分导联ST段改变，门诊以上述诊断收住我科。饮食睡眠尚可，大小便正常，无“糖尿病”病史",
+        "past_history": "相关既往史待教师补充",
+        "physical_exam": [
+          "生命体征待教师设定",
+          "目标系统查体待教师设定"
+        ],
+        "available_tests": [],
+        "available_exams": [],
+        "exam_results": {},
+        "hidden_final_diagnosis": "入院诊断",
+        "differential_diagnoses": [
+          "核心鉴别诊断A",
+          "高风险鉴别诊断B",
+          "常见鉴别诊断C"
+        ],
+        "key_scoring_points": [
+          "结合病例知识库素材，训练心血管疾病问诊、鉴别与处置能力",
+          "主诉特征",
+          "现病史结构",
+          "危险因素",
+          "检查选择",
+          "风险处置"
+        ],
+        "high_risk_misses": [
+          "未排除主动脉夹层",
+          "未及时申请心电图"
+        ],
+        "high_risk_omissions": [
+          {
+            "id": "teacher_case_197c7478_risk_1",
+            "level": "warning",
+            "text": "尚未询问胸痛性质",
+            "suggestion": "围绕“尚未询问胸痛性质”设置评分点。",
+            "keywords": [
+              "尚未询问胸痛性质"
+            ]
+          },
+          {
+            "id": "teacher_case_197c7478_risk_2",
+            "level": "warning",
+            "text": "尚未排除主动脉夹层",
+            "suggestion": "围绕“尚未排除主动脉夹层”设置评分点。",
+            "keywords": [
+              "尚未排除主动脉夹层"
+            ]
+          },
+          {
+            "id": "teacher_case_197c7478_risk_3",
+            "level": "warning",
+            "text": "建议申请心电图和肌钙蛋白",
+            "suggestion": "围绕“建议申请心电图和肌钙蛋白”设置评分点。",
+            "keywords": [
+              "建议申请心电图和肌钙蛋白"
+            ]
+          }
+        ],
+        "common_student_errors": [
+          "尚未询问胸痛性质",
+          "尚未排除主动脉夹层",
+          "建议申请心电图和肌钙蛋白"
+        ],
+        "recommended_guidelines": [
+          "相关专科指南待教师确认"
+        ],
+        "recommended_retraining": [
+          "结合病例知识库素材，训练心血管疾病问诊、鉴别与处置能力"
+        ],
+        "patient_answer_rules": {
+          "can_only_answer_known_facts": true,
+          "do_not_reveal_final_diagnosis": true,
+          "unknown_answer": "这个我不太清楚，医生您能再具体问一下吗？"
+        },
+        "case_variants": [],
+        "script": {
+          "opening": "医生，我主要是教师整合病例待补充主诉。",
+          "answers": []
+        },
+        "source": {
+          "type": "synthetic",
+          "name": "病例知识库整合",
+          "contains_real_patient_data": false
+        },
+        "review_status": "已批准",
+        "teacher_note": "",
+        "recommendation_id": null,
+        "knowledge_entry_ids": [
+          "ckb_6aea7f925d",
+          "ckb_d89e5a2a89"
+        ],
+        "source_summary": "由 2 条脱敏病例整合：冠心病病例（心血管疾病/冠心病）；高血压病例（心血管疾病/高血压病例）。核心现病史线索：患者于入院前患者于入院前3天，无明显诱因出现头晕，有时感天旋地转，但不剧烈，有时伴恶心、心慌、气短，在本院门诊测血压150/100mmHg给予降压药卡托普利治疗血压一直控制在140/90mmHg。于入院前1天上述症状再次加重，在当地卫生所输液治疗（具体药物不详）未见好转，来我院门诊就诊。门诊查心电图示：窦性心律，电轴正常，心电图部分导联ST段改变，门诊以上述诊断收住我科。饮食睡眠尚可，大小便正常，无“糖尿病”病史"
+      },
+      "validation": {
+        "case_id": "teacher_case_197c7478",
+        "valid": true,
+        "checks": {
+          "has_final_diagnosis": true,
+          "has_three_differentials": true,
+          "has_five_scoring_points": true,
+          "has_high_risk_misses": true,
+          "has_source": true,
+          "is_synthetic_teaching_case": true,
+          "contains_no_real_identity": true
+        },
+        "errors": []
+      },
+      "workflow": [
+        {
+          "id": "knowledge_base",
+          "name": "病例知识库整合",
+          "agent": "CaseKnowledgeAgent",
+          "status": "done",
+          "detail": "合并 2 条脱敏病例，提取主诉、现病史与诊断线索。"
+        },
+        {
+          "id": "analytics",
+          "name": "学习结果分析",
+          "agent": "LearningAnalyticsAgent",
+          "status": "done",
+          "detail": "分析 248 次训练及共性薄弱项。"
+        },
+        {
+          "id": "design",
+          "name": "病例结构设计",
+          "agent": "CaseDesignerAgent",
+          "status": "done",
+          "detail": "围绕“结合病例知识库素材，训练心血管疾病问诊、鉴别与处置能力”生成病例结构。"
+        },
+        {
+          "id": "patient",
+          "name": "病人脚本生成",
+          "agent": "PatientScriptAgent",
+          "status": "done",
+          "detail": "生成受病例事实约束的标准化病人脚本。"
+        },
+        {
+          "id": "scoring",
+          "name": "评分规则生成",
+          "agent": "ScoringAgent",
+          "status": "done",
+          "detail": "将学生薄弱项转化为关键得分点和风险扣分项。"
+        },
+        {
+          "id": "safety",
+          "name": "安全与隐私检查",
+          "agent": "SafetyAgent",
+          "status": "done",
+          "detail": "确认病例为合成教学内容且不含真实身份信息。"
+        },
+        {
+          "id": "teacher",
+          "name": "教师最终决策",
+          "agent": "HumanReviewGate",
+          "status": "done",
+          "detail": "教师决策：已批准。"
+        }
+      ],
+      "decision": {
+        "action": "approve",
+        "note": "",
+        "decided_by": "李老师"
+      }
+    }
+  ],
+  "recommendation_decisions": {}
+}
