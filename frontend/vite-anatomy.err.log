@@ -1,0 +1,4 @@
+$ vite --host 127.0.0.1 --port 5173 "--host" "127.0.0.1" "--port" "5173"
+12:45:10 [vite] http proxy error: /api/anatomy
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)

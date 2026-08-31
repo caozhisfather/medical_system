@@ -1,0 +1,15 @@
+
+  VITE v8.1.5  ready in 732 ms
+
+  ➜  Local:   http://127.0.0.1:5173/
+  ➜  press h + enter to show help
+20:31:06 [vite] (client) hmr update /src/components/DigitalHumanWorkspace.vue, /src/components/DigitalHumanPanel.vue, /src/components/DigitalHumanPlayer.vue
+20:31:20 [vite] (client) page reload src/api.ts
+20:33:08 [vite] (client) page reload src/router/index.ts
+20:33:45 [vite] (client) hmr update /src/layouts/ProductShell.vue
+22:39:19 [vite] (client) hmr update /src/styles.css
+22:39:41 [vite] (client) hmr update /src/views/AnatomyTrainingView.vue
+22:39:59 [vite] (client) hmr update /src/views/AnatomyTrainingView.vue
+22:40:53 [vite] (client) hmr update /src/styles.css
+22:42:03 [vite] (client) hmr update /src/views/HelpCenterView.vue
+22:43:07 [vite] (client) hmr update /src/views/HelpCenterView.vue
