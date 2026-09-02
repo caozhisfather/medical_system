@@ -8,9 +8,7 @@ import {
   CalendarCheck2,
   ChartNetwork,
   CircleHelp,
-  Database,
   FileChartColumn,
-  FileCog,
   History,
   LayoutDashboard,
   Library,
@@ -51,9 +49,8 @@ const teacherNav: NavItem[] = [
   { label: '知识图谱', path: '/knowledge-graph', icon: BookOpen }
 ];
 const adminNav: NavItem[] = [
-  { label: '系统控制台', path: '/admin/dashboard', icon: Settings2, tour: 'admin-review-policy' },
-  { label: '数据源管理', path: '/admin/dashboard', hash: '#data-sources', icon: Database, tour: 'admin-data-source' },
-  { label: '知识库状态', path: '/admin/dashboard', hash: '#knowledge-status', icon: FileCog, tour: 'admin-knowledge' },
+  { label: '系统控制台', path: '/admin/dashboard', hash: '#admin-console', icon: Settings2, tour: 'admin-review-policy' },
+  { label: '教学知识库', path: '/admin/knowledge', icon: Library, tour: 'admin-knowledge-library' },
   { label: '知识图谱', path: '/knowledge-graph', icon: ChartNetwork, tour: 'admin-graph' }
 ];
 const nav = computed(() => role.value === 'teacher' ? teacherNav : role.value === 'admin' ? adminNav : studentNav);
@@ -72,7 +69,7 @@ function homePath() {
 function active(item: NavItem) {
   if (item.path === '/student/cases') return route.path.startsWith('/student/case');
   if (route.path !== item.path) return false;
-  if (item.hash) return route.hash === item.hash;
+  if (item.hash) return route.hash === item.hash || (item.hash === '#admin-console' && !route.hash);
   return role.value !== 'admin' || item.path !== '/admin/dashboard' || !route.hash;
 }
 

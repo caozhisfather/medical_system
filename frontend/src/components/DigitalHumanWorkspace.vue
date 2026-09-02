@@ -17,11 +17,16 @@ const props = withDefaults(defineProps<{
   state?: DigitalHumanState;
   speakKey?: string | number;
   compact?: boolean;
+  role?: 'patient' | 'teacher';
+  avatarId?: string;
+  context?: { case_id?: string; chief_complaint?: string; speaking_style?: string; role?: 'patient' | 'teacher' };
 }>(), {
-  name: '智能临床导师',
-  description: '陪伴问诊、推理与训练复盘',
+  name: '数字人标准化病人',
+  description: '依据当前教学病例进行自然问诊回应',
   state: 'idle',
-  compact: false
+  compact: false,
+  role: 'patient',
+  avatarId: 'standardized_patient_001'
 });
 
 const sessionId = ref('digital-human-demo');
@@ -47,7 +52,7 @@ onMounted(async () => {
   try {
     const [modes, session] = await Promise.all([
       getDigitalHumanModes(),
-      createDigitalHumanSession('student')
+      createDigitalHumanSession(props.role, props.avatarId)
     ]);
     requestedMode.value = modes.active_mode;
     actualMode.value = modes.active_mode;
@@ -55,6 +60,7 @@ onMounted(async () => {
     sparkosAvailable.value = Boolean(modes.sparkos_available);
     serviceBaseUrl.value = modes.liveact_service_url.replace('localhost', '127.0.0.1');
     sessionId.value = session.session_id;
+    if (requestedMode.value !== 'sparkos') await generate();
   } catch {
     provider.value = '数字人本地演示适配器';
   }
@@ -85,9 +91,10 @@ async function generate() {
       text,
       emotion: props.state === 'warning' ? 'warning' : 'teaching',
       action: props.state === 'scoring' ? 'score' : props.state === 'reviewing' ? 'review' : 'explain',
-      avatar_id: 'medical_tutor_001',
+      avatar_id: props.avatarId,
       voice: 'zh_female_warm',
-      mode: requestedMode.value
+      mode: requestedMode.value,
+      context: props.context
     });
     actualMode.value = result.mode;
     videoUrl.value = normalizeVideoUrl(result.video_url);
@@ -179,6 +186,7 @@ async function toggleRecording() {
   <DigitalHumanPanel
     class="digital-human-workspace"
     :class="{ compact }"
+    :role="role"
     :name="name"
     :description="description"
     :state="displayState"

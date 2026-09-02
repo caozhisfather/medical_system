@@ -15,7 +15,7 @@ export const tourSteps: Record<WorkspaceRole, TourStepConfig[]> = {
     { target: '[data-tour="evidence"]', title: '指南依据', body: '查看 AI 反馈引用的教材和指南。' },
     { target: '[data-tour="knowledge-graph"]', title: '知识图谱', body: '沿症状、疾病、检查和解剖结构建立学习路径。' },
     { target: '[data-tour="daily-review"]', title: '每日复盘', body: '训练结束后查看 AI 生成的复盘和明日计划。' },
-    { target: '[data-tour="digital-human"]', title: '数字人导师', body: '让 AI 导师讲解薄弱点。' }
+    { target: '[data-tour="digital-human"]', title: '数字人病人', body: '在病例训练中切换数字人病人模式；它与文字问诊共用同一病例事实和会话，不会主动泄露诊断。' }
   ],
   teacher: [
     { target: '[data-tour="teacher-dashboard"]', title: '班级看板', body: '查看班级整体训练表现。' },
@@ -48,4 +48,3 @@ export function completeOnboarding(role: WorkspaceRole) {
 export function resetOnboarding(role: WorkspaceRole) {
   localStorage.removeItem(onboardingKey(role));
 }
-

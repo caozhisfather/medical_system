@@ -62,7 +62,7 @@ class DigitalHumanService:
             session_id,
             {
                 "session_id": session_id,
-                "role": "student",
+                "role": "patient",
                 "avatar_id": settings.liveact_avatar_id,
                 "mode": "mock",
                 "created_at": int(time.time()),

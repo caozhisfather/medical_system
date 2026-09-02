@@ -3,7 +3,6 @@ import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { AlertTriangle, ArrowRight, BookOpenCheck, CalendarCheck2, CalendarClock, FileChartColumn, Route, Stethoscope, Target } from '@lucide/vue';
 import mainWorkbenchImage from '../assets/medical/main-workbench.png';
-import DigitalHumanWorkspace from '../components/DigitalHumanWorkspace.vue';
 import { mockDailyReview } from '../data/dailyReview';
 import { trainingStore } from '../stores/training';
 
@@ -73,10 +72,6 @@ const history = computed(() => trainingStore.state.history.slice(0, 3));
         <ol class="learning-route-list"><li v-for="(item, index) in mockDailyReview.recommended_graph_path.slice(0, 4)" :key="item"><span>{{ String(index + 1).padStart(2, '0') }}</span><div><strong>{{ item }}</strong><small>{{ index === 0 ? '从今日薄弱点进入' : '与病例训练联动' }}</small></div></li></ol>
       </details>
 
-      <details class="dashboard-fold-card dashboard-wide-card">
-        <summary><span class="fold-icon"><Stethoscope :size="17" /></span><span><small>数字人导师</small><strong>智能临床导师复盘</strong></span><i>展开</i></summary>
-        <DigitalHumanWorkspace compact data-tour="digital-human" name="智能临床导师" description="陪你规划下一次病例训练与报告复盘" :subtitle="mockDailyReview.summary" state="reviewing" />
-      </details>
     </div>
   </div>
 </template>

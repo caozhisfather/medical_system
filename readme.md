@@ -60,7 +60,7 @@
 - 前端：Vue 3、TypeScript、Vite、HTML、CSS、JavaScript
 - 后端：Python、FastAPI、Flask、Pydantic
 - AI 骨架：PatientAgent、TutorAgent、ScoringAgent、RetrievalAgent、SafetyAgent、ReportAgent
-- RAG：HybridRetrievalService、mock embedding、citation 返回、Milvus/ChromaDB 占位
+- RAG：HybridRetrievalService、Qwen/DashScope Embedding API（未配置时本地回退）、citation 返回、Milvus/ChromaDB 适配
 - 知识图谱：双语 JSON mock，Neo4j 占位，Obsidian Markdown 导出预览
 - 配置：`.env.example` 占位，不包含真实密钥
 
@@ -134,7 +134,7 @@ flowchart LR
   Agents --> Report["ReportAgent"]
   API --> RAG["Hybrid RAG"]
   RAG --> KW["关键词检索"]
-  RAG --> EMB["mock embedding"]
+  RAG --> EMB["Qwen Embedding API / 本地回退"]
   RAG --> KG["双语知识图谱扩展"]
   API --> Data["JSON mock 数据"]
   Data --> Cases["虚拟病例"]

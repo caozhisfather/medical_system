@@ -1,19 +1,19 @@
 :root {
-  font-family: "Microsoft YaHei UI", "PingFang SC", "Segoe UI", sans-serif;
-  color: #142f36;
-  background: #edf3f4;
+  font-family: "HarmonyOS Sans SC", "Microsoft YaHei UI", "PingFang SC", "Segoe UI", sans-serif;
+  color: #172b4d;
+  background: #f3f6fa;
   font-synthesis: none;
-  --ink: #142f36;
-  --muted: #62777c;
-  --line: rgba(28, 69, 77, .12);
-  --paper: #fbfdfd;
-  --soft: #edf5f4;
-  --teal: #087a72;
-  --teal-dark: #075b57;
-  --blue: #286ea3;
-  --orange: #c67522;
-  --danger: #b74c3d;
-  --shadow: 0 16px 44px rgba(22, 59, 68, .09);
+  --ink: #172b4d;
+  --muted: #60708a;
+  --line: rgba(36, 59, 92, .14);
+  --paper: #ffffff;
+  --soft: #eef5f7;
+  --teal: #087f78;
+  --teal-dark: #05615d;
+  --blue: #2b6cb0;
+  --orange: #c27a24;
+  --danger: #c04b55;
+  --shadow: 0 14px 38px rgba(31, 57, 91, .11);
   --text-caption: 12px;
   --text-compact: 14px;
   --text-control: 15px;
@@ -21,8 +21,8 @@
 }
 
 * { box-sizing: border-box; letter-spacing: 0; }
-html { min-width: 320px; background: #edf3f4; font-size: 16px; }
-body { margin: 0; min-width: 320px; min-height: 100vh; background: #edf3f4; font-size: var(--text-body); line-height: 1.65; }
+html { min-width: 320px; background: #f3f6fa; font-size: 16px; }
+body { margin: 0; min-width: 320px; min-height: 100vh; background: #f3f6fa; font-size: var(--text-body); line-height: 1.65; }
 button, input, textarea, select { font: inherit; }
 button, select { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .55; }
@@ -34,9 +34,14 @@ button { letter-spacing: 0; }
 a { color: inherit; text-decoration: none; }
 h1, h2, h3, p { overflow-wrap: anywhere; }
 h1, h2, h3 { margin-top: 0; color: var(--ink); }
-h1 { font-size: clamp(1.85rem, 3vw, 3rem); line-height: 1.15; }
-h2 { font-size: 1.25rem; line-height: 1.28; }
+h1 { font-size: clamp(1.8rem, 2.7vw, 2.65rem); line-height: 1.18; letter-spacing: 0; }
+h2 { font-size: 1.35rem; line-height: 1.32; letter-spacing: 0; }
 p { color: var(--muted); line-height: 1.68; }
+
+/* Long-form medical content benefits from a readable Chinese serif face. */
+.case-library-content, .teaching-document, .rich-note-content {
+  font-family: "Noto Serif CJK SC", "Source Han Serif SC", "STSong", "SimSun", serif;
+}
 
 .button-primary, .button-secondary, .text-button, .icon-button, .back-link {
   display: inline-flex;
@@ -47,7 +52,7 @@ p { color: var(--muted); line-height: 1.68; }
   border-radius: 7px;
   font-weight: 800;
 }
-.button-primary { min-height: 42px; padding: 0 17px; background: var(--teal); color: #fff; box-shadow: 0 9px 22px rgba(8, 122, 114, .18); }
+.button-primary { min-height: 42px; padding: 0 17px; background: var(--teal); color: #fff; box-shadow: 0 8px 18px rgba(8, 127, 120, .2); }
 .button-primary:hover { background: var(--teal-dark); }
 .button-secondary { min-height: 40px; padding: 0 14px; border: 1px solid var(--line); background: rgba(255,255,255,.8); color: #24515a; }
 .button-secondary:hover { border-color: rgba(8,122,114,.3); background: #fff; }
@@ -67,6 +72,21 @@ p { color: var(--muted); line-height: 1.68; }
 .page-enter-from { opacity: 0; transform: translateY(5px); }
 .page-leave-to { opacity: 0; transform: translateY(-3px); }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Unified clinical product surface: calm canvas, crisp white work areas, and
+   semantic accent colors keep dense medical screens easy to scan. */
+.product-sidebar { background: #ffffff; border-right-color: rgba(36, 59, 92, .1); }
+.product-main { background: #f3f6fa; }
+.surface-panel, .panel, .case-editor, .case-management-list, .weekly-progress-card { border-color: rgba(36, 59, 92, .12); box-shadow: 0 10px 28px rgba(31, 57, 91, .07); }
+.product-sidebar nav a { color: #60708a; font-weight: 700; }
+.product-sidebar nav a:hover { background: #eef7f6; color: #05615d; }
+.product-sidebar nav a.active { background: #e2f3f0; color: #05615d; box-shadow: inset 3px 0 0 #087f78; }
+.search-control input, input, textarea, select { color: #172b4d; }
+.search-control input::placeholder, input::placeholder, textarea::placeholder { color: #8a97aa; }
+.case-card, .recommended-cases button, .case-library-stats article { background: #ffffff; }
+.case-card:hover, .recommended-cases button:hover { border-color: rgba(8, 127, 120, .35); box-shadow: 0 10px 24px rgba(31, 57, 91, .1); }
+.teacher-case-tabs, .knowledge-type-tabs { border-color: rgba(36, 59, 92, .13); background: #edf3f7; }
+.teacher-case-tabs button.active, .knowledge-type-tabs button.active { color: #05615d; background: #ffffff; box-shadow: 0 3px 10px rgba(31, 57, 91, .1); }
 
 /* Landing and onboarding */
 .landing-screen, .onboarding-screen { min-height: 100vh; padding: 22px; background: #eaf1f2; }
@@ -2632,3 +2652,41 @@ p { color: var(--muted); line-height: 1.68; }
 .textbook-state.empty { flex-direction: column; text-align: center; }
 .textbook-state.empty strong { color: #33454f; }
 .textbook-state.empty p { margin: 0; font-size: 13px; }
+
+/* Current visual system: a navy clinical rail with a light blue-gray canvas.
+   This final layer intentionally overrides legacy page-level colors. */
+.product-shell { background: #eef3f8 !important; }
+.product-topbar { background: #ffffff !important; border-bottom: 1px solid #dbe4ee !important; box-shadow: 0 3px 14px rgba(25, 53, 84, .08) !important; }
+.product-sidebar { background: #102a43 !important; border-right: 0 !important; }
+.product-sidebar .role-sign { background: rgba(255,255,255,.1) !important; color: #9fe3dc !important; }
+.product-sidebar .role-sign strong, .product-sidebar .role-sign small { color: #e8f2f8 !important; }
+.product-sidebar nav a { color: #b9cad8 !important; font-size: 15px !important; font-weight: 700 !important; }
+.product-sidebar nav a:hover { background: rgba(255,255,255,.09) !important; color: #ffffff !important; transform: translateX(3px); }
+.product-sidebar nav a.active { background: #1c496b !important; color: #ffffff !important; box-shadow: inset 3px 0 0 #51c5b9 !important; }
+.product-sidebar .safety-notice { background: rgba(255,255,255,.08) !important; color: #c8d9e5 !important; }
+.product-sidebar .sidebar-progress { background: rgba(255,255,255,.08) !important; border-color: rgba(255,255,255,.12) !important; color: #9fe3dc !important; }
+.product-sidebar .sidebar-progress strong, .product-sidebar .sidebar-progress small { color: #dbe8f0 !important; }
+.product-content { background: #eef3f8 !important; }
+.workspace-page { max-width: 1600px; margin: 0 auto; }
+.surface-panel, .surface-section, .case-editor, .case-management-list { background: #ffffff !important; border-color: #dbe4ee !important; box-shadow: 0 8px 24px rgba(25, 53, 84, .07) !important; }
+.section-kicker { color: #087f78 !important; font-size: 13px !important; letter-spacing: .04em; }
+.workspace-page h1 { color: #102a43 !important; font-weight: 800; }
+.workspace-page h2, .workspace-page h3 { color: #193b5a !important; }
+.product-shell .button-primary { background: #087f78 !important; }
+.product-shell .button-primary:hover { background: #05615d !important; }
+.product-shell .button-secondary { border-color: #cbd8e5; background: #ffffff; color: #31536d; }
+.product-shell .button-secondary:hover { background: #edf7f6; border-color: #70bdb4; color: #05615d; }
+.product-topbar .brand-lockup { padding: 6px 8px; border-radius: 8px; transition: background .18s ease; }
+.product-topbar .brand-lockup:hover { background: #f0f6fa; }
+.product-topbar .brand-lockup strong { color: #102a43; font-size: 15px; letter-spacing: .01em; }
+.product-topbar .brand-lockup small { color: #6b7f93; font-size: 12px; font-weight: 600; }
+.product-topbar .brand-mark { width: 42px; height: 42px; flex-basis: 42px; border-radius: 10px; background: #087f78 !important; box-shadow: 0 5px 12px rgba(8,127,120,.2); }
+.role-teacher .product-topbar .brand-mark { background: #2b6cb0 !important; }
+.role-admin .product-topbar .brand-mark { background: #5b4b8a !important; }
+.product-shell.role-teacher .button-primary { background: #2b6cb0 !important; }
+.product-shell.role-teacher .button-primary:hover { background: #21558f !important; }
+.product-shell.role-admin .button-primary { background: #5b4b8a !important; }
+.product-shell.role-admin .button-primary:hover { background: #46386f !important; }
+.surface-panel, .surface-section, .case-editor, .case-management-list { transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+.surface-panel:hover, .case-editor:hover { border-color: #c3d5e5 !important; box-shadow: 0 12px 30px rgba(25, 53, 84, .1) !important; }
+.metric-strip article strong { color: #102a43; font-variant-numeric: tabular-nums; }

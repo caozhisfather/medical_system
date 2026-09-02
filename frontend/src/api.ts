@@ -68,23 +68,28 @@ export function getCaseLibrary(filters: { q?: string; category?: string } = {}) 
   const suffix = params.toString() ? `?${params.toString()}` : '';
   return readJson<CaseLibraryListResponse>(`/api/teacher/case-library${suffix}`);
 }
-export function getTeachingKnowledge(filters: { q?: string; category?: string; knowledge_type?: string } = {}) {
+export function getTeachingKnowledge(filters: { q?: string; category?: string; knowledge_type?: string } = {}, scope: 'teacher' | 'admin' = 'teacher') {
   const params = new URLSearchParams();
   if (filters.q) params.set('q', filters.q);
   if (filters.category) params.set('category', filters.category);
   if (filters.knowledge_type) params.set('knowledge_type', filters.knowledge_type);
   const suffix = params.toString() ? `?${params.toString()}` : '';
-  return readJson<CaseLibraryListResponse>(`/api/teacher/teaching-knowledge${suffix}`);
+  return readJson<CaseLibraryListResponse>(`/api/${scope}/teaching-knowledge${suffix}`);
 }
-export function createTeachingKnowledge(payload: Record<string, unknown>) { return postJson<CaseLibraryEntry>('/api/teacher/teaching-knowledge', payload); }
-export function updateTeachingKnowledge(entryId: string, payload: Record<string, unknown>) {
-  return fetch(`${baseUrl}/api/teacher/teaching-knowledge/${encodeURIComponent(entryId)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(payload) }).then(async (response) => {
+export function createTeachingKnowledge(payload: Record<string, unknown>, scope: 'teacher' | 'admin' = 'teacher') { return postJson<CaseLibraryEntry>(`/api/${scope}/teaching-knowledge`, payload); }
+export async function uploadTeachingKnowledge(file: File, documentType: 'textbook' | 'evidence' | 'case') {
+  const response = await fetch(`${baseUrl}/api/admin/teaching-knowledge/upload?filename=${encodeURIComponent(file.name)}&document_type=${documentType}`, { method: 'POST', headers: { ...authHeaders(), 'Content-Type': file.type || 'application/octet-stream' }, body: file });
+  if (!response.ok) throw new Error(`资料上传失败：${response.status}`);
+  return response.json() as Promise<{ status: string; item: CaseLibraryEntry; filename: string; bytes: number }>;
+}
+export function updateTeachingKnowledge(entryId: string, payload: Record<string, unknown>, scope: 'teacher' | 'admin' = 'teacher') {
+  return fetch(`${baseUrl}/api/${scope}/teaching-knowledge/${encodeURIComponent(entryId)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(payload) }).then(async (response) => {
     if (!response.ok) throw new Error(await requestError(response));
     return response.json() as Promise<CaseLibraryEntry>;
   });
 }
-export function deleteTeachingKnowledge(entryId: string) {
-  return fetch(`${baseUrl}/api/teacher/teaching-knowledge/${encodeURIComponent(entryId)}`, { method: 'DELETE', headers: authHeaders() }).then(async (response) => {
+export function deleteTeachingKnowledge(entryId: string, scope: 'teacher' | 'admin' = 'teacher') {
+  return fetch(`${baseUrl}/api/${scope}/teaching-knowledge/${encodeURIComponent(entryId)}`, { method: 'DELETE', headers: authHeaders() }).then(async (response) => {
     if (!response.ok) throw new Error(await requestError(response));
     return response.json() as Promise<{ status: string; id: string }>;
   });

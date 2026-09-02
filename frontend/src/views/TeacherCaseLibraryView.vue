@@ -24,9 +24,11 @@ import {
   deleteTeachingKnowledge,
   getTeachingKnowledge,
   importCaseLibrary,
+  uploadTeachingKnowledge,
   updateTeachingKnowledge
 } from '../api';
 import type { CaseLibraryDeidentifyResult, CaseLibraryEntry } from '../types';
+import { trainingStore } from '../stores/training';
 
 const emit = defineEmits<{ compile: [payload: { entry_ids: string[]; publish_immediately: boolean }] }>();
 
@@ -58,11 +60,14 @@ const saving = ref(false);
 const showCreate = ref(false);
 const previewing = ref(false);
 const importing = ref(false);
+const uploading = ref(false);
+const uploadType = ref<'textbook' | 'evidence' | 'case'>('textbook');
 const selectedIds = ref<string[]>([]);
 const compilePublish = ref(false);
 const createForm = ref<EntryForm>(emptyForm());
 const editForm = ref<EntryForm>(emptyForm());
 const preview = ref<CaseLibraryDeidentifyResult | null>(null);
+const isAdmin = computed(() => trainingStore.state.profile.role === 'admin');
 
 const selected = computed(() => entries.value.find((item) => item.id === selectedId.value) || null);
 
@@ -92,7 +97,8 @@ function formatTime(value: string) {
 async function load() {
   loading.value = true;
   try {
-    const data = await getTeachingKnowledge({ knowledge_type: knowledgeTypeFilter.value === 'all' ? '' : knowledgeTypeFilter.value });
+    const scope = isAdmin.value ? 'admin' : 'teacher';
+    const data = await getTeachingKnowledge({ knowledge_type: knowledgeTypeFilter.value === 'all' ? '' : knowledgeTypeFilter.value }, scope);
     entries.value = data.items;
     categories.value = data.categories;
     if (!selectedId.value || !entries.value.some((item) => item.id === selectedId.value)) {
@@ -141,7 +147,7 @@ async function saveEdit() {
   if (!selected.value) return;
   saving.value = true;
   try {
-    await updateTeachingKnowledge(selected.value.id, { ...editForm.value });
+    await updateTeachingKnowledge(selected.value.id, { ...editForm.value }, isAdmin.value ? 'admin' : 'teacher');
     editing.value = false;
     notice.value = '病例知识库条目已更新，敏感字段已重新脱敏。';
     await load();
@@ -156,7 +162,7 @@ async function removeEntry() {
   if (!selected.value) return;
   if (!window.confirm(`确定删除「${selected.value.title}」吗？此操作会同时写入审计日志。`)) return;
   try {
-    await deleteTeachingKnowledge(selected.value.id);
+    await deleteTeachingKnowledge(selected.value.id, isAdmin.value ? 'admin' : 'teacher');
     selectedId.value = '';
     notice.value = '病例知识库条目已删除。';
     await load();
@@ -190,7 +196,7 @@ async function saveCreate() {
   }
   saving.value = true;
   try {
-    await createTeachingKnowledge({ ...createForm.value, knowledge_type: knowledgeTypeFilter.value === 'textbook' ? 'textbook' : 'case' });
+    await createTeachingKnowledge({ ...createForm.value, knowledge_type: knowledgeTypeFilter.value === 'textbook' ? 'textbook' : 'case' }, isAdmin.value ? 'admin' : 'teacher');
     showCreate.value = false;
     notice.value = '新病例已脱敏并写入知识库。';
     await load();
@@ -215,16 +221,35 @@ async function runImport() {
   }
 }
 
+async function uploadFile(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = '';
+  if (!file || !isAdmin.value) return;
+  uploading.value = true;
+  try {
+    const result = await uploadTeachingKnowledge(file, uploadType.value);
+    notice.value = `已接收“${result.filename}”，等待 OCR 处理。`;
+    await load();
+  } catch (error) {
+    notice.value = error instanceof Error ? error.message : '资料上传失败，请重试。';
+  } finally { uploading.value = false; }
+}
+
 onMounted(load);
 </script>
 
 <template>
   <div class="case-library-panel">
+    <header v-if="isAdmin" class="admin-library-heading">
+      <div><span class="section-kicker">管理员资料中心</span><h1>教学知识库管理</h1><p>统一维护病例、教材和权威临床资料，导入前完成脱敏与来源审核。</p></div>
+    </header>
     <div class="case-library-toolbar">
       <div class="case-library-actions">
         <button class="button-secondary" type="button" :disabled="importing" @click="runImport">
-          <LoaderCircle v-if="importing" class="spin" :size="17" /><Database v-else :size="17" />{{ importing ? '正在导入素材' : '导入本地素材' }}
+          <LoaderCircle v-if="importing" class="spin" :size="17" /><Database v-else :size="17" />{{ importing ? '正在导入素材' : (isAdmin ? '导入教学资料' : '导入本地素材') }}
         </button>
+        <div v-if="isAdmin" class="upload-group"><select v-model="uploadType" aria-label="资料类型"><option value="textbook">教材</option><option value="evidence">医学依据</option><option value="case">病例</option></select><label class="button-secondary upload-button"><input type="file" accept=".pdf,.doc,.docx,.txt,.md,.png,.jpg,.jpeg" hidden @change="uploadFile" /><LoaderCircle v-if="uploading" class="spin" :size="17" /><Database v-else :size="17" />{{ uploading ? '正在上传' : '上传整本文档' }}</label></div>
         <button class="button-primary" type="button" @click="openCreate"><Plus :size="17" />新增知识条目</button>
       </div>
       <div class="case-library-compile">
@@ -267,7 +292,7 @@ onMounted(load);
           <button v-for="item in filteredEntries" v-else :key="item.id" type="button" :class="{ active: selectedId === item.id, 'entry-selected': selectedIds.includes(item.id) }" @click="selectEntry(item.id)">
             <input class="entry-checkbox" type="checkbox" :disabled="item.knowledge_type === 'textbook'" :checked="selectedIds.includes(item.id)" :aria-label="`选择${item.title}`" @click.stop="toggleSelect(item.id)" />
             <span><strong>{{ item.title }}</strong><small>{{ item.knowledge_type === 'textbook' ? '教材 · ' + (item.chapter || item.category) : item.category + ' · ' + (item.diagnosis || '待确认诊断') }}</small></span>
-            <b :class="{ risk: hasRisk(item) }">{{ hasRisk(item) ? '需复核' : item.status }}</b>
+            <b :class="{ risk: hasRisk(item) }">{{ hasRisk(item) ? '需复核' : (item.processing_status || item.status) }}</b>
           </button>
           <div v-if="!loading && !filteredEntries.length" class="case-library-empty"><Library :size="22" />暂无匹配条目</div>
         </div>
@@ -275,7 +300,7 @@ onMounted(load);
 
       <section v-if="selected" class="case-editor teacher-case-editor case-library-detail">
         <header>
-          <div><span class="section-kicker">{{ selected.knowledge_type === 'textbook' ? '教材知识条目' : '去标识化教学病例' }}</span><h2>{{ selected.title }}</h2><p>{{ selected.category }} · {{ selected.diagnosis || selected.source }}</p></div>
+      <div><span class="section-kicker">{{ selected.knowledge_type === 'textbook' ? '教材知识条目' : '去标识化教学病例' }}</span><h2>{{ selected.title }}</h2><p>{{ selected.category }} · {{ selected.diagnosis || selected.source }}</p></div>
           <div v-if="!editing">
             <button class="button-primary" type="button" @click="beginEdit"><FilePenLine :size="16" />编辑</button>
             <button class="button-secondary danger" type="button" @click="removeEntry"><Trash2 :size="16" />删除</button>
@@ -303,6 +328,7 @@ onMounted(load);
             <span v-for="kind in selected.pii_removed" :key="kind" class="pii-kind">{{ kind }}</span>
             <span v-if="selected.imported" class="imported-kind">素材导入</span>
             <span v-if="selected.knowledge_type === 'textbook'" :class="['embedding-badge', selected.embedding_status === '已生成' ? 'ready' : 'pending']">{{ selected.embedding_status || '待生成' }}</span>
+            <span v-if="selected.processing_status" class="processing-badge">处理：{{ selected.processing_status }}</span>
           </div>
           <div v-if="hasRisk(selected)" class="case-library-risk"><AlertTriangle :size="16" /><span>{{ selected.risk_flags.filter((flag) => flag.startsWith('疑似')).join('；') }}</span></div>
           <div class="editor-section">
@@ -361,6 +387,15 @@ onMounted(load);
 
 <style scoped>
 .case-library-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; }
+.case-library-panel { font-family: "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif; color: #18363d; }
+.case-library-panel button, .case-library-panel input, .case-library-panel textarea, .case-library-panel select { font-size: 15px; }
+.case-library-panel .case-management-scroll small, .case-library-panel .case-library-category, .case-library-panel .compile-publish-toggle { font-size: 14px; }
+.upload-button { cursor: pointer; }
+.upload-group { display: inline-flex; align-items: center; gap: 8px; }
+.upload-group select { height: 40px; padding: 0 10px; border: 1px solid var(--line, #e1e9ea); border-radius: 7px; background: #fff; color: #24515a; }
+.admin-library-heading { margin: 0 0 18px; }
+.admin-library-heading h1 { margin: 0 0 6px; font-size: clamp(1.7rem, 2.8vw, 2.35rem); }
+.admin-library-heading p { margin: 0; max-width: 68ch; }
 .case-library-compile { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .compile-publish-toggle { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted, #64748b); font-size: 13px; cursor: pointer; }
 .compile-publish-toggle input { width: 15px; height: 15px; accent-color: #2f7d6c; }
@@ -380,6 +415,7 @@ onMounted(load);
 .knowledge-type-tabs { display: flex; gap: 4px; margin: 10px 0 2px; padding: 3px; border: 1px solid var(--line, #e1e9ea); border-radius: 7px; background: #f6fafb; }
 .knowledge-type-tabs button { flex: 1; padding: 6px 8px; border: 0; border-radius: 5px; background: transparent; color: var(--text-muted, #64748b); font-size: 13px; cursor: pointer; }
 .knowledge-type-tabs button.active { background: #fff; color: #176b5d; box-shadow: 0 1px 3px rgba(20, 50, 58, .1); font-weight: 600; }
+.processing-badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 999px; background: #eef5ff; color: #315b92; font-size: 12px; }
 .case-library-list button b { font-size: 11px; padding: 2px 7px; border-radius: 999px; background: #e8f7f2; color: #0f766e; white-space: nowrap; }
 .case-library-list button b.risk { background: #fffbeb; color: #b45309; }
 .case-library-empty { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 120px; color: var(--text-muted, #64748b); font-size: 13px; }

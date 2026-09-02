@@ -24,7 +24,7 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function createDigitalHumanSession(role: string, avatarId = 'medical_tutor_001') {
+export function createDigitalHumanSession(role: string, avatarId = 'standardized_patient_001') {
   return postJson<{ status: string; session_id: string; role: string; avatar_id: string; state: DigitalHumanState; mode: DigitalHumanMode }>(
     '/api/digital-human/session',
     { role, avatar_id: avatarId }

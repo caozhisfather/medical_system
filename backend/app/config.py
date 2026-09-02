@@ -38,7 +38,7 @@ class Settings:
     embedding_base_url: str = env_value("EMBEDDING_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode")
     embedding_timeout: float = float(env_value("EMBEDDING_TIMEOUT", "30"))
     liveact_request_timeout: float = float(env_value("LIVEACT_REQUEST_TIMEOUT", "3.0"))
-    liveact_avatar_id: str = env_value("LIVEACT_AVATAR_ID", "medical_tutor_001")
+    liveact_avatar_id: str = env_value("LIVEACT_AVATAR_ID", "standardized_patient_001")
     liveact_voice: str = env_value("TTS_VOICE", "zh_female_warm")
     sparkos_app_id: str = env_value("LLM_APPID", "")
     sparkos_api_key: str = env_value("LLM_APIKEY", "")

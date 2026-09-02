@@ -58,6 +58,7 @@ class CaseKnowledgeService:
                 "content": override.get("content") or page.get("text", ""),
                 "source": override.get("source") or f"{source} · 第 {page_no} 页",
                 "status": override.get("status") or "已索引",
+                "processing_status": override.get("processing_status") or "已发布",
                 "anonymized": True,
                 "imported": True,
                 "pii_removed": [],
@@ -134,7 +135,7 @@ class CaseKnowledgeService:
             return self.create(payload)
         now = self._now()
         entry_id = f"tb_custom_{uuid4().hex[:10]}"
-        entry = {"id": entry_id, "knowledge_type": "textbook", "title": payload.get("title", "未命名教材条目").strip(), "category": payload.get("category", "教材补充").strip(), "content": payload.get("content", "").strip(), "source": payload.get("source", "教师手工录入").strip(), "status": payload.get("status", "待审核"), "created_at": now, "updated_at": now, "anonymized": True, "imported": False, "pii_removed": [], "risk_flags": [], "embedding_status": "待生成"}
+        entry = {"id": entry_id, "knowledge_type": "textbook", "title": payload.get("title", "未命名教材条目").strip(), "category": payload.get("category", "教材补充").strip(), "content": payload.get("content", "").strip(), "source": payload.get("source", "教师手工录入").strip(), "status": payload.get("status", "待审核"), "processing_status": payload.get("processing_status", "待审核"), "document_id": payload.get("document_id", entry_id), "document_type": payload.get("document_type", "textbook"), "document_scope": payload.get("document_scope", "whole_document"), "created_at": now, "updated_at": now, "anonymized": True, "imported": False, "pii_removed": [], "risk_flags": [], "embedding_status": "待生成"}
         with self._lock:
             self._textbook_overrides[entry_id] = entry
             self._persist_textbook_overrides()
@@ -191,6 +192,7 @@ class CaseKnowledgeService:
             "content": self._mask_field((payload.get("content") or "").strip()),
             "source": (payload.get("source") or "教师手工录入").strip(),
             "status": (payload.get("status") or "已脱敏入库").strip(),
+            "processing_status": (payload.get("processing_status") or "待审核").strip(),
             "anonymized": True,
             "imported": False,
             "pii_removed": [],
@@ -208,7 +210,7 @@ class CaseKnowledgeService:
             entry = self._entries.get(entry_id)
             if entry is None:
                 raise KeyError(entry_id)
-            allowed = ("title", "category", "diagnosis", "chief_complaint", "present_illness", "content", "source", "status")
+            allowed = ("title", "category", "diagnosis", "chief_complaint", "present_illness", "content", "source", "status", "processing_status")
             for key in allowed:
                 if key in payload and payload[key] is not None:
                     value = str(payload[key]).strip()

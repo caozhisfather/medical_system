@@ -1,23 +1,20 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { Activity, AlertTriangle, ArrowRight, BookOpenCheck, Bot, CalendarCheck2, ChartNetwork, ClipboardList, LoaderCircle, Route, Stethoscope } from '@lucide/vue';
+import { Activity, AlertTriangle, ArrowRight, BookOpenCheck, CalendarCheck2, ChartNetwork, ClipboardList, LoaderCircle, Route, Stethoscope } from '@lucide/vue';
 import { generateDailyReview, getDailyReviewHistory, getTodayDailyReview } from '../api';
-import DigitalHumanWorkspace from '../components/DigitalHumanWorkspace.vue';
 import { mockDailyReview, mockDailyReviewHistory } from '../data/dailyReview';
 import { trainingStore } from '../stores/training';
-import type { DailyReview, DigitalHumanState } from '../types';
+import type { DailyReview } from '../types';
 
 const router = useRouter();
 const review = ref<DailyReview>(mockDailyReview);
 const history = ref<DailyReview[]>(mockDailyReviewHistory);
 const generating = ref(false);
 const initialLoading = ref(true);
-const speakKey = ref(0);
 
 const studentId = computed(() => trainingStore.state.profile.name || 'student_001');
 const hasRisk = computed(() => review.value.high_risk_misses.length > 0 || review.value.teacher_attention_required);
-const digitalHumanState = computed<DigitalHumanState>(() => hasRisk.value ? 'warning' : 'reviewing');
 const performanceLabels: Record<string, string> = {
   inquiry_completeness: '问诊完整性',
   differential_diagnosis: '鉴别诊断能力',
@@ -66,7 +63,6 @@ async function generateReview() {
     review.value = { ...mockDailyReview, review_id: `DR-${Date.now()}`, status: '已生成' };
   } finally {
     generating.value = false;
-    speakKey.value += 1;
   }
 }
 
@@ -96,7 +92,6 @@ function openWeakPoint(point: string) {
             <CalendarCheck2 v-else :size="18" />
             {{ generating ? '正在生成复盘' : '生成 mock 今日复盘' }}
           </button>
-          <button class="button-secondary" type="button" @click="speakKey += 1"><Bot :size="17" /> 数字人讲解复盘</button>
         </div>
       </div>
       <aside class="review-status-card" :class="{ risk: hasRisk }">
@@ -161,13 +156,6 @@ function openWeakPoint(point: string) {
         </div>
       </section>
 
-      <DigitalHumanWorkspace
-        name="数字人复盘导师"
-        description="根据复盘状态切换讲解与风险提醒"
-        :subtitle="review.summary"
-        :state="digitalHumanState"
-        :speak-key="speakKey"
-      />
     </div>
 
     <div v-if="!initialLoading" class="daily-review-grid lower">

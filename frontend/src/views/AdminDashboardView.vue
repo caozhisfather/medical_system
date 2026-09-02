@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { Activity, Bot, Database, FileClock, FileCog, GitBranch, PlayCircle, ShieldAlert, SlidersHorizontal } from '@lucide/vue';
 import { getAdminAuditLogs, getAdminDataSources, getDailyReviewPolicy, getGraphStatus, getKnowledgeStatus, syncAdminDataSources } from '../api';
 import { mockAdminData } from '../data/admin';
@@ -14,8 +15,14 @@ const syncing = ref(false);
 const loadWarning = ref('');
 const syncMessage = ref('');
 const auditLogs = ref<Array<{ id: string; timestamp: string; account: string; name: string; role: string; action: string; target: string; detail: string }>>([]);
+const route = useRoute();
 
 const weights = computed(() => Object.entries(policy.value.score_weights));
+
+function scrollToSection() {
+  const id = route.hash.replace(/^#/, '') || 'admin-console';
+  nextTick(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+}
 
 onMounted(async () => {
   const failures: string[] = [];
@@ -25,7 +32,9 @@ onMounted(async () => {
   try { graphStatus.value = await getGraphStatus(); } catch { failures.push('知识图谱'); }
   try { auditLogs.value = (await getAdminAuditLogs()).items; } catch { failures.push('审计日志'); }
   if (failures.length) loadWarning.value = `${failures.join('、')}暂未连接，当前显示本地演示数据。`;
+  scrollToSection();
 });
+watch(() => route.hash, scrollToSection);
 
 async function syncSources() {
   if (syncing.value) return;
@@ -46,7 +55,7 @@ async function syncSources() {
 
 <template>
   <div class="workspace-page admin-page">
-    <section class="page-title-row admin-heading">
+    <section id="admin-console" class="page-title-row admin-heading">
       <div>
         <span class="section-kicker">超级管理员控制台</span>
         <h1>数据源、知识库、图谱、Agent 与复盘策略配置</h1>
@@ -60,7 +69,7 @@ async function syncSources() {
     <p v-if="loadWarning" class="admin-status-message warning" role="status">{{ loadWarning }}</p>
     <p v-if="syncMessage" class="admin-status-message" role="status">{{ syncMessage }}</p>
 
-    <section id="knowledge-status" class="metric-strip admin-metrics">
+    <section id="knowledge-status" class="metric-strip admin-metrics" aria-label="系统状态总览">
       <article><Database :size="19" /><span><small>数据源</small><strong>{{ sources.length }} 类</strong></span><b>Mock</b></article>
       <article data-tour="admin-knowledge"><FileCog :size="19" /><span><small>知识条目</small><strong>{{ knowledgeStatus.items }}</strong></span><b>{{ knowledgeStatus.vector_ready }} 已索引</b></article>
       <article data-tour="admin-graph"><GitBranch :size="19" /><span><small>图谱规模</small><strong>{{ graphStatus.nodes }}/{{ graphStatus.edges }}</strong></span><b>节点/关系</b></article>

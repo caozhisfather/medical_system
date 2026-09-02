@@ -5,6 +5,7 @@ import type { DigitalHumanMode, DigitalHumanState } from '../types';
 defineProps<{
   name: string;
   description: string;
+  role?: 'patient' | 'teacher';
   state: DigitalHumanState;
   mode: DigitalHumanMode;
   requestedMode: DigitalHumanMode;
@@ -45,11 +46,10 @@ const stateLabels: Record<DigitalHumanState, string> = {
 <template>
   <section class="digital-human-panel panel" :class="[`dh-${state}`]">
     <header class="dh-panel-head">
-      <div><span>人工智能医学导师</span><strong>{{ name }}</strong></div>
+      <div><span>{{ role === 'teacher' ? '人工智能教学助手' : '人工智能标准化病人' }}</span><strong>{{ name }}</strong></div>
       <div class="dh-mode-switch" aria-label="数字人模式">
         <button type="button" :class="{ active: requestedMode === 'mock' }" @click="emit('changeMode', 'mock')">本地演示</button>
         <button type="button" :class="{ active: requestedMode === 'liveact' }" @click="emit('changeMode', 'liveact')">真实数字人</button>
-        <button type="button" :class="{ active: requestedMode === 'sparkos' }" :disabled="!sparkosAvailable" @click="emit('changeMode', 'sparkos')">讯飞语音</button>
       </div>
     </header>
 

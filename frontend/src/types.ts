@@ -146,6 +146,7 @@ export interface DigitalHumanSpeakRequest {
   voice: string;
   mode: DigitalHumanMode;
   audio_url?: string | null;
+  context?: { case_id?: string; chief_complaint?: string; speaking_style?: string; role?: 'patient' | 'teacher' };
 }
 export interface DigitalHumanResponse {
   status: string;
@@ -183,6 +184,10 @@ export interface CaseLibraryEntry {
   content: string;
   source: string;
   status: string;
+  processing_status?: string;
+  document_id?: string;
+  document_type?: 'textbook' | 'evidence' | 'case';
+  document_scope?: 'whole_document' | 'chapter';
   anonymized: boolean;
   imported: boolean;
   pii_removed: string[];

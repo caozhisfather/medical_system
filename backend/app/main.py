@@ -8,7 +8,7 @@ from typing import Any
 from uuid import uuid4
 
 import uvicorn
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.wsgi import WSGIMiddleware
 
@@ -758,6 +758,7 @@ def case_knowledge_list(q: str = "", category: str = "", authorization: str | No
 
 
 @app.get("/api/teacher/teaching-knowledge")
+@app.get("/api/admin/teaching-knowledge")
 def teaching_knowledge_list(q: str = "", category: str = "", knowledge_type: str = "", authorization: str | None = Header(default=None)) -> dict[str, Any]:
     require_role(authorization, {"teacher", "admin", "super_admin"})
     items = case_knowledge_service.list_teaching(q or None, category or None, knowledge_type or None)
@@ -766,6 +767,7 @@ def teaching_knowledge_list(q: str = "", category: str = "", knowledge_type: str
 
 
 @app.post("/api/teacher/teaching-knowledge")
+@app.post("/api/admin/teaching-knowledge")
 def teaching_knowledge_create(payload: TeachingKnowledgeCreateRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
     user = require_role(authorization, {"teacher", "admin", "super_admin"})
     entry = case_knowledge_service.teaching_create(payload.model_dump())
@@ -773,7 +775,38 @@ def teaching_knowledge_create(payload: TeachingKnowledgeCreateRequest, authoriza
     return entry
 
 
+@app.post("/api/admin/teaching-knowledge/upload")
+async def teaching_knowledge_upload(request: Request, filename: str = "资料文件", document_type: str = "textbook", authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    """Save a source file and create an OCR-pending knowledge entry."""
+    user = require_role(authorization, {"admin", "super_admin"})
+    raw = await request.body()
+    if not raw:
+        raise HTTPException(status_code=400, detail="上传文件不能为空")
+    safe_name = re.sub(r"[^\w.\-\u4e00-\u9fff]+", "_", filename or "资料文件")[:120]
+    upload_dir = ROOT_DIR / "storage" / "knowledge_uploads"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    stored = upload_dir / f"{uuid4().hex[:12]}_{safe_name}"
+    stored.write_bytes(raw)
+    if document_type not in {"textbook", "evidence", "case"}:
+        raise HTTPException(status_code=422, detail="资料类型必须是 textbook、evidence 或 case")
+    type_label = {"textbook": "教材", "evidence": "医学依据", "case": "病例"}[document_type]
+    entry = case_knowledge_service.teaching_create({
+        "knowledge_type": "case" if document_type == "case" else "textbook",
+        "title": safe_name.rsplit(".", 1)[0],
+        "category": f"待分类{type_label}",
+        "source": f"上传文件：{safe_name}",
+        "status": "待OCR",
+        "processing_status": "OCR 待处理",
+        "document_type": document_type,
+        "document_scope": "whole_document",
+    })
+    entry["source_path"] = str(stored.relative_to(ROOT_DIR))
+    write_audit_log(user, "admin.teaching-knowledge.upload", entry["id"], safe_name)
+    return {"status": "accepted", "item": entry, "filename": safe_name, "bytes": len(raw)}
+
+
 @app.put("/api/teacher/teaching-knowledge/{entry_id}")
+@app.put("/api/admin/teaching-knowledge/{entry_id}")
 def teaching_knowledge_update(entry_id: str, payload: TeachingKnowledgeUpdateRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
     user = require_role(authorization, {"teacher", "admin", "super_admin"})
     try:
@@ -785,6 +818,7 @@ def teaching_knowledge_update(entry_id: str, payload: TeachingKnowledgeUpdateReq
 
 
 @app.delete("/api/teacher/teaching-knowledge/{entry_id}")
+@app.delete("/api/admin/teaching-knowledge/{entry_id}")
 def teaching_knowledge_delete(entry_id: str, authorization: str | None = Header(default=None)) -> dict[str, Any]:
     user = require_role(authorization, {"teacher", "admin", "super_admin"})
     try:
@@ -1112,7 +1146,7 @@ def anatomy_submit(payload: AnatomySubmitRequest) -> AnatomySubmitResponse:
 
 @app.post("/api/tts/speak", response_model=TTSResponse)
 def tts_speak(payload: TTSRequest) -> TTSResponse:
-    return TTSResponse(status="mock_ready", voice=payload.voice, duration_seconds=max(2, min(18, len(payload.text) // 18)), audio_url=None, message="已模拟生成数字人导师语音，真实TTS可通过.env配置接入。")
+    return TTSResponse(status="mock_ready", voice=payload.voice, duration_seconds=max(2, min(18, len(payload.text) // 18)), audio_url=None, message="已模拟生成数字人语音，真实TTS可通过.env配置接入。")
 
 
 if __name__ == "__main__":

@@ -237,9 +237,9 @@ function statusClass(status: string) {
     <div v-if="notice" class="teacher-case-notice"><CheckCircle2 :size="17" />{{ notice }}<button type="button" title="关闭" @click="notice = ''"><X :size="15" /></button></div>
 
     <nav class="teacher-case-tabs" aria-label="病例智能工作台视图">
+      <button type="button" :class="{ active: activeTab === 'knowledge' }" @click="activeTab = 'knowledge'"><Database :size="17" />教学知识库<span>素材沉淀 · AI 整合</span></button>
       <button type="button" :class="{ active: activeTab === 'assets' }" @click="activeTab = 'assets'"><ClipboardCheck :size="17" />训练病例审核<span>{{ pendingCount }} 待决策</span></button>
       <button type="button" :class="{ active: activeTab === 'recommendations' }" @click="activeTab = 'recommendations'"><BarChart3 :size="17" />学情推荐<span>{{ recommendationData?.recommendations.length ?? 0 }} 条建议</span></button>
-      <button type="button" :class="{ active: activeTab === 'knowledge' }" @click="activeTab = 'knowledge'"><Database :size="17" />教学知识库<span>素材沉淀 · AI 整合</span></button>
     </nav>
 
     <section v-if="showBuilder" class="ai-case-builder">

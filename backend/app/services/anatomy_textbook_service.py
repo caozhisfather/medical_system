@@ -66,6 +66,10 @@ class AnatomyTextbookService:
         try:
             query_emb = embedding_service.encode([query], batch_size=1)[0]
             scores = self._embeddings @ query_emb
+            usable = np.array([self._usable_page_index(item.get("index", index)) for index, item in enumerate(self._meta)])
+            if not usable.any():
+                return None
+            scores = np.where(usable, scores, -1.0)
             top_idx = int(np.argmax(scores))
             top_score = float(scores[top_idx])
             if top_score < 0.25:
@@ -98,6 +102,8 @@ class AnatomyTextbookService:
 
     def _find_passage(self, keyword: str) -> dict[str, Any] | None:
         for item in self.pages:
+            if not self._is_usable_page(item):
+                continue
             text = item.get("text", "")
             position = text.find(keyword)
             if position < 0:
@@ -140,9 +146,20 @@ class AnatomyTextbookService:
 
     def _nearest_chapter(self, item: dict[str, Any]) -> str:
         for previous in reversed(self.pages[: self.pages.index(item)]):
-            if previous.get("chapter"):
+            if self._is_usable_page(previous) and previous.get("chapter"):
                 return previous["chapter"]
         return ""
+
+    @staticmethod
+    def _is_usable_page(item: dict[str, Any]) -> bool:
+        text = re.sub(r"\s+", "", str(item.get("text") or ""))
+        if len(text) < 80:
+            return False
+        noise_markers = ("目录", "编委名单", "版权所有", "ISBN", "版权页", "出版发行")
+        return not any(marker in text[:180] for marker in noise_markers)
+
+    def _usable_page_index(self, page_index: int) -> bool:
+        return 0 <= page_index < len(self.pages) and self._is_usable_page(self.pages[page_index])
 
 
 anatomy_textbook_service = AnatomyTextbookService()

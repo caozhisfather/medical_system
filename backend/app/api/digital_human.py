@@ -17,10 +17,11 @@ class DigitalHumanSpeakRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=1200)
     emotion: str = Field(default="teaching", max_length=60)
     action: str = Field(default="explain", max_length=60)
-    avatar_id: str = Field(default="medical_tutor_001", max_length=120)
+    avatar_id: str = Field(default="standardized_patient_001", max_length=120)
     voice: str = Field(default="zh_female_warm", max_length=120)
     mode: Literal["mock", "liveact"] = "mock"
     audio_url: str | None = Field(default=None, max_length=1000)
+    context: dict[str, str] = Field(default_factory=dict)
 
 
 class DigitalHumanStatusRequest(BaseModel):
@@ -31,7 +32,7 @@ class DigitalHumanStatusRequest(BaseModel):
 
 class DigitalHumanSessionRequest(BaseModel):
     role: str = Field(default="student", max_length=40)
-    avatar_id: str = Field(default="medical_tutor_001", max_length=120)
+    avatar_id: str = Field(default="standardized_patient_001", max_length=120)
 
 
 @router.post("/speak")

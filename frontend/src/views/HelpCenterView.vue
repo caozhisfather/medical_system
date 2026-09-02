@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { ArrowRight, BookOpen, BookOpenCheck, Bot, CircleHelp, ClipboardCheck, Database, GraduationCap, Network, ScanLine, ShieldCheck, Stethoscope, Users } from '@lucide/vue';
+import { ArrowRight, BarChart3, BookOpen, BookOpenCheck, Bot, CircleHelp, ClipboardCheck, Database, GraduationCap, Network, ScanLine, Settings2, ShieldCheck, Stethoscope, Users } from '@lucide/vue';
 import { resetOnboarding } from '../services/onboarding';
 import { trainingStore } from '../stores/training';
 
 const router = useRouter();
-const activeRole = ref<'student' | 'teacher'>('student');
+const activeRole = ref<'student' | 'teacher' | 'admin'>('student');
 
 const studentSteps = [
   { icon: Stethoscope, title: '进入学习总览', text: '从首页查看六维能力画像、待办训练和系统推荐病例，先看弱项再开始。', path: '/student/dashboard' },
@@ -20,10 +20,18 @@ const studentSteps = [
 
 const teacherSteps = [
   { icon: Users, title: '教学总览', text: '查看班级均分、完成率、需干预学生和共性薄弱点，优先处理风险名单。', path: '/teacher/dashboard' },
+  { icon: Database, title: '教学知识库', text: '先维护病例、教材和权威医学依据，再进入训练病例审核；资料支持脱敏、编辑和 AI 整合。', path: '/teacher/cases?tab=knowledge' },
+  { icon: ClipboardCheck, title: '训练病例审核', text: '审核 AI Agent 根据知识库生成的训练病例，教师可以编辑、批准、退回或拒绝。', path: '/teacher/cases?tab=assets' },
+  { icon: BarChart3, title: '学情推荐', text: '查看 AI 根据学生训练结果生成的病例建议，教师确认后再布置训练。', path: '/teacher/cases?tab=recommendations' },
   { icon: BookOpenCheck, title: '教学复盘', text: '阅读 AI 汇总的班级复盘、报告复核和教学建议，定位知识断点与高危遗漏。', path: '/teacher/class-review' },
-  { icon: Bot, title: '病例智能工作台', text: 'AI Agent 基于学情生成候选病例草稿，教师编辑后决定批准、退回或拒绝；AI 不会自动发布。', path: '/teacher/cases' },
-  { icon: Database, title: '病例知识库管理', text: '在病例工作台的第三个标签中导入、新增、编辑、删除病例，多选后可用 AI 整合成训练病例；文本自动脱敏。', path: '/teacher/cases?tab=knowledge' },
   { icon: ClipboardCheck, title: '报告复核', text: '在教学复盘页切换到报告复核，查看学生训练报告和班级聚合分析。', path: '/teacher/class-review?tab=reports' }
+];
+const adminSteps = [
+  { icon: Settings2, title: '进入系统控制台', text: '查看数据源、知识条目、向量索引、图谱规模和审计状态。', path: '/admin/dashboard' },
+  { icon: Database, title: '维护教学知识库', text: '统一管理病例、教材和权威资料，负责新增、编辑、删除及导入审核。', path: '/admin/knowledge' },
+  { icon: ShieldCheck, title: '执行脱敏与来源审核', text: '确认姓名、联系方式、病历号等敏感信息已脱敏，并补齐版本、机构、页码和版权字段。', path: '/admin/knowledge' },
+  { icon: Network, title: '检查索引与知识图谱', text: '资料修改后关注 OCR、embedding 和图谱状态，发现目录或章节错配时退回清洗。', path: '/knowledge-graph' },
+  { icon: ClipboardCheck, title: '查看操作审计', text: '追踪教师审核、管理员导入、删除、索引和推荐决策，确保教学数据可追溯。', path: '/admin/dashboard' }
 ];
 
 function replayTour() {
@@ -46,6 +54,7 @@ function replayTour() {
     <div class="help-role-switch" role="tablist" aria-label="选择身份指南">
       <button type="button" role="tab" :aria-selected="activeRole === 'student'" :class="{ active: activeRole === 'student' }" @click="activeRole = 'student'"><GraduationCap :size="17" />学生使用指南</button>
       <button type="button" role="tab" :aria-selected="activeRole === 'teacher'" :class="{ active: activeRole === 'teacher' }" @click="activeRole = 'teacher'"><Users :size="17" />教师使用指南</button>
+      <button type="button" role="tab" :aria-selected="activeRole === 'admin'" :class="{ active: activeRole === 'admin' }" @click="activeRole = 'admin'"><Settings2 :size="17" />管理员使用指南</button>
     </div>
 
     <section v-if="activeRole === 'student'" class="help-guide help-guide-student">
@@ -60,7 +69,7 @@ function replayTour() {
       </ol>
     </section>
 
-    <section v-else class="help-guide help-guide-teacher">
+    <section v-else-if="activeRole === 'teacher'" class="help-guide help-guide-teacher">
       <header><span><Users :size="20" /></span><div><strong>教师：如何组织一次教学干预</strong><small>先看数据，再用 AI 病例工作流补齐短板，最后由教师本人决策发布。</small></div></header>
       <ol class="help-steps">
         <li v-for="(step, index) in teacherSteps" :key="step.title">
@@ -68,6 +77,15 @@ function replayTour() {
           <component :is="step.icon" :size="18" />
           <div><strong>{{ step.title }}</strong><p>{{ step.text }}</p></div>
           <button type="button" @click="router.push(step.path)">前往 <ArrowRight :size="14" /></button>
+        </li>
+      </ol>
+    </section>
+
+    <section v-else class="help-guide help-guide-admin">
+      <header><span><Settings2 :size="20" /></span><div><strong>管理员：维护可信教学数据</strong><small>管理员负责资料生命周期与审计，教师负责病例教学编排和发布决策。</small></div></header>
+      <ol class="help-steps">
+        <li v-for="(step, index) in adminSteps" :key="step.title">
+          <b>{{ index + 1 }}</b><component :is="step.icon" :size="18" /><div><strong>{{ step.title }}</strong><p>{{ step.text }}</p></div><button type="button" @click="router.push(step.path)">前往 <ArrowRight :size="14" /></button>
         </li>
       </ol>
     </section>

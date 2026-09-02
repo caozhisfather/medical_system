@@ -60,6 +60,7 @@ export interface TrainingSession {
   variantId: string;
   difficulty: string;
   mode: string;
+  patientMode: 'text' | 'digital';
   focus?: string;
   startedAt: number;
   messages: ChatMessage[];
@@ -327,7 +328,7 @@ export const trainingStore = {
     persist('medical_profile', state.profile);
   },
 
-  startSession(caseId: string, difficulty = '标准', mode = '完整训练', variantId = 'A', focus = '') {
+  startSession(caseId: string, difficulty = '标准', mode = '完整训练', variantId = 'A', focus = '', patientMode: 'text' | 'digital' = 'text') {
     const caseData = caseById(caseId);
     const session: TrainingSession = {
       id: `S-${Date.now()}`,
@@ -335,6 +336,7 @@ export const trainingStore = {
       variantId,
       difficulty,
       mode,
+      patientMode,
       focus,
       startedAt: Date.now(),
       messages: [

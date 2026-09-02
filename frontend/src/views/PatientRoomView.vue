@@ -29,13 +29,12 @@ const router = useRouter();
 const question = ref('');
 const loading = ref(false);
 const submitting = ref(false);
-const activeWorkPanel = ref<'draft' | 'mentor'>('draft');
+const activeWorkPanel = ref<'draft' | 'patient'>('draft');
 const chatWindow = ref<HTMLElement | null>(null);
 const caseId = computed(() => String(route.params.caseId || 'emergency_chest_pain'));
 const session = computed(() => trainingStore.state.session);
 const caseData = computed(() => trainingStore.activeCase.value);
-const mentorSubtitle = computed(() => [...(session.value?.messages ?? [])].reverse().find((message) => message.role === 'tutor')?.content ?? '我会关注你的问诊结构、风险遗漏和证据链。');
-const mentorState = computed(() => loading.value ? 'listening' : session.value?.missingPoints.some((item) => item.level === 'danger') ? 'warning' : 'speaking');
+const patientSubtitle = computed(() => [...(session.value?.messages ?? [])].reverse().find((message) => message.role === 'patient')?.content ?? caseData.value.opening_statement ?? caseData.value.chief_complaint);
 const scoreAverage = computed(() => {
   const items = session.value?.scores ?? [];
   return items.length ? Math.round(items.reduce((sum, item) => sum + item.score, 0) / items.length) : 0;
@@ -59,6 +58,7 @@ const quickQuestions = computed(() => {
 onMounted(async () => {
   await trainingStore.loadCases();
   trainingStore.ensureSession(caseId.value);
+  activeWorkPanel.value = trainingStore.state.session?.patientMode === 'digital' ? 'patient' : 'draft';
 });
 
 async function sendQuestion(text = question.value) {
@@ -164,19 +164,23 @@ async function finishTraining() {
       <aside class="reasoning-rail">
         <nav class="room-work-tabs" aria-label="临床工作区">
           <button type="button" :class="{ active: activeWorkPanel === 'draft' }" @click="activeWorkPanel = 'draft'"><MessageSquareText :size="16" />临床草稿</button>
-          <button type="button" :class="{ active: activeWorkPanel === 'mentor' }" @click="activeWorkPanel = 'mentor'"><Stethoscope :size="16" />AI 导师</button>
+          <button type="button" :class="{ active: activeWorkPanel === 'patient' }" @click="activeWorkPanel = 'patient'"><Stethoscope :size="16" />数字人病人</button>
         </nav>
-        <template v-if="activeWorkPanel === 'mentor'">
+        <template v-if="activeWorkPanel === 'patient'">
           <DigitalHumanWorkspace
             class="room-digital-human"
+            data-tour="digital-human"
             compact
-            name="智能临床导师"
-            description="根据问诊过程提示风险遗漏，不直接给出诊断"
-            :subtitle="mentorSubtitle"
-            :state="mentorState"
+            role="patient"
+            avatar-id="standardized_patient_001"
+            name="数字人标准化病人"
+            description="依据当前病例脚本回应问诊，文字问诊与数字人表现保持同一会话"
+            :context="{ case_id: caseData.id, chief_complaint: caseData.chief_complaint, speaking_style: caseData.speaking_style, role: 'patient' }"
+            :subtitle="patientSubtitle"
+            :state="loading ? 'speaking' : 'idle'"
             :speak-key="session.messages.length"
           />
-          <section class="mentor-boundary-card"><ShieldCheck :size="17" /><div><strong>导师边界</strong><p>仅提示问诊结构、风险遗漏和证据链，不直接给出最终诊断。</p></div></section>
+          <section class="mentor-boundary-card"><ShieldCheck :size="17" /><div><strong>病人模式说明</strong><p>数字人使用同一病例会话，不主动泄露诊断；临床决策仍需在右侧草稿中提交。</p></div></section>
         </template>
         <template v-else>
         <div class="reasoning-heading"><span><MessageSquareText :size="16" /> 临床思维草稿</span><small>自动保存</small></div>

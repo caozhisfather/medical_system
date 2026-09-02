@@ -262,6 +262,7 @@ class TeachingKnowledgeCreateRequest(BaseModel):
     chief_complaint: str = Field(default="", max_length=300)
     present_illness: str = Field(default="", max_length=2400)
     status: str = Field(default="待审核", max_length=40)
+    processing_status: str = Field(default="待审核", max_length=40)
 
 
 class TeachingKnowledgeUpdateRequest(BaseModel):
@@ -273,6 +274,7 @@ class TeachingKnowledgeUpdateRequest(BaseModel):
     chief_complaint: str | None = Field(default=None, max_length=300)
     present_illness: str | None = Field(default=None, max_length=2400)
     status: str | None = Field(default=None, max_length=40)
+    processing_status: str | None = Field(default=None, max_length=40)
 
 
 class CaseValidateRequest(BaseModel):

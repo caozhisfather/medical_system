@@ -25,6 +25,7 @@ const router = createRouter({
         { path: 'teacher/cases', component: () => import('../views/TeacherCasesView.vue'), meta: { role: 'teacher' } },
         { path: 'teacher/class-review', component: () => import('../views/TeacherClassReviewView.vue'), meta: { role: 'teacher' } },
         { path: 'admin/dashboard', component: () => import('../views/AdminDashboardView.vue'), meta: { role: 'admin' } },
+        { path: 'admin/knowledge', component: () => import('../views/TeacherCaseLibraryView.vue'), meta: { role: 'admin' } },
         { path: 'help', component: () => import('../views/HelpCenterView.vue') },
         { path: 'knowledge-graph', component: () => import('../views/KnowledgeGraphViewV2.vue') }
       ]

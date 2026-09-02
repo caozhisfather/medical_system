@@ -12,6 +12,7 @@ const selectedVariant = ref(String(route.query.variant || 'A'));
 const focus = ref(String(route.query.focus || ''));
 const selectedDifficulty = ref('标准');
 const selectedMode = ref('完整训练');
+const selectedPatientMode = ref<'text' | 'digital'>('text');
 const activeSetupStep = ref(1);
 onMounted(() => trainingStore.loadCases());
 watch(() => route.query.case, (value) => { if (value) selectedCaseId.value = String(value); });
@@ -42,7 +43,7 @@ function nextSetupStep() {
 }
 
 async function start() {
-  trainingStore.startSession(selectedCaseId.value, selectedDifficulty.value, selectedMode.value, selectedVariant.value, focus.value);
+  trainingStore.startSession(selectedCaseId.value, selectedDifficulty.value, selectedMode.value, selectedVariant.value, focus.value, selectedPatientMode.value);
   await router.push(`/patient-room/${selectedCaseId.value}`);
 }
 </script>
@@ -92,6 +93,13 @@ async function start() {
             </button>
           </div>
         </div>
+        <div v-show="activeSetupStep === 3" class="setup-section setup-step-panel setup-mode-panel">
+          <div class="setup-section-title"><span>05</span><div><h2>病人交互方式</h2><p>两种方式共用同一病例事实和问诊会话，可在问诊室继续切换。</p></div></div>
+          <div class="mode-choice">
+            <button type="button" :class="{ active: selectedPatientMode === 'text' }" @click="selectedPatientMode = 'text'"><BookOpenCheck :size="18" /><span><strong>文字问诊</strong><small>默认输入框问诊，适合快速练习</small></span></button>
+            <button type="button" :class="{ active: selectedPatientMode === 'digital' }" @click="selectedPatientMode = 'digital'"><Stethoscope :size="18" /><span><strong>数字人病人</strong><small>同步展示病人表情、语音或视频</small></span></button>
+          </div>
+        </div>
         <footer class="setup-step-actions"><button class="button-secondary" type="button" :disabled="activeSetupStep === 1" @click="activeSetupStep--"><ArrowLeft :size="17" />上一步</button><span>第 {{ activeSetupStep }} / 3 步</span><button v-if="activeSetupStep < 3" class="button-primary" type="button" @click="nextSetupStep">下一步<ArrowRight :size="17" /></button><button v-else class="button-primary" type="button" @click="start">进入问诊室<ArrowRight :size="17" /></button></footer>
       </section>
 
@@ -103,7 +111,8 @@ async function start() {
           <dt>主诉</dt><dd>{{ selectedCase.chief_complaint }}</dd>
           <dt>病例变体</dt><dd>{{ selectedVariant }}</dd>
           <dt>难度</dt><dd>{{ selectedDifficulty }}</dd>
-          <dt>模式</dt><dd>{{ selectedMode }}</dd>
+          <dt>训练模式</dt><dd>{{ selectedMode }}</dd>
+          <dt>病人交互</dt><dd>{{ selectedPatientMode === 'digital' ? '数字人病人' : '文字问诊' }}</dd>
           <dt>预计时长</dt><dd><Clock3 :size="15" /> 20 分钟</dd>
         </dl>
         <div class="training-objectives"><strong>{{ focus ? '本次专项重点' : '训练目标' }}</strong><span v-if="focus"><Check :size="14" /> {{ focus }}</span><span v-for="item in (selectedCase.key_scoring_points ?? []).slice(0, focus ? 2 : 3)" :key="item"><Check :size="14" /> {{ item }}</span></div>
