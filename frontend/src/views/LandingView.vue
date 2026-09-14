@@ -9,6 +9,7 @@ import {
   ChartNoAxesColumnIncreasing,
   FileCheck2,
   GraduationCap,
+  MousePointer2,
   Network,
   ShieldCheck,
   Stethoscope,
@@ -44,10 +45,10 @@ const roleContent = computed(() => {
     };
   }
   return {
-    title: '学生训练空间',
-    description: '在虚拟病例中完成问诊、推理与证据检索，用复盘看见能力变化。',
-    action: '开始一次病例训练',
-    features: ['病例训练', '每日复盘', '学习路径']
+    title: '虚拟解剖实验室',
+    description: '在三维人体结构中观察、定位和追溯教材依据，再进入病例训练检验临床联系。',
+    action: '进入虚拟解剖室',
+    features: ['三维结构探索', '教材依据讲解', '空间定位测验']
   };
 });
 
@@ -94,8 +95,8 @@ onBeforeUnmount(() => revealObserver?.disconnect());
 
     <section id="top" class="landing-hero">
       <div class="landing-hero-copy">
-        <h1>把临床思维<br /><em>练成可见的能力</em></h1>
-        <p>AI标准化病人驱动问诊、推理、证据与复盘闭环。</p>
+        <h1>把人体结构<br /><em>变成可探索的空间</em></h1>
+        <p>虚拟解剖实验室连接三维模型、教材证据、AI讲解和定位测验。</p>
         <div class="landing-hero-actions">
           <button class="landing-primary" type="button" @click="scrollToEntry">
             开始训练 <ArrowRight :size="19" />
@@ -107,17 +108,17 @@ onBeforeUnmount(() => revealObserver?.disconnect());
       <figure class="landing-hero-media" aria-label="AI医学教学导师与临床训练界面">
         <img :src="teacherMentorImage" alt="AI医学教学导师在临床模拟界面中讲解病例" />
         <figcaption>
-          <span class="live-state"><Activity :size="16" /> PatientAgent 正在倾听</span>
-          <strong>虚拟教学病例</strong>
-          <small>所有反馈用于医学教育训练，不用于真实临床诊断。</small>
+          <span class="live-state"><Activity :size="16" /> AnatomyAgent 已就绪</span>
+          <strong>虚拟解剖实验室</strong>
+          <small>所有内容用于医学教育训练，不用于真实临床诊断。</small>
         </figcaption>
       </figure>
     </section>
 
     <section class="capability-rail" aria-label="平台核心能力">
-      <article><Stethoscope :size="21" /><span><strong>脚本约束病人</strong><small>病例边界清晰</small></span></article>
-      <article><BrainCircuit :size="21" /><span><strong>过程推理评分</strong><small>关注思维路径</small></span></article>
-      <article><BookOpenCheck :size="21" /><span><strong>指南证据可追溯</strong><small>反馈有出处</small></span></article>
+      <article><ScanLine :size="21" /><span><strong>三维结构探索</strong><small>系统到精细结构</small></span></article>
+      <article><MousePointer2 :size="21" /><span><strong>热点交互定位</strong><small>点击即看结构说明</small></span></article>
+      <article><BookOpenCheck :size="21" /><span><strong>教材依据可追溯</strong><small>章节与页码定位</small></span></article>
       <article><UserRoundCheck :size="21" /><span><strong>教师在环复核</strong><small>AI 不替代教学判断</small></span></article>
     </section>
 
@@ -242,5 +243,3 @@ onBeforeUnmount(() => revealObserver?.disconnect());
     </footer>
   </main>
 </template>
-
-

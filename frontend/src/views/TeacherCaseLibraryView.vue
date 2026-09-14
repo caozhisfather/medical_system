@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import {
   AlertTriangle,
   BookOpenCheck,
   CheckCircle2,
+  ChevronRight,
   Database,
   Eye,
   FilePenLine,
+  FolderTree,
   Library,
   LoaderCircle,
   Plus,
@@ -24,6 +26,10 @@ import {
   deleteTeachingKnowledge,
   getTeachingKnowledge,
   importCaseLibrary,
+  getDocumentProcessingStatus,
+  startEmbeddingProcessing,
+  getEmbeddingProcessingStatus,
+  startDocumentProcessing,
   uploadTeachingKnowledge,
   updateTeachingKnowledge
 } from '../api';
@@ -52,8 +58,9 @@ const loading = ref(false);
 const notice = ref('');
 const query = ref('');
 const categoryFilter = ref('');
-const knowledgeTypeFilter = ref<'all' | 'case' | 'textbook'>('all');
+const knowledgeTypeFilter = ref<'all' | 'case' | 'textbook' | 'evidence'>('all');
 const filterKind = ref<'all' | 'anonymized' | 'risk'>('all');
+const processingFilter = ref('');
 const selectedId = ref('');
 const editing = ref(false);
 const saving = ref(false);
@@ -61,6 +68,12 @@ const showCreate = ref(false);
 const previewing = ref(false);
 const importing = ref(false);
 const uploading = ref(false);
+const processing = ref(false);
+const processingCounts = ref<Record<string, number>>({});
+const embeddingProcessing = ref(false);
+const embeddingCounts = ref<Record<string, number>>({});
+let processingTimer: ReturnType<typeof window.setInterval> | undefined;
+let embeddingTimer: ReturnType<typeof window.setInterval> | undefined;
 const uploadType = ref<'textbook' | 'evidence' | 'case'>('textbook');
 const selectedIds = ref<string[]>([]);
 const compilePublish = ref(false);
@@ -70,6 +83,10 @@ const preview = ref<CaseLibraryDeidentifyResult | null>(null);
 const isAdmin = computed(() => trainingStore.state.profile.role === 'admin');
 
 const selected = computed(() => entries.value.find((item) => item.id === selectedId.value) || null);
+
+function documentTypeLabel(item: CaseLibraryEntry) {
+  return item.document_type === 'evidence' ? '医学依据' : item.document_type === 'case' ? '病例' : item.knowledge_type === 'textbook' ? '教材' : '病例';
+}
 
 function hasRisk(item: CaseLibraryEntry) {
   return (item.risk_flags || []).some((flag) => flag.startsWith('疑似'));
@@ -81,6 +98,7 @@ const filteredEntries = computed(() => {
     if (categoryFilter.value && item.category !== categoryFilter.value) return false;
     if (filterKind.value === 'anonymized' && !item.anonymized) return false;
     if (filterKind.value === 'risk' && !hasRisk(item)) return false;
+    if (processingFilter.value && (item.processing_status || '') !== processingFilter.value) return false;
     if (!keyword) return true;
     return [item.title, item.category, item.diagnosis, item.chief_complaint, item.present_illness].join(' ').toLowerCase().includes(keyword);
   });
@@ -88,6 +106,11 @@ const filteredEntries = computed(() => {
 
 const riskCount = computed(() => entries.value.filter(hasRisk).length);
 const anonymizedCount = computed(() => entries.value.filter((item) => item.anonymized).length);
+const ocrPendingCount = computed(() => entries.value.filter((item) => item.processing_status === 'OCR 待处理' || item.ocr_status === 'pending').length);
+const embeddingPendingCount = computed(() => entries.value.filter((item) => item.embedding_status && item.embedding_status !== '已生成').length);
+const documentCount = computed(() => entries.value.filter((item) => item.document_scope === 'whole_document').length);
+const selectedOutline = computed(() => selected.value?.outline || []);
+const selectedIsWholeDocument = computed(() => selected.value?.document_scope === 'whole_document');
 
 function formatTime(value: string) {
   const date = new Date(value);
@@ -98,7 +121,7 @@ async function load() {
   loading.value = true;
   try {
     const scope = isAdmin.value ? 'admin' : 'teacher';
-    const data = await getTeachingKnowledge({ knowledge_type: knowledgeTypeFilter.value === 'all' ? '' : knowledgeTypeFilter.value }, scope);
+    const data = await getTeachingKnowledge({ document_type: knowledgeTypeFilter.value === 'all' ? '' : knowledgeTypeFilter.value }, scope);
     entries.value = data.items;
     categories.value = data.categories;
     if (!selectedId.value || !entries.value.some((item) => item.id === selectedId.value)) {
@@ -236,7 +259,61 @@ async function uploadFile(event: Event) {
   } finally { uploading.value = false; }
 }
 
-onMounted(load);
+async function refreshProcessingStatus() {
+  if (!isAdmin.value) return;
+  try {
+    const status = await getDocumentProcessingStatus();
+    processing.value = status.running;
+    processingCounts.value = status.counts || {};
+    if (!status.running && processingTimer) {
+      window.clearInterval(processingTimer);
+      processingTimer = undefined;
+      await load();
+    }
+  } catch { /* 页面列表仍可正常使用，状态下次刷新重试 */ }
+}
+
+async function runProcessing() {
+  if (processing.value) return;
+  try {
+    const result = await startDocumentProcessing();
+    processing.value = result.status === 'started' || result.status === 'running';
+    notice.value = result.status === 'running' ? '批量 OCR 正在处理中。' : '已启动批量 OCR，页面会自动刷新处理进度。';
+    await refreshProcessingStatus();
+    if (processing.value && !processingTimer) processingTimer = window.setInterval(refreshProcessingStatus, 2500);
+  } catch (error) {
+    notice.value = error instanceof Error ? error.message : '批量 OCR 启动失败。';
+  }
+}
+
+async function refreshEmbeddingStatus() {
+  if (!isAdmin.value) return;
+  try {
+    const status = await getEmbeddingProcessingStatus();
+    embeddingProcessing.value = status.running;
+    embeddingCounts.value = status.counts || {};
+    if (!status.running) {
+      if (embeddingTimer) { window.clearInterval(embeddingTimer); embeddingTimer = undefined; }
+      await load();
+    }
+  } catch { /* 后端不可用时不影响知识库浏览 */ }
+}
+
+async function runEmbeddingProcessing() {
+  if (embeddingProcessing.value) return;
+  try {
+    const result = await startEmbeddingProcessing();
+    embeddingProcessing.value = result.status === 'started' || result.status === 'running';
+    notice.value = embeddingProcessing.value ? '已启动 Qwen 全量向量索引，处理完成后会更新状态。' : '向量索引任务已结束。';
+    await refreshEmbeddingStatus();
+    if (embeddingProcessing.value && !embeddingTimer) embeddingTimer = window.setInterval(refreshEmbeddingStatus, 3500);
+  } catch (error) {
+    notice.value = error instanceof Error ? error.message : '向量索引启动失败。';
+  }
+}
+
+onMounted(async () => { await load(); await refreshProcessingStatus(); await refreshEmbeddingStatus(); if (processing.value) processingTimer = window.setInterval(refreshProcessingStatus, 2500); if (embeddingProcessing.value) embeddingTimer = window.setInterval(refreshEmbeddingStatus, 3500); });
+onUnmounted(() => { if (processingTimer) window.clearInterval(processingTimer); if (embeddingTimer) window.clearInterval(embeddingTimer); });
 </script>
 
 <template>
@@ -250,6 +327,8 @@ onMounted(load);
           <LoaderCircle v-if="importing" class="spin" :size="17" /><Database v-else :size="17" />{{ importing ? '正在导入素材' : (isAdmin ? '导入教学资料' : '导入本地素材') }}
         </button>
         <div v-if="isAdmin" class="upload-group"><select v-model="uploadType" aria-label="资料类型"><option value="textbook">教材</option><option value="evidence">医学依据</option><option value="case">病例</option></select><label class="button-secondary upload-button"><input type="file" accept=".pdf,.doc,.docx,.txt,.md,.png,.jpg,.jpeg" hidden @change="uploadFile" /><LoaderCircle v-if="uploading" class="spin" :size="17" /><Database v-else :size="17" />{{ uploading ? '正在上传' : '上传整本文档' }}</label></div>
+        <button v-if="isAdmin" class="button-secondary" type="button" :disabled="processing" @click="runProcessing"><LoaderCircle v-if="processing" class="spin" :size="17" /><Sparkles v-else :size="17" />{{ processing ? 'OCR 处理中' : '启动批量 OCR' }}</button>
+        <button v-if="isAdmin" class="button-secondary" type="button" :disabled="embeddingProcessing" @click="runEmbeddingProcessing"><LoaderCircle v-if="embeddingProcessing" class="spin" :size="17" /><Sparkles v-else :size="17" />{{ embeddingProcessing ? '向量生成中' : '生成 Qwen 向量' }}</button>
         <button class="button-primary" type="button" @click="openCreate"><Plus :size="17" />新增知识条目</button>
       </div>
       <div class="case-library-compile">
@@ -258,13 +337,17 @@ onMounted(load);
       </div>
     </div>
 
+    <div v-if="isAdmin && processing" class="processing-progress"><LoaderCircle class="spin" :size="16" />正在处理文档，完成后会自动更新列表<span v-if="processingCounts['待脱敏']">已完成 {{ processingCounts['待脱敏'] }} 份</span></div>
+
     <div v-if="notice" class="teacher-case-notice"><CheckCircle2 :size="17" />{{ notice }}<button type="button" title="关闭" @click="notice = ''"><X :size="15" /></button></div>
 
     <section class="case-library-stats">
       <article><Library :size="18" /><span><strong>{{ entries.length }}</strong><small>教学知识条目</small></span></article>
       <article><ShieldCheck :size="18" /><span><strong>{{ anonymizedCount }}</strong><small>已完成脱敏</small></span></article>
-      <article><Database :size="18" /><span><strong>{{ Object.keys(categories).length }}</strong><small>疾病分类</small></span></article>
+      <article><Database :size="18" /><span><strong>{{ documentCount }}</strong><small>整本文档</small></span></article>
       <article :class="{ warning: riskCount > 0 }"><AlertTriangle :size="18" /><span><strong>{{ riskCount }}</strong><small>疑似残留风险</small></span></article>
+      <article :class="{ warning: ocrPendingCount > 0 }"><Eye :size="18" /><span><strong>{{ ocrPendingCount }}</strong><small>待 OCR 文档</small></span></article>
+      <article :class="{ warning: embeddingPendingCount > 0 }"><Sparkles :size="18" /><span><strong>{{ embeddingPendingCount }}</strong><small>待生成向量</small></span></article>
     </section>
 
     <div class="teacher-case-layout case-library-layout">
@@ -274,6 +357,7 @@ onMounted(load);
           <button type="button" :class="{ active: knowledgeTypeFilter === 'all' }" @click="knowledgeTypeFilter = 'all'; load()">全部</button>
           <button type="button" :class="{ active: knowledgeTypeFilter === 'case' }" @click="knowledgeTypeFilter = 'case'; load()">病例</button>
           <button type="button" :class="{ active: knowledgeTypeFilter === 'textbook' }" @click="knowledgeTypeFilter = 'textbook'; load()">教材</button>
+          <button type="button" :class="{ active: knowledgeTypeFilter === 'evidence' }" @click="knowledgeTypeFilter = 'evidence'; load()">医学依据</button>
         </div>
         <label class="case-library-category">
           <span>分类</span>
@@ -282,6 +366,7 @@ onMounted(load);
             <option v-for="(count, name) in categories" :key="name" :value="name">{{ name }}（{{ count }}）</option>
           </select>
         </label>
+        <label class="case-library-category"><span>处理状态</span><select v-model="processingFilter"><option value="">全部状态</option><option value="OCR 待处理">OCR 待处理</option><option value="待脱敏">待脱敏</option><option value="OCR失败">OCR 失败</option><option value="已发布">已发布</option></select></label>
         <div class="case-list-tabs">
           <button type="button" :class="{ active: filterKind === 'all' }" @click="filterKind = 'all'">全部</button>
           <button type="button" :class="{ active: filterKind === 'anonymized' }" @click="filterKind = 'anonymized'">已脱敏</button>
@@ -291,7 +376,7 @@ onMounted(load);
           <div v-if="loading" class="case-library-empty"><LoaderCircle class="spin" :size="22" />正在加载知识库</div>
           <button v-for="item in filteredEntries" v-else :key="item.id" type="button" :class="{ active: selectedId === item.id, 'entry-selected': selectedIds.includes(item.id) }" @click="selectEntry(item.id)">
             <input class="entry-checkbox" type="checkbox" :disabled="item.knowledge_type === 'textbook'" :checked="selectedIds.includes(item.id)" :aria-label="`选择${item.title}`" @click.stop="toggleSelect(item.id)" />
-            <span><strong>{{ item.title }}</strong><small>{{ item.knowledge_type === 'textbook' ? '教材 · ' + (item.chapter || item.category) : item.category + ' · ' + (item.diagnosis || '待确认诊断') }}</small></span>
+            <span><strong>{{ item.title }}</strong><small>{{ documentTypeLabel(item) }} · {{ item.document_scope === 'whole_document' ? '整本文档 · 目录分层' : (item.knowledge_type === 'textbook' ? (item.chapter || item.category) : (item.category + ' · ' + (item.diagnosis || '待确认诊断'))) }}</small></span>
             <b :class="{ risk: hasRisk(item) }">{{ hasRisk(item) ? '需复核' : (item.processing_status || item.status) }}</b>
           </button>
           <div v-if="!loading && !filteredEntries.length" class="case-library-empty"><Library :size="22" />暂无匹配条目</div>
@@ -300,7 +385,7 @@ onMounted(load);
 
       <section v-if="selected" class="case-editor teacher-case-editor case-library-detail">
         <header>
-      <div><span class="section-kicker">{{ selected.knowledge_type === 'textbook' ? '教材知识条目' : '去标识化教学病例' }}</span><h2>{{ selected.title }}</h2><p>{{ selected.category }} · {{ selected.diagnosis || selected.source }}</p></div>
+      <div><span class="section-kicker">{{ documentTypeLabel(selected) }} · {{ selected.document_scope === 'whole_document' ? '整本文档' : '知识条目' }}</span><h2>{{ selected.title }}</h2><p>{{ selected.category }} · {{ selected.diagnosis || selected.source }}</p></div>
           <div v-if="!editing">
             <button class="button-primary" type="button" @click="beginEdit"><FilePenLine :size="16" />编辑</button>
             <button class="button-secondary danger" type="button" @click="removeEntry"><Trash2 :size="16" />删除</button>
@@ -332,15 +417,29 @@ onMounted(load);
           </div>
           <div v-if="hasRisk(selected)" class="case-library-risk"><AlertTriangle :size="16" /><span>{{ selected.risk_flags.filter((flag) => flag.startsWith('疑似')).join('；') }}</span></div>
           <div class="editor-section">
-            <h3><BookOpenCheck :size="17" />{{ selected.knowledge_type === 'textbook' ? '教材摘要' : '病例摘要' }}</h3>
+            <h3><BookOpenCheck :size="17" />{{ selectedIsWholeDocument ? '资料概览' : (selected.knowledge_type === 'textbook' ? '教材摘要' : '病例摘要') }}</h3>
             <dl>
               <dt>主诉</dt><dd>{{ selected.chief_complaint || '未提取' }}</dd>
               <dt>现病史</dt><dd>{{ selected.present_illness || '未提取' }}</dd>
               <dt>来源</dt><dd>{{ selected.source }}</dd>
+              <dt>文档范围</dt><dd>{{ selected.document_scope === 'whole_document' ? '整本文档，按目录层级浏览（页码仅供检索定位）' : '单条知识内容' }}</dd>
+              <dt v-if="selected.page_count">页数</dt><dd v-if="selected.page_count">{{ selected.page_count }} 页</dd>
+              <dt v-if="selected.ocr_text_path">OCR 文本</dt><dd v-if="selected.ocr_text_path">{{ selected.ocr_text_path }}</dd>
+              <dt v-if="selected.source_path">原始文件</dt><dd v-if="selected.source_path">{{ selected.source_path }}</dd>
               <dt>更新时间</dt><dd>{{ formatTime(selected.updated_at) }}</dd>
             </dl>
           </div>
-          <div class="editor-section">
+          <div v-if="selectedIsWholeDocument" class="editor-section document-outline-section">
+            <h3><FolderTree :size="17" />本书目录与章节定位</h3>
+            <p class="document-summary">{{ selected.content_summary || '正在生成本书摘要与目录结构。' }}</p>
+            <ol v-if="selectedOutline.length" class="document-outline-list">
+              <li v-for="section in selectedOutline" :key="`${section.start_page}-${section.title}`">
+                <ChevronRight :size="15" /><span>{{ section.title }}</span><small>第 {{ section.start_page }}{{ section.end_page !== section.start_page ? `-${section.end_page}` : '' }} 页</small>
+              </li>
+            </ol>
+            <p v-else class="outline-empty">目录正在整理中；资料仍将作为整本来源参与检索。</p>
+          </div>
+          <div v-else class="editor-section">
             <h3>脱敏全文</h3>
             <div class="case-library-content">{{ selected.content || '暂无全文内容' }}</div>
           </div>
@@ -404,18 +503,21 @@ onMounted(load);
 .entry-checkbox { flex: 0 0 auto; width: 15px; height: 15px; accent-color: #2f7d6c; cursor: pointer; }
 .case-management-scroll > button.entry-selected { border-color: rgba(47, 125, 108, .3); background: #edf7f4; }
 .case-library-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.case-library-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0 0 16px; }
+.case-library-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0 0 16px; }
 .case-library-stats article { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--line, #e1e9ea); border-radius: 8px; background: #fff; color: var(--text-muted, #64748b); }
 .case-library-stats article strong { display: block; font-size: 22px; line-height: 1.15; color: var(--text-primary, #16313a); }
 .case-library-stats article small { font-size: 12px; }
 .case-library-stats article.warning { color: #b45309; border-color: #fde6c8; background: #fffbeb; }
 .case-library-stats article.warning strong { color: #92400e; }
+.case-library-detail dd { overflow-wrap: anywhere; }
 .case-library-category { display: flex; align-items: center; gap: 8px; margin: 10px 0; color: var(--text-muted, #64748b); font-size: 13px; }
 .case-library-category select { flex: 1; min-width: 0; height: 34px; padding: 0 8px; border: 1px solid var(--line, #e1e9ea); border-radius: 6px; background: #fff; color: var(--text-primary, #16313a); }
 .knowledge-type-tabs { display: flex; gap: 4px; margin: 10px 0 2px; padding: 3px; border: 1px solid var(--line, #e1e9ea); border-radius: 7px; background: #f6fafb; }
 .knowledge-type-tabs button { flex: 1; padding: 6px 8px; border: 0; border-radius: 5px; background: transparent; color: var(--text-muted, #64748b); font-size: 13px; cursor: pointer; }
 .knowledge-type-tabs button.active { background: #fff; color: #176b5d; box-shadow: 0 1px 3px rgba(20, 50, 58, .1); font-weight: 600; }
 .processing-badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 999px; background: #eef5ff; color: #315b92; font-size: 12px; }
+.processing-progress { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; padding: 10px 14px; border: 1px solid #cfe2f4; border-radius: 8px; background: #f4f9ff; color: #315b92; font-size: 13px; }
+.processing-progress span { margin-left: auto; color: #52718e; }
 .case-library-list button b { font-size: 11px; padding: 2px 7px; border-radius: 999px; background: #e8f7f2; color: #0f766e; white-space: nowrap; }
 .case-library-list button b.risk { background: #fffbeb; color: #b45309; }
 .case-library-empty { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 120px; color: var(--text-muted, #64748b); font-size: 13px; }

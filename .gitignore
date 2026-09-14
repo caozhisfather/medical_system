@@ -140,6 +140,10 @@ celerybeat.pid
 mnesia/
 rabbitmq/
 rabbitmq-data/
+data/document_library.json
+storage/document_ocr/
+data/document_embeddings.json
+data/document_embeddings.npz
 
 # ActiveMQ
 activemq-data/

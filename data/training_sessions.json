@@ -162,5 +162,35 @@
       "medication_plan": "",
       "citations": []
     }
+  },
+  "TS-d98d3552a72c": {
+    "session_id": "TS-d98d3552a72c",
+    "case_id": "emergency_chest_pain",
+    "variant_id": "A",
+    "difficulty": "标准",
+    "mode": "完整训练",
+    "history": [],
+    "patient_state": {
+      "stage": "chief_complaint",
+      "completed": [],
+      "progress": 0
+    },
+    "ordered_tests": [],
+    "diagnosis_submission": {}
+  },
+  "TS-6b6471414e2e": {
+    "session_id": "TS-6b6471414e2e",
+    "case_id": "emergency_chest_pain",
+    "variant_id": "A",
+    "difficulty": "标准",
+    "mode": "完整训练",
+    "history": [],
+    "patient_state": {
+      "stage": "chief_complaint",
+      "completed": [],
+      "progress": 0
+    },
+    "ordered_tests": [],
+    "diagnosis_submission": {}
   }
 }

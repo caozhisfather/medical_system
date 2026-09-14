@@ -37,8 +37,8 @@ type NavItem = {
 
 const studentNav: NavItem[] = [
   { label: '学习总览', path: '/student/dashboard', icon: LayoutDashboard, tour: 'today-task' },
+  { label: '虚拟解剖室', path: '/student/anatomy', icon: ScanLine, tour: 'anatomy-lab' },
   { label: '病例训练', path: '/student/cases', icon: Stethoscope, tour: 'case-training' },
-  { label: '解剖训练', path: '/student/anatomy', icon: ScanLine },
   { label: '知识图谱', path: '/knowledge-graph', icon: ChartNetwork, tour: 'knowledge-graph' },
   { label: '学习档案', path: '/student/archive', icon: History, tour: 'daily-review' }
 ];

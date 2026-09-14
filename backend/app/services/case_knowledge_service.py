@@ -19,6 +19,7 @@ class CaseKnowledgeService:
         self.file = ROOT_DIR / "data" / "case_knowledge_base.json"
         self.textbook_file = ROOT_DIR / "data" / "anatomy_textbook.json"
         self.textbook_overrides_file = ROOT_DIR / "data" / "anatomy_textbook_overrides.json"
+        self.document_library_file = ROOT_DIR / "data" / "document_library.json"
         self._lock = threading.Lock()
         self._entries: dict[str, dict[str, Any]] = {}
         self._textbook_overrides: dict[str, dict[str, Any]] = {}
@@ -35,40 +36,24 @@ class CaseKnowledgeService:
             payload = json.loads(self.textbook_overrides_file.read_text(encoding="utf-8"))
             self._textbook_overrides = payload.get("overrides", {}) if isinstance(payload, dict) else {}
 
+    def _document_library_entries(self) -> list[dict[str, Any]]:
+        if not self.document_library_file.exists():
+            return []
+        payload = json.loads(self.document_library_file.read_text(encoding="utf-8"))
+        items = payload.get("documents", []) if isinstance(payload, dict) else []
+        return [item for item in items if isinstance(item, dict) and item.get("id") and not item.get("deleted")]
+
     def _textbook_entries(self) -> list[dict[str, Any]]:
+        """Return teacher-authored additions only.
+
+        Page-level anatomy OCR is still available to the anatomy learning module,
+        but it must not become hundreds of top-level entries in the teaching
+        knowledge library.  Imported books and guidelines are represented by one
+        whole-document asset in ``document_library.json``.
+        """
         if not self.textbook_file.exists():
             return []
-        payload = json.loads(self.textbook_file.read_text(encoding="utf-8"))
-        source = payload.get("source", "《系统解剖学》（第10版）")
         result = []
-        for page in payload.get("pages", []):
-            page_no = page.get("page")
-            entry_id = f"tb_page_{page_no}"
-            override = self._textbook_overrides.get(entry_id, {})
-            if override.get("deleted"):
-                continue
-            result.append({
-                "id": entry_id,
-                "knowledge_type": "textbook",
-                "title": override.get("title") or f"{page.get('chapter') or '教材内容'} · 第 {page_no} 页",
-                "category": override.get("category") or "教材章节",
-                "diagnosis": "",
-                "chief_complaint": "",
-                "present_illness": "",
-                "content": override.get("content") or page.get("text", ""),
-                "source": override.get("source") or f"{source} · 第 {page_no} 页",
-                "status": override.get("status") or "已索引",
-                "processing_status": override.get("processing_status") or "已发布",
-                "anonymized": True,
-                "imported": True,
-                "pii_removed": [],
-                "risk_flags": [],
-                "embedding_status": "待重建" if override else "已生成",
-                "created_at": override.get("created_at") or "",
-                "updated_at": override.get("updated_at") or "",
-                "page": page_no,
-                "chapter": page.get("chapter", ""),
-            })
         for entry_id, override in self._textbook_overrides.items():
             if not entry_id.startswith("tb_custom_") or override.get("deleted"):
                 continue
@@ -104,10 +89,12 @@ class CaseKnowledgeService:
             ]
         return sorted(entries, key=lambda item: item.get("updated_at", ""), reverse=True)
 
-    def list_teaching(self, q: str | None = None, category: str | None = None, knowledge_type: str | None = None) -> list[dict[str, Any]]:
-        entries = [{**item, "knowledge_type": item.get("knowledge_type", "case")} for item in self._entries.values()] + self._textbook_entries()
+    def list_teaching(self, q: str | None = None, category: str | None = None, knowledge_type: str | None = None, document_type: str | None = None) -> list[dict[str, Any]]:
+        entries = [{**item, "knowledge_type": item.get("knowledge_type", "case")} for item in self._entries.values()] + self._textbook_entries() + self._document_library_entries()
         if knowledge_type in {"case", "textbook"}:
             entries = [item for item in entries if item.get("knowledge_type", "case") == knowledge_type]
+        if document_type in {"case", "textbook", "evidence"}:
+            entries = [item for item in entries if item.get("document_type", "case" if item.get("knowledge_type") == "case" else "textbook") == document_type]
         if category:
             entries = [item for item in entries if item.get("category") == category]
         if q:
@@ -135,7 +122,7 @@ class CaseKnowledgeService:
             return self.create(payload)
         now = self._now()
         entry_id = f"tb_custom_{uuid4().hex[:10]}"
-        entry = {"id": entry_id, "knowledge_type": "textbook", "title": payload.get("title", "未命名教材条目").strip(), "category": payload.get("category", "教材补充").strip(), "content": payload.get("content", "").strip(), "source": payload.get("source", "教师手工录入").strip(), "status": payload.get("status", "待审核"), "processing_status": payload.get("processing_status", "待审核"), "document_id": payload.get("document_id", entry_id), "document_type": payload.get("document_type", "textbook"), "document_scope": payload.get("document_scope", "whole_document"), "created_at": now, "updated_at": now, "anonymized": True, "imported": False, "pii_removed": [], "risk_flags": [], "embedding_status": "待生成"}
+        entry = {"id": entry_id, "knowledge_type": "textbook", "title": payload.get("title", "未命名教材条目").strip(), "category": payload.get("category", "教材补充").strip(), "content": payload.get("content", "").strip(), "source": payload.get("source", "教师手工录入").strip(), "status": payload.get("status", "待审核"), "processing_status": payload.get("processing_status", "待审核"), "document_id": payload.get("document_id", entry_id), "document_type": payload.get("document_type", "textbook"), "document_scope": payload.get("document_scope", "whole_document"), "source_path": payload.get("source_path", ""), "created_at": now, "updated_at": now, "anonymized": True, "imported": False, "pii_removed": [], "risk_flags": [], "embedding_status": "待生成"}
         with self._lock:
             self._textbook_overrides[entry_id] = entry
             self._persist_textbook_overrides()

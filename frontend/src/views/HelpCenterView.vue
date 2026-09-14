@@ -14,7 +14,8 @@ const studentSteps = [
   { icon: Bot, title: '与 AI 标准化病人问诊', text: '围绕主诉追问起病、性质、诱因、伴随症状和既往史，按需申请检查，不要直接问最终诊断。', path: '/student/cases' },
   { icon: ClipboardCheck, title: '提交临床决策', text: '完成问诊后给出初步诊断、鉴别诊断、检查选择、治疗原则和指南依据，系统会逐项评分。', path: '/student/cases' },
   { icon: Network, title: '查看训练报告与知识图谱', text: '训练报告展示得分、错因、遗漏点和风险项；再用知识图谱沿症状到疾病、检查、指南查证。', path: '/knowledge-graph' },
-  { icon: ScanLine, title: '解剖定位学习', text: '按系统总览、器官精细图、精细结构图逐层点击编号热点，学习结构与临床关联。', path: '/student/anatomy' },
+  { icon: ScanLine, title: '虚拟解剖室·三维人体', text: '拖动旋转三维人体、滚轮缩放、点击任意结构。选中后可查看中文解剖名、英文原名、AI 讲解，并溯源到教材章节与页码。', path: '/student/anatomy' },
+  { icon: ScanLine, title: '虚拟解剖室·图谱分层', text: '按系统总览、器官精细图、精细结构图逐层点击编号热点，学习结构与临床关联。', path: '/student/anatomy' },
   { icon: BookOpenCheck, title: '每日复盘并订制明日计划', text: '训练结束后进入学习档案，查看每日复盘、薄弱点和明日推荐练习。', path: '/student/archive' }
 ];
 

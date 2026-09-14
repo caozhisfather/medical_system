@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { AlertTriangle, ArrowRight, BookOpenCheck, CalendarCheck2, CalendarClock, FileChartColumn, Route, Stethoscope, Target } from '@lucide/vue';
+import { AlertTriangle, ArrowRight, BookOpenCheck, CalendarCheck2, CalendarClock, FileChartColumn, Route, ScanLine, Stethoscope, Target } from '@lucide/vue';
 import mainWorkbenchImage from '../assets/medical/main-workbench.png';
 import { mockDailyReview } from '../data/dailyReview';
 import { trainingStore } from '../stores/training';
@@ -17,16 +17,16 @@ const history = computed(() => trainingStore.state.history.slice(0, 3));
     <section class="dashboard-hero" data-tour="today-task">
       <img :src="mainWorkbenchImage" alt="" />
       <div class="dashboard-hero-copy">
-        <span class="section-kicker">今日学习任务</span>
-        <h1>{{ trainingStore.state.profile.name }}，继续完善你的临床思维链</h1>
-        <p>今天的主线是：完成推荐病例，补齐高风险鉴别，查看 AI 复盘，再进入明日计划。</p>
+        <span class="section-kicker">今日学习任务 · 虚拟解剖实验室</span>
+        <h1>{{ trainingStore.state.profile.name }}，先把人体结构看懂</h1>
+        <p>今天的主线是：探索一个人体系统，定位关键结构，查看教材依据，再把解剖理解带入病例训练。</p>
         <div class="hero-action-row">
-          <button class="button-primary" type="button" @click="router.push({ path: '/student/case/new', query: { case: 'emergency_chest_pain' } })">
-            开始急诊胸痛训练 <ArrowRight :size="18" />
+          <button class="button-primary" type="button" @click="router.push('/student/anatomy')">
+            进入虚拟解剖室 <ScanLine :size="18" />
           </button>
-          <button class="button-secondary" type="button" @click="router.push('/student/daily-review')"><CalendarCheck2 :size="17" /> 查看每日复盘</button>
+          <button class="button-secondary" type="button" @click="router.push({ path: '/student/case/new', query: { case: 'emergency_chest_pain' } })"><Stethoscope :size="17" /> 连接病例训练</button>
         </div>
-        <div class="demo-flow-hint"><span>完整演示链路</span><b>病例问诊</b><i>→</i><b>检查决策</b><i>→</i><b>解剖/图谱</b><i>→</i><b>六维复盘</b></div>
+        <div class="demo-flow-hint"><span>完整学习链路</span><b>三维探索</b><i>→</i><b>结构讲解</b><i>→</i><b>空间定位</b><i>→</i><b>临床联系</b></div>
       </div>
       <div class="hero-progress">
         <strong>4</strong><span>连续训练周</span>
@@ -36,14 +36,14 @@ const history = computed(() => trainingStore.state.history.slice(0, 3));
     </section>
 
     <section class="metric-strip">
-      <article><Stethoscope :size="19" /><span><small>累计训练</small><strong>18 次</strong></span><b>本月 +5</b></article>
+      <article><ScanLine :size="19" /><span><small>解剖探索</small><strong>12 次</strong></span><b>本月 +4</b></article>
       <article><FileChartColumn :size="19" /><span><small>平均得分</small><strong>82.6</strong></span><b>提升 6.4</b></article>
       <article><Target :size="19" /><span><small>当前薄弱项</small><strong>高危鉴别</strong></span><b>需复训</b></article>
       <article data-tour="evidence"><BookOpenCheck :size="19" /><span><small>证据引用率</small><strong>84%</strong></span><b>提升 9%</b></article>
     </section>
 
     <section class="dashboard-card-grid dashboard-loop-cards" aria-label="学习闭环">
-      <details class="dashboard-fold-card" open><summary><span class="fold-icon"><Target :size="17" /></span><span><small>学习任务</small><strong>推荐胸痛与腹痛复训</strong></span><i>展开</i></summary><p>从今日薄弱项进入针对性病例训练，优先处理高风险鉴别。</p><button class="text-button" type="button" @click="router.push('/student/cases')">进入病例库 <ArrowRight :size="15" /></button></details>
+      <details class="dashboard-fold-card" open><summary><span class="fold-icon"><ScanLine :size="17" /></span><span><small>今日主任务</small><strong>探索循环系统与心脏结构</strong></span><i>展开</i></summary><p>先从系统总览进入心脏结构，点击热点查看教材讲解，再完成一次空间定位测验。</p><button class="text-button" type="button" @click="router.push('/student/anatomy')">进入虚拟解剖室 <ArrowRight :size="15" /></button></details>
       <details class="dashboard-fold-card"><summary><span class="fold-icon"><Stethoscope :size="17" /></span><span><small>AI 训练</small><strong>标准化病人问诊与检查选择</strong></span><i>展开</i></summary><p>在虚拟病例中完成问诊、鉴别诊断、检查和教学用药决策。</p><button class="text-button" type="button" @click="router.push({ path: '/student/case/new', query: { case: 'emergency_chest_pain' } })">开始训练 <ArrowRight :size="15" /></button></details>
       <details class="dashboard-fold-card" data-tour="daily-review"><summary><span class="fold-icon"><CalendarCheck2 :size="17" /></span><span><small>反馈复盘</small><strong>今日均分 {{ mockDailyReview.average_score }} · {{ mockDailyReview.status }}</strong></span><i>展开</i></summary><p>{{ mockDailyReview.summary }}</p><button class="text-button" type="button" @click="router.push('/student/daily-review')">查看每日复盘 <ArrowRight :size="15" /></button></details>
       <details class="dashboard-fold-card"><summary><span class="fold-icon"><Route :size="17" /></span><span><small>明日计划</small><strong>{{ mockDailyReview.recommended_graph_path.slice(0, 2).join(' / ') }}</strong></span><i>展开</i></summary><p>系统会根据病例表现、解剖训练和证据引用结果持续调整学习路径。</p><button class="text-button" type="button" @click="router.push('/student/daily-review')">查看计划 <ArrowRight :size="15" /></button></details>

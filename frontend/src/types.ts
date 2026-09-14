@@ -185,6 +185,10 @@ export interface CaseLibraryEntry {
   source: string;
   status: string;
   processing_status?: string;
+  ocr_status?: string;
+  ocr_text_path?: string;
+  page_count?: number;
+  source_path?: string;
   document_id?: string;
   document_type?: 'textbook' | 'evidence' | 'case';
   document_scope?: 'whole_document' | 'chapter';
@@ -196,6 +200,10 @@ export interface CaseLibraryEntry {
   updated_at: string;
   knowledge_type?: 'case' | 'textbook';
   embedding_status?: string;
+  content_structure?: 'whole_document_outline';
+  content_summary?: string;
+  outline_status?: string;
+  outline?: Array<{ title: string; start_page: number; end_page: number; level?: number }>;
   page?: number;
   chapter?: string;
 }

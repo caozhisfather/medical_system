@@ -68,11 +68,12 @@ export function getCaseLibrary(filters: { q?: string; category?: string } = {}) 
   const suffix = params.toString() ? `?${params.toString()}` : '';
   return readJson<CaseLibraryListResponse>(`/api/teacher/case-library${suffix}`);
 }
-export function getTeachingKnowledge(filters: { q?: string; category?: string; knowledge_type?: string } = {}, scope: 'teacher' | 'admin' = 'teacher') {
+export function getTeachingKnowledge(filters: { q?: string; category?: string; knowledge_type?: string; document_type?: string } = {}, scope: 'teacher' | 'admin' = 'teacher') {
   const params = new URLSearchParams();
   if (filters.q) params.set('q', filters.q);
   if (filters.category) params.set('category', filters.category);
   if (filters.knowledge_type) params.set('knowledge_type', filters.knowledge_type);
+  if (filters.document_type) params.set('document_type', filters.document_type);
   const suffix = params.toString() ? `?${params.toString()}` : '';
   return readJson<CaseLibraryListResponse>(`/api/${scope}/teaching-knowledge${suffix}`);
 }
@@ -82,6 +83,10 @@ export async function uploadTeachingKnowledge(file: File, documentType: 'textboo
   if (!response.ok) throw new Error(`资料上传失败：${response.status}`);
   return response.json() as Promise<{ status: string; item: CaseLibraryEntry; filename: string; bytes: number }>;
 }
+export function startDocumentProcessing() { return postJson<{ status: string; pid?: number }>('/api/admin/teaching-knowledge/process', {}); }
+export function getDocumentProcessingStatus() { return readJson<{ running: boolean; pid?: number; total: number; counts: Record<string, number> }>('/api/admin/teaching-knowledge/process'); }
+export function startEmbeddingProcessing() { return postJson<{ status: string; pid?: number }>('/api/admin/teaching-knowledge/embeddings/process', {}); }
+export function getEmbeddingProcessingStatus() { return readJson<{ running: boolean; pid?: number; total: number; counts: Record<string, number> }>('/api/admin/teaching-knowledge/embeddings/process'); }
 export function updateTeachingKnowledge(entryId: string, payload: Record<string, unknown>, scope: 'teacher' | 'admin' = 'teacher') {
   return fetch(`${baseUrl}/api/${scope}/teaching-knowledge/${encodeURIComponent(entryId)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(payload) }).then(async (response) => {
     if (!response.ok) throw new Error(await requestError(response));
@@ -126,6 +131,7 @@ export function searchGraph(q: string, lang = 'zh') { return readJson<{ query: s
 export function getAnatomyExercises() { return readJson<AnatomyExercise[]>('/api/anatomy'); }
 export function submitAnatomy(exerciseId: string, selectedZone: string) { return postJson<AnatomyResult>('/api/anatomy/submit', { exercise_id: exerciseId, selected_zone: selectedZone }); }
 export function getAnatomyTextbook(q: string) { return readJson<AnatomyTextbookResult>(`/api/anatomy/textbook?q=${encodeURIComponent(q)}`); }
+export function getAnatomyGlossary() { return readJson<{ count: number; source: string; terms: Record<string, string> }>('/api/anatomy/glossary'); }
 export function speak(text: string) { return postJson<TtsResponse>('/api/tts/speak', { text, voice: 'clinical_tutor' }); }
 
 export function startTraining(caseId: string, variantId: string, difficulty: string, mode: string) {

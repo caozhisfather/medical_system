@@ -8,3 +8,7 @@ langchain-community>=0.2
 chromadb>=0.5
 pymilvus>=2.4
 neo4j>=5.20
+pypdf>=5.0
+pypdfium2>=4.30
+Pillow>=10.0
+numpy>=1.26

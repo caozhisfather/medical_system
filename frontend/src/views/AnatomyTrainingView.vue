@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Activity, ArrowLeft, ArrowRight, BookOpenCheck, Brain, Check, ChevronDown, ChevronRight, CircleAlert, Crosshair, ExternalLink, Eye, Layers3, LoaderCircle, LocateFixed, MousePointer2, PanelLeftClose, PanelLeftOpen, RotateCcw, ScanLine, Target, Video, X, ZoomIn } from '@lucide/vue';
-import { getAnatomyExercises, getAnatomyTextbook, submitAnatomy } from '../api';
+import { Activity, ArrowLeft, ArrowRight, BookOpenCheck, Brain, Check, ChevronDown, ChevronRight, CircleAlert, Crosshair, ExternalLink, Eye, EyeOff, Layers3, LoaderCircle, LocateFixed, Maximize2, Minimize2, MousePointer2, PanelLeftClose, PanelLeftOpen, RotateCcw, ScanLine, Sparkles, Target, Video, X, ZoomIn } from '@lucide/vue';
+import { getAnatomyExercises, getAnatomyGlossary, getAnatomyTextbook, sendAgentMessage, submitAnatomy } from '../api';
 import anatomyImage from '../assets/medical/anatomy-organs.png';
+import AnatomyViewer3D from '../components/anatomy/AnatomyViewer3D.vue';
 import { mockAnatomyExercises } from '../data/anatomy';
 import { anatomyAtlasNodes, anatomyAtlasSystems, type AnatomyAtlasHotspot } from '../data/anatomyAtlas';
 import { anatomyImageSources, anatomyVideos } from '../data/anatomyResources';
+import { ANATOMY_SYSTEMS_3D, ANATOMY_SYSTEM_3D_BY_ID, system3DColor } from '../data/anatomy3d';
 import type { AnatomyExercise, AnatomyResult, AnatomyTextbookResult } from '../types';
 
 interface Point { x: number; y: number }
@@ -16,8 +18,8 @@ const route = useRoute();
 const router = useRouter();
 const systems = ['全部', '循环系统', '呼吸系统', '消化系统', '泌尿系统', '神经系统'];
 const exercises = ref<AnatomyExercise[]>(mockAnatomyExercises.map((item) => ({ ...item, graph_node_ids: [...item.graph_node_ids] })));
-const viewMode = ref<'atlas' | 'practice'>('practice');
-const activeSystem = ref('全部');
+const viewMode = ref<'body' | 'atlas' | 'practice'>('body');
+const activeSystem = ref('循环系统');
 const activeId = ref(exercises.value[0].id);
 const point = ref<Point | null>(null);
 const selectedZone = ref('');
@@ -39,6 +41,30 @@ const imageMoved = ref(false);
 const textbook = ref<AnatomyTextbookResult | null>(null);
 const textbookLoading = ref(false);
 const showTextbook = ref(false);
+const agentLoading = ref(false);
+const agentReply = ref('');
+const agentPrompt = ref('');
+const bodyViewer = ref<InstanceType<typeof AnatomyViewer3D> | null>(null);
+const bodySelection = ref<{ id: string; name: string; system: string; systemName: string } | null>(null);
+const hiddenSystems = ref<string[]>([]);
+const bodyAutoRotate = ref(true);
+const bodyStats = ref({ parts: 0, triangles: 0 });
+const bodyWorkbench = ref<HTMLElement | null>(null);
+const isBodyFullscreen = ref(false);
+const focusedSystem = ref('');
+const bodySystemCounts = ref<Record<string, number>>({});
+const glossary = ref<Record<string, string>>({});
+const bodyDisplayName = computed(() => {
+  const selected = bodySelection.value;
+  if (!selected) return '';
+  return glossary.value[selected.name] ?? selected.name;
+});
+const hiddenDataSystems = computed(() =>
+  hiddenSystems.value.flatMap((id) => ANATOMY_SYSTEM_3D_BY_ID[id]?.members ?? [])
+);
+const focusedMembers = computed(() =>
+  focusedSystem.value ? (ANATOMY_SYSTEM_3D_BY_ID[focusedSystem.value]?.members ?? []) : []
+);
 
 const zones: Record<string, Zone> = {
   neck_midline: { x: 50, y: 9, width: 10, height: 14, shape: 'rect' },
@@ -97,9 +123,11 @@ function hotspotStyle(hotspot: AnatomyAtlasHotspot) {
   };
 }
 
-function switchMode(mode: 'atlas' | 'practice') {
+function switchMode(mode: 'body' | 'atlas' | 'practice') {
   viewMode.value = mode;
-  if (mode === 'atlas') {
+  if (mode === 'body') {
+    bodySelection.value = null;
+  } else if (mode === 'atlas') {
     if (!anatomyAtlasSystems.includes(activeSystem.value as typeof anatomyAtlasSystems[number])) activeSystem.value = '循环系统';
     const root = anatomyAtlasNodes.find((item) => item.system === activeSystem.value && item.level === 'system');
     if (root) chooseAtlasNode(root.id);
@@ -108,14 +136,111 @@ function switchMode(mode: 'atlas' | 'practice') {
   }
 }
 
+function toggleSystem(systemId: string) {
+  const hidden = hiddenSystems.value;
+  hiddenSystems.value = hidden.includes(systemId)
+    ? hidden.filter((item) => item !== systemId)
+    : [...hidden, systemId];
+}
+
+function focusOnSystem(systemId: string) {
+  // Focusing a hidden system would show an empty stage, so reveal it first.
+  if (systemId) hiddenSystems.value = hiddenSystems.value.filter((id) => id !== systemId);
+  focusedSystem.value = systemId;
+  bodySelection.value = null;
+  agentReply.value = '';
+  agentPrompt.value = '';
+}
+
+function groupCount(systemId: string): number {
+  const system = ANATOMY_SYSTEM_3D_BY_ID[systemId];
+  if (!system) return 0;
+  return system.members.reduce((total, member) => total + (bodySystemCounts.value[member] ?? 0), 0);
+}
+
+function onBodyReady(payload: { parts: number; triangles: number; systems: Record<string, number> }) {
+  bodyStats.value = { parts: payload.parts, triangles: payload.triangles };
+  bodySystemCounts.value = payload.systems;
+}
+
+async function toggleBodyFullscreen() {
+  const element = bodyWorkbench.value;
+  if (!element) return;
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await element.requestFullscreen();
+    }
+  } catch {
+    // Fullscreen can be blocked (iframe policy, permissions); the layout stays usable.
+  }
+}
+
+function syncFullscreenState() {
+  isBodyFullscreen.value = document.fullscreenElement === bodyWorkbench.value;
+}
+
+function onBodySelect(payload: { id: string; name: string; system: string; systemName: string }) {
+  bodySelection.value = payload;
+  agentReply.value = '';
+  agentPrompt.value = '';
+}
+
+function onBodyClear() {
+  bodySelection.value = null;
+  agentReply.value = '';
+  agentPrompt.value = '';
+}
+
+async function askBodyAgent(prompt: string) {
+  const selected = bodySelection.value;
+  if (!selected || agentLoading.value) return;
+  agentLoading.value = true;
+  agentPrompt.value = prompt;
+  agentReply.value = '';
+  const context = `当前解剖系统：${selected.systemName}；图谱：三维人体解剖模型；结构：${selected.name}`;
+  try {
+    const response = await sendAgentMessage(
+      `${context}\n请围绕“${prompt}”进行医学教学讲解。只用于医学教育，不作诊断；优先引用已接入教材依据。`,
+      'student',
+      'anatomy_lab'
+    );
+    agentReply.value = response.reply;
+  } catch {
+    agentReply.value = '智能讲解服务暂不可用。你可以先查看教材详解，或稍后重试。';
+  } finally {
+    agentLoading.value = false;
+  }
+}
+
 function chooseAtlasNode(id: string, structureId = '') {
   atlasNodeId.value = id;
   atlasStructureId.value = structureId;
+  agentReply.value = '';
+  agentPrompt.value = '';
 }
 
 function openAtlasHotspot(hotspot: AnatomyAtlasHotspot) {
   if (hotspot.target_id) chooseAtlasNode(hotspot.target_id, hotspot.structure_id ?? '');
   else if (hotspot.structure_id) atlasStructureId.value = hotspot.structure_id;
+}
+
+async function askAnatomyAgent(prompt: string) {
+  if (!atlasStructure.value || agentLoading.value) return;
+  agentLoading.value = true;
+  agentPrompt.value = prompt;
+  agentReply.value = '';
+  const structure = atlasStructure.value;
+  const context = `当前解剖系统：${atlasNode.value.system}；图谱：${atlasNode.value.title}；结构：${structure.name}；分类：${structure.category}；已知说明：${structure.description}；临床关联：${structure.clinical_note || '暂无'}`;
+  try {
+    const response = await sendAgentMessage(`${context}\n请围绕“${prompt}”进行医学教学讲解。只用于医学教育，不作诊断；优先引用已接入教材依据。`, 'student', 'anatomy_lab');
+    agentReply.value = response.reply;
+  } catch {
+    agentReply.value = '智能讲解服务暂不可用。你可以先查看教材详解，或稍后重试。';
+  } finally {
+    agentLoading.value = false;
+  }
 }
 
 async function openTextbook(name: string) {
@@ -225,8 +350,21 @@ onMounted(async () => {
     const remote = await getAnatomyExercises();
     if (remote.length) exercises.value = remote;
   } catch {}
+  try {
+    const terms = await getAnatomyGlossary();
+    glossary.value = terms.terms ?? {};
+  } catch {}
   const requested = typeof route.query.exercise === 'string' ? route.query.exercise : '';
-  if (requested && exercises.value.some((item) => item.id === requested)) choose(requested);
+  if (requested && exercises.value.some((item) => item.id === requested)) {
+    viewMode.value = 'practice';
+    choose(requested);
+  }
+  document.addEventListener('fullscreenchange', syncFullscreenState);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('fullscreenchange', syncFullscreenState);
+  if (document.fullscreenElement) void document.exitFullscreen();
 });
 </script>
 
@@ -234,9 +372,9 @@ onMounted(async () => {
   <div class="workspace-page anatomy-page">
     <header class="page-title-row anatomy-page-heading">
       <div>
-        <span class="section-kicker">基础医学 · 实验训练</span>
-        <h1>分层解剖图谱与定位训练</h1>
-        <p>从系统总览点击进入器官和精细结构，也可切换到定位练习完成评判。</p>
+        <span class="section-kicker">虚拟解剖实验室 · 观察与定位</span>
+        <h1>在三维结构中学习人体</h1>
+        <p>从系统总览进入器官和精细结构，点击热点获取教材依据，再用定位练习检验空间认知。</p>
       </div>
       <div class="anatomy-summary">
         <span><strong>{{ exercises.length }}</strong><small>练习项目</small></span>
@@ -246,17 +384,107 @@ onMounted(async () => {
     </header>
 
     <div class="anatomy-mode-switch" role="tablist" aria-label="选择解剖学习模式">
-      <button type="button" role="tab" :aria-selected="viewMode === 'atlas'" :class="{ active: viewMode === 'atlas' }" @click="switchMode('atlas')"><Layers3 :size="18" /><span><strong>解剖定位学习</strong><small>系统 → 器官 → 精细结构</small></span></button>
-      <button type="button" role="tab" :aria-selected="viewMode === 'practice'" :class="{ active: viewMode === 'practice' }" @click="switchMode('practice')"><Crosshair :size="18" /><span><strong>解剖定位练习</strong><small>点击定位并获得评分</small></span></button>
+      <button type="button" role="tab" :aria-selected="viewMode === 'body'" :class="{ active: viewMode === 'body' }" @click="switchMode('body')"><ScanLine :size="18" /><span><strong>三维人体解剖</strong><small>点击结构查看教材依据</small></span></button>
+      <button type="button" role="tab" :aria-selected="viewMode === 'atlas'" :class="{ active: viewMode === 'atlas' }" @click="switchMode('atlas')"><Layers3 :size="18" /><span><strong>图谱分层浏览</strong><small>系统 → 器官 → 精细结构</small></span></button>
+      <button type="button" role="tab" :aria-selected="viewMode === 'practice'" :class="{ active: viewMode === 'practice' }" @click="switchMode('practice')"><Crosshair :size="18" /><span><strong>空间定位测验</strong><small>点击结构并获得即时反馈</small></span></button>
     </div>
+    <p class="anatomy-flow-note"><MousePointer2 :size="15" /><template v-if="viewMode === 'body'">拖动旋转三维人体，滚轮缩放，点击任意结构进入 AI 讲解与教材溯源。</template><template v-else-if="viewMode === 'atlas'">建议先点击图中热点完成结构探索，再切换到"空间定位测验"检验学习结果。</template><template v-else>在人体图上点击你判断的位置，提交后显示标准区域与评分。</template></p>
 
-    <div class="anatomy-system-tabs" role="tablist" aria-label="选择人体系统">
+    <div v-if="viewMode !== 'body'" class="anatomy-system-tabs" role="tablist" aria-label="选择人体系统">
       <button v-for="system in visibleSystems" :key="system" type="button" role="tab" :aria-selected="activeSystem === system" :class="{ active: activeSystem === system }" @click="changeSystem(system)">
         <Brain v-if="system === '神经系统'" :size="17" /><Activity v-else :size="17" />{{ system }}
       </button>
     </div>
 
-    <section v-if="viewMode === 'atlas'" class="anatomy-atlas-workbench" :class="{ 'nav-collapsed': atlasNavCollapsed }">
+    <section v-if="viewMode === 'body'" ref="bodyWorkbench" class="anatomy-body-workbench" :class="{ 'is-fullscreen': isBodyFullscreen }">
+      <aside class="body-system-rail">
+        <header><span><Layers3 :size="18" /><b>人体系统</b></span><small>{{ ANATOMY_SYSTEMS_3D.length }} 个系统</small></header>
+        <div class="body-system-list">
+          <div class="body-system-row" :class="{ active: !focusedSystem }">
+            <button type="button" class="body-system-focus" @click="focusOnSystem('')">
+              <i class="body-system-all" />
+              <span><strong>整体人体</strong><small>{{ bodyStats.parts }} 个结构 · 观察系统之间的位置关系</small></span>
+            </button>
+          </div>
+          <div v-for="system in ANATOMY_SYSTEMS_3D" :key="system.id" class="body-system-row" :class="{ active: focusedSystem === system.id, muted: hiddenSystems.includes(system.id) }">
+            <button type="button" class="body-system-focus" :title="system.summary" @click="focusOnSystem(system.id)">
+              <i :style="{ background: system.color }" />
+              <span><strong>{{ system.name }}</strong><small>{{ groupCount(system.id) }} 个结构 · {{ focusedSystem === system.id ? '正在单独查看' : '点击单独查看' }}</small></span>
+            </button>
+            <button type="button" class="body-system-eye" :title="(hiddenSystems.includes(system.id) ? '显示' : '隐藏') + system.name" :aria-label="(hiddenSystems.includes(system.id) ? '显示' : '隐藏') + system.name" :aria-pressed="!hiddenSystems.includes(system.id)" @click="toggleSystem(system.id)">
+              <EyeOff v-if="hiddenSystems.includes(system.id)" :size="15" /><Eye v-else :size="15" />
+            </button>
+          </div>
+        </div>
+        <div class="body-viewer-tools">
+          <button type="button" :class="{ active: bodyAutoRotate }" @click="bodyAutoRotate = !bodyAutoRotate"><RotateCcw :size="15" />自动旋转</button>
+          <button type="button" @click="bodyViewer?.resetView()"><LocateFixed :size="15" />复位</button>
+          <button type="button" class="body-fullscreen-button" :aria-pressed="isBodyFullscreen" :title="isBodyFullscreen ? '退出全屏（Esc）' : '全屏查看三维人体（Esc 退出）'" @click="toggleBodyFullscreen">
+            <Minimize2 v-if="isBodyFullscreen" :size="15" /><Maximize2 v-else :size="15" />{{ isBodyFullscreen ? '退出全屏' : '全屏查看' }}
+          </button>
+        </div>
+        <div class="body-viewer-meta">
+          <span><strong>{{ bodyStats.parts }}</strong><small>可选中结构</small></span>
+          <span><strong>{{ Math.round(bodyStats.triangles / 1000) }}k</strong><small>三角面</small></span>
+        </div>
+        <p class="body-attribution">模型：BodyParts3D 4.0 · CC BY 4.0</p>
+      </aside>
+
+      <main class="body-stage">
+        <AnatomyViewer3D
+          ref="bodyViewer"
+          :hidden-systems="hiddenDataSystems"
+          :focus-systems="focusedMembers"
+          :selected-id="bodySelection?.id ?? ''"
+          :auto-rotate="bodyAutoRotate"
+          @select="onBodySelect"
+          @clear="onBodyClear"
+          @ready="onBodyReady"
+        />
+        <footer class="body-stage-note">
+          <span><MousePointer2 :size="15" />点击结构查看详情</span>
+          <span><RotateCcw :size="15" />拖动旋转 · 滚轮缩放</span>
+          <small v-if="bodySelection">{{ bodySelection.systemName }} · {{ bodyDisplayName }}</small>
+          <small v-else-if="focusedSystem">{{ ANATOMY_SYSTEM_3D_BY_ID[focusedSystem]?.name }} · 单独查看中</small>
+          <small v-else>整体人体 · 尚未选中结构</small>
+        </footer>
+      </main>
+
+      <aside class="body-detail-panel">
+        <template v-if="bodySelection">
+          <div class="body-selection-head">
+            <i :style="{ background: system3DColor(bodySelection.system) }" />
+            <div><span>{{ bodySelection.systemName }}</span><h2>{{ bodyDisplayName }}</h2><small v-if="bodyDisplayName !== bodySelection.name">{{ bodySelection.name }}</small></div>
+          </div>
+          <section class="body-agent-block">
+            <strong><Sparkles :size="16" />AnatomyAgent 讲解</strong>
+            <div class="atlas-agent-prompts">
+              <button type="button" :disabled="agentLoading" @click="askBodyAgent('它的主要功能和结构特点是什么？')">功能结构</button>
+              <button type="button" :disabled="agentLoading" @click="askBodyAgent('它与周围结构有什么空间关系？')">空间关系</button>
+              <button type="button" :disabled="agentLoading" @click="askBodyAgent('它有哪些重要的临床联系？')">临床联系</button>
+              <button type="button" :disabled="agentLoading" @click="askBodyAgent('请用考试重点总结它。')">考试重点</button>
+            </div>
+            <div v-if="agentLoading || agentReply" class="atlas-agent-answer" role="status" aria-live="polite">
+              <strong><Sparkles :size="15" /> AnatomyAgent{{ agentLoading ? ' 正在检索教材并组织讲解' : ' 讲解' }}</strong>
+              <p v-if="agentLoading">正在结合当前结构、教材索引和知识图谱生成回答…</p>
+              <p v-else>{{ agentReply }}</p>
+            </div>
+          </section>
+          <div class="body-detail-actions">
+            <button class="button-secondary" type="button" @click="openTextbook(bodyDisplayName)"><BookOpenCheck :size="16" />教材详解</button>
+            <button class="text-button" type="button" @click="router.push({ path: '/knowledge-graph', query: { q: bodyDisplayName } })">知识图谱 <ArrowRight :size="15" /></button>
+          </div>
+        </template>
+        <div v-else class="body-empty-detail">
+          <MousePointer2 :size="26" />
+          <strong>{{ focusedSystem ? ANATOMY_SYSTEM_3D_BY_ID[focusedSystem]?.name + ' · 等待选择' : '点击模型中的结构' }}</strong>
+          <p v-if="focusedSystem">{{ ANATOMY_SYSTEM_3D_BY_ID[focusedSystem]?.summary }} 点击图中任意结构查看 AI 讲解、教材依据和知识图谱入口。</p>
+          <p v-else>左侧可以单独查看某个系统，也可以按系统显示或隐藏结构。点击任意结构后，这里会给出 AI 讲解、教材依据和知识图谱入口。</p>
+        </div>
+      </aside>
+    </section>
+
+    <section v-else-if="viewMode === 'atlas'" class="anatomy-atlas-workbench" :class="{ 'nav-collapsed': atlasNavCollapsed }">
       <aside class="atlas-layer-nav">
         <header><span><Layers3 :size="18" /><b>图谱层级</b></span><div><small>{{ atlasNodesForSystem.length }} 张图</small><button type="button" :title="atlasNavCollapsed ? '展开图谱层级' : '收起图谱层级'" @click="atlasNavCollapsed = !atlasNavCollapsed"><PanelLeftOpen v-if="atlasNavCollapsed" :size="17" /><PanelLeftClose v-else :size="17" /></button></div></header>
         <div class="atlas-layer-tree">
@@ -294,7 +522,21 @@ onMounted(async () => {
         </section>
         <article v-if="atlasStructure" class="atlas-structure-detail">
           <span>{{ atlasStructure.category }}</span><h3>{{ atlasStructure.name }}</h3><p>{{ atlasStructure.description }}</p><div><Activity :size="16" /><small>临床关联</small><strong>{{ atlasStructure.clinical_note }}</strong></div>
-          <button class="button-secondary textbook-reopen" type="button" @click="openTextbook(atlasStructure.name)"><BookOpenCheck :size="16" />教材详解</button>
+          <div class="atlas-structure-actions">
+            <button class="button-primary" type="button" @click="askAnatomyAgent('它的主要功能和结构特点是什么？')"><Brain :size="16" />AI讲解</button>
+            <button class="button-secondary textbook-reopen" type="button" @click="openTextbook(atlasStructure.name)"><BookOpenCheck :size="16" />教材详解</button>
+          </div>
+          <div class="atlas-agent-prompts" aria-label="解剖讲解快捷问题">
+            <button type="button" :disabled="agentLoading" @click="askAnatomyAgent('它与周围结构有什么空间关系？')">空间关系</button>
+            <button type="button" :disabled="agentLoading" @click="askAnatomyAgent('它有哪些重要的临床联系？')">临床联系</button>
+            <button type="button" :disabled="agentLoading" @click="askAnatomyAgent('请用考试重点总结它。')">考试重点</button>
+          </div>
+          <div v-if="agentLoading || agentReply" class="atlas-agent-answer" role="status" aria-live="polite">
+            <strong><Sparkles :size="15" /> AnatomyAgent{{ agentLoading ? ' 正在检索教材并组织讲解' : ' 讲解' }}</strong>
+            <p v-if="agentLoading">正在结合当前结构、教材索引和知识图谱生成回答…</p>
+            <p v-else>{{ agentReply }}</p>
+            <small v-if="agentPrompt">本次问题：{{ agentPrompt }}</small>
+          </div>
         </article>
         <div v-else class="atlas-empty-detail"><MousePointer2 :size="25" /><strong>选择一个热点</strong><p>点击图中带编号区域，查看该结构的中文说明与临床关联。</p></div>
         <section class="atlas-resource-panel">

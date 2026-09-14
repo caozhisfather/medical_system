@@ -11,11 +11,13 @@
   "dependencies": {
     "@lucide/vue": "^1.27.0",
     "@vitejs/plugin-vue": "latest",
+    "three": "^0.186.0",
     "vite": "latest",
     "vue": "latest",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
+    "@types/three": "^0.186.0",
     "typescript": "~5.9.3",
     "vue-tsc": "latest"
   }

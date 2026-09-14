@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
+import sys
 from datetime import datetime, timezone
 from threading import Lock
 from typing import Any
@@ -41,6 +43,7 @@ from .services.recommendation_service import rank_cases
 from .services.llm_patient_service import llm_patient_service
 from .services.scoring_service import ScoringAgent
 from .services.anatomy_textbook_service import anatomy_textbook_service
+from .services.anatomy_term_service import anatomy_term_service
 from .services.history_taking_service import history_taking_service
 from .rag import RagPipeline
 from .workflow import build_trace, load_workflow
@@ -66,6 +69,8 @@ case_generator = CaseGenerationService()
 case_validator = CaseValidationService()
 case_source_adapter = CaseSourceAdapter()
 case_knowledge_service = CaseKnowledgeService()
+document_processing: dict[str, Any] = {"running": False, "pid": None}
+embedding_processing: dict[str, Any] = {"running": False, "pid": None}
 TRAINING_SESSION_FILE = DATA_DIR / "training_sessions.json"
 try:
     training_sessions: dict[str, dict[str, Any]] = json.loads(TRAINING_SESSION_FILE.read_text(encoding="utf-8")) if TRAINING_SESSION_FILE.exists() else {}
@@ -276,6 +281,35 @@ def resolve_agent(message: str, role: str, active_module: str) -> AgentChatRespo
             {"kind": "明日计划", "title": "复训病例与图谱路径", "summary": "、".join(review["tomorrow_plan"][:2]), "target": "daily_review"},
         ]
         learning_path = review["recommended_graph_path"]
+    elif active_module == "anatomy_lab":
+        structure_match = re.search(r"结构：([^\n；]+)", msg)
+        structure_name = structure_match.group(1).strip() if structure_match else "当前解剖结构"
+        chinese_name = anatomy_term_service.lookup(structure_name)
+        textbook_hit = anatomy_textbook_service.search(chinese_name or structure_name)
+        if not textbook_hit and chinese_name and chinese_name != structure_name:
+            textbook_hit = anatomy_textbook_service.search(structure_name)
+        label = f"{chinese_name}（{structure_name}）" if chinese_name else structure_name
+        if "空间关系" in msg:
+            focus = "重点观察它与相邻器官、血管、神经及体表定位之间的前后、上下和内外关系。"
+        elif "临床联系" in msg:
+            focus = "可进一步关联该结构受损、压迫或阻塞时的典型表现，并回到教材核对适用范围。"
+        elif "考试重点" in msg:
+            focus = "建议按位置、形态、连接关系、功能和常见临床意义五个要点复习。"
+        else:
+            focus = "先掌握它的标准位置、主要组成和功能，再用定位测验确认空间认知。"
+        intent, action, target_module = "anatomy_teaching", "explain_structure", "anatomy"
+        citation = textbook_hit.get("citation") if textbook_hit else None
+        reply = f"{label}教学提示：{focus}"
+        if citation:
+            reply += f" 已匹配教材依据：{citation}。"
+        else:
+            reply += " 暂未匹配到本地教材段落，建议打开教材详解或由教师补充依据。"
+        reply += " 当前回答仅用于医学教育，具体结论请以已审核教材和教师讲解为准。"
+        cards = [
+            {"kind": "解剖结构", "title": label, "summary": "已读取三维模型结构上下文", "target": structure_name},
+            {"kind": "教材依据", "title": textbook_hit.get("title", "检索权威教材") if textbook_hit else "检索权威教材", "summary": textbook_hit.get("content", "建议打开教材详解查看章节与页码") if textbook_hit else "建议打开教材详解查看章节与页码", "target": textbook_hit.get("citation", structure_name) if textbook_hit else structure_name},
+        ]
+        learning_path = [label, "教材依据", "空间定位测验", "知识图谱临床联系"]
     elif role_key == "teacher" and any(key in msg for key in ["班级复盘", "复盘", "教学建议", "今日班级"]):
         class_review = DailyReviewService().class_review()
         intent, action, target_module = "class_daily_review", "open_class_review", "class_review"
@@ -759,10 +793,10 @@ def case_knowledge_list(q: str = "", category: str = "", authorization: str | No
 
 @app.get("/api/teacher/teaching-knowledge")
 @app.get("/api/admin/teaching-knowledge")
-def teaching_knowledge_list(q: str = "", category: str = "", knowledge_type: str = "", authorization: str | None = Header(default=None)) -> dict[str, Any]:
+def teaching_knowledge_list(q: str = "", category: str = "", knowledge_type: str = "", document_type: str = "", authorization: str | None = Header(default=None)) -> dict[str, Any]:
     require_role(authorization, {"teacher", "admin", "super_admin"})
-    items = case_knowledge_service.list_teaching(q or None, category or None, knowledge_type or None)
-    type_counts = {"all": len(case_knowledge_service.list_teaching()), "case": len(case_knowledge_service.list_teaching(knowledge_type="case")), "textbook": len(case_knowledge_service.list_teaching(knowledge_type="textbook"))}
+    items = case_knowledge_service.list_teaching(q or None, category or None, knowledge_type or None, document_type or None)
+    type_counts = {"all": len(case_knowledge_service.list_teaching()), "case": len(case_knowledge_service.list_teaching(document_type="case")), "textbook": len(case_knowledge_service.list_teaching(document_type="textbook")), "evidence": len(case_knowledge_service.list_teaching(document_type="evidence"))}
     return {"total": len(items), "items": items, "categories": case_knowledge_service.teaching_categories(), "type_counts": type_counts}
 
 
@@ -790,6 +824,7 @@ async def teaching_knowledge_upload(request: Request, filename: str = "资料文
     if document_type not in {"textbook", "evidence", "case"}:
         raise HTTPException(status_code=422, detail="资料类型必须是 textbook、evidence 或 case")
     type_label = {"textbook": "教材", "evidence": "医学依据", "case": "病例"}[document_type]
+    relative_path = str(stored.relative_to(ROOT_DIR))
     entry = case_knowledge_service.teaching_create({
         "knowledge_type": "case" if document_type == "case" else "textbook",
         "title": safe_name.rsplit(".", 1)[0],
@@ -799,10 +834,66 @@ async def teaching_knowledge_upload(request: Request, filename: str = "资料文
         "processing_status": "OCR 待处理",
         "document_type": document_type,
         "document_scope": "whole_document",
+        "source_path": relative_path,
     })
-    entry["source_path"] = str(stored.relative_to(ROOT_DIR))
     write_audit_log(user, "admin.teaching-knowledge.upload", entry["id"], safe_name)
     return {"status": "accepted", "item": entry, "filename": safe_name, "bytes": len(raw)}
+
+
+@app.post("/api/admin/teaching-knowledge/process")
+def start_document_processing(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user = require_role(authorization, {"admin", "super_admin"})
+    process = document_processing.get("pid")
+    if document_processing.get("running") and process:
+        return {"status": "running", "pid": process}
+    script = ROOT_DIR / "backend" / "scripts" / "extract_document_text.py"
+    process = subprocess.Popen([sys.executable, str(script)], cwd=ROOT_DIR)
+    document_processing.update({"running": True, "pid": process.pid, "started_at": datetime.now(timezone.utc).isoformat(timespec="seconds")})
+    write_audit_log(user, "admin.teaching-knowledge.ocr.start", "document_library", "启动批量 OCR")
+    return {"status": "started", "pid": process.pid}
+
+
+@app.get("/api/admin/teaching-knowledge/process")
+def document_processing_status(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    require_role(authorization, {"admin", "super_admin"})
+    library = ROOT_DIR / "data" / "document_library.json"
+    documents = json.loads(library.read_text(encoding="utf-8")).get("documents", []) if library.exists() else []
+    counts: dict[str, int] = {}
+    for item in documents:
+        key = item.get("processing_status", "未知")
+        counts[key] = counts.get(key, 0) + 1
+    pid = document_processing.get("pid")
+    running = bool(document_processing.get("running") and pid and subprocess.run(["powershell", "-NoProfile", "-Command", f"Get-Process -Id {pid} -ErrorAction SilentlyContinue"], capture_output=True).returncode == 0)
+    document_processing["running"] = running
+    return {"running": running, "pid": pid, "counts": counts, "total": len(documents)}
+
+
+@app.post("/api/admin/teaching-knowledge/embeddings/process")
+def start_embedding_processing(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user = require_role(authorization, {"admin", "super_admin"})
+    pid = embedding_processing.get("pid")
+    if embedding_processing.get("running") and pid:
+        return {"status": "running", "pid": pid}
+    script = ROOT_DIR / "backend" / "scripts" / "build_document_embeddings.py"
+    process = subprocess.Popen([sys.executable, str(script)], cwd=ROOT_DIR)
+    embedding_processing.update({"running": True, "pid": process.pid, "started_at": datetime.now(timezone.utc).isoformat(timespec="seconds")})
+    write_audit_log(user, "admin.teaching-knowledge.embedding.start", "document_library", "启动 Qwen 全量向量索引")
+    return {"status": "started", "pid": process.pid}
+
+
+@app.get("/api/admin/teaching-knowledge/embeddings/process")
+def embedding_processing_status(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    require_role(authorization, {"admin", "super_admin"})
+    pid = embedding_processing.get("pid")
+    running = bool(embedding_processing.get("running") and pid and subprocess.run(["powershell", "-NoProfile", "-Command", f"Get-Process -Id {pid} -ErrorAction SilentlyContinue"], capture_output=True).returncode == 0)
+    embedding_processing["running"] = running
+    library = ROOT_DIR / "data" / "document_library.json"
+    documents = json.loads(library.read_text(encoding="utf-8")).get("documents", []) if library.exists() else []
+    counts: dict[str, int] = {}
+    for item in documents:
+        key = item.get("embedding_status", "待生成")
+        counts[key] = counts.get(key, 0) + 1
+    return {"running": running, "pid": pid, "counts": counts, "total": len(documents)}
 
 
 @app.put("/api/teacher/teaching-knowledge/{entry_id}")
@@ -1131,6 +1222,13 @@ def anatomy_textbook(q: str = "") -> dict[str, Any]:
     if result is None:
         return {"found": False, "query": q, "hint": "教材索引中暂未找到该结构的详细讲解"}
     return {"found": True, "query": q, **result}
+
+
+@app.get("/api/anatomy/glossary")
+def anatomy_glossary() -> dict[str, Any]:
+    """Chinese names for the English structure names in the 3D atlas."""
+    terms = anatomy_term_service.all()
+    return {"count": len(terms), "source": "BodyParts3D 4.0", "terms": terms}
 
 
 @app.post("/api/anatomy/submit", response_model=AnatomySubmitResponse)

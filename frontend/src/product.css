@@ -948,6 +948,8 @@ p { color: var(--muted); line-height: 1.68; }
 .anatomy-mode-switch button strong { color: #355960; font-size: 13px; }
 .anatomy-mode-switch button small { color: #7a8d91; font-size: 10px; }
 .anatomy-mode-switch button.active { border-color: rgba(15,118,110,.38); background: #e4f1ee; color: var(--teal); box-shadow: inset 3px 0 0 var(--teal); }
+.anatomy-flow-note { display: flex; align-items: center; gap: 6px; margin: 0 0 10px; color: #658084; font-size: 11px; }
+.anatomy-flow-note svg { flex: 0 0 auto; color: var(--teal); }
 .anatomy-atlas-workbench { display: grid; grid-template-columns: 230px minmax(440px,1fr) 350px; grid-template-rows: minmax(0,1fr); height: clamp(720px,calc(100vh - 300px),860px); min-height: 0; overflow: hidden; border-radius: 8px; background: #f9fcfb; box-shadow: 0 20px 60px rgba(22,59,68,.11); }
 .anatomy-atlas-workbench.nav-collapsed { grid-template-columns: 58px minmax(520px,1fr) 350px; }
 .atlas-layer-nav { display: flex; min-width: 0; min-height: 0; flex-direction: column; border-right: 1px solid var(--line); background: #f2f7f6; }
@@ -1015,6 +1017,16 @@ p { color: var(--muted); line-height: 1.68; }
 .atlas-structure-detail > div svg { grid-row: 1 / 3; }
 .atlas-structure-detail > div small { font-size: 9px; }
 .atlas-structure-detail > div strong { color: #6c5d3d; font-size: 10px; line-height: 1.45; }
+.atlas-structure-actions { display: flex !important; grid-template-columns: none !important; gap: 6px; margin-top: 10px !important; padding-top: 0 !important; border-top: 0 !important; color: inherit !important; }
+.atlas-structure-actions button { min-height: 31px; padding: 0 9px; font-size: 11px; }
+.atlas-agent-prompts { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.atlas-agent-prompts button { padding: 4px 7px; border: 1px solid rgba(15,118,110,.2); border-radius: 5px; background: #fff; color: #28746d; font-size: 10px; cursor: pointer; }
+.atlas-agent-prompts button:hover:not(:disabled) { border-color: var(--teal); background: #e5f4f0; }
+.atlas-agent-prompts button:disabled { cursor: wait; opacity: .55; }
+.atlas-agent-answer { margin-top: 9px; padding: 9px 10px; border: 1px solid rgba(15,118,110,.16); border-radius: 6px; background: #fff; }
+.atlas-agent-answer strong { display: flex; align-items: center; gap: 5px; color: #176b5d; font-size: 10px; }
+.atlas-agent-answer p { margin: 5px 0 0; color: #4f686e; font-size: 11px; line-height: 1.55; white-space: pre-wrap; }
+.atlas-agent-answer small { display: block; margin-top: 6px; color: #8b9a9c; font-size: 9px; }
 .atlas-empty-detail { display: grid; justify-items: center; margin-top: 12px; padding: 22px 10px; border-top: 1px solid var(--line); color: #799093; text-align: center; }
 .atlas-empty-detail strong { margin-top: 6px; color: #41666c; font-size: 12px; }
 .atlas-empty-detail p { max-width: 230px; margin: 4px 0 0; font-size: 10px; line-height: 1.5; }
@@ -1038,6 +1050,80 @@ p { color: var(--muted); line-height: 1.68; }
 .atlas-resource-list a em.pending { background: #fff0df; color: #a15f1e; }
 .atlas-resource-content > p { margin: 8px 0 0; color: #849397; font-size: 9px; line-height: 1.45; }
 .atlas-graph-link { margin-top: auto; padding-top: 14px; }
+
+/* Virtual anatomy lab: interactive 3D body */
+.anatomy-body-workbench { display: grid; grid-template-columns: 250px minmax(420px,1fr) 350px; grid-template-rows: minmax(0,1fr); height: clamp(640px,calc(100vh - 300px),820px); min-height: 0; overflow: hidden; border-radius: 8px; background: #f9fcfb; box-shadow: 0 20px 60px rgba(22,59,68,.11); }
+.body-system-rail { display: flex; min-width: 0; min-height: 0; overflow: hidden; flex-direction: column; border-right: 1px solid var(--line); background: #f2f7f6; }
+.body-system-rail > header { display: flex; min-height: 52px; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid var(--line); }
+.body-system-rail > header span { display: inline-flex; align-items: center; gap: 7px; color: #2b5b62; font-size: 13px; }
+.body-system-rail > header small { color: #7d9296; font-size: 11px; }
+.body-system-list { display: grid; flex: 1; min-height: 0; overflow-y: auto; padding: 8px; gap: 5px; align-content: start; }
+.body-system-row { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: stretch; border: 1px solid transparent; border-radius: 7px; background: #fff; }
+.body-system-row.active { border-color: rgba(15,118,110,.42); background: #e6f3f0; }
+.body-system-row.muted { opacity: .5; }
+.body-system-focus { display: grid; grid-template-columns: 10px minmax(0,1fr); align-items: start; gap: 8px; padding: 8px 4px 8px 9px; border: 0; border-radius: 7px 0 0 7px; background: transparent; color: #3d5a60; text-align: left; cursor: pointer; }
+.body-system-focus:hover { background: rgba(15,118,110,.07); }
+.body-system-focus > i { width: 10px; height: 10px; margin-top: 4px; border-radius: 3px; }
+.body-system-all { background: linear-gradient(90deg, #ded4b4 0 34%, #c2564e 34% 67%, #d3ab4f 67% 100%); }
+.body-system-focus > span { display: grid; min-width: 0; gap: 2px; }
+.body-system-focus strong { color: #35535a; font-size: 12px; }
+.body-system-focus small { color: #7b8f93; font-size: 10px; line-height: 1.45; }
+.body-system-row.active .body-system-focus strong { color: var(--teal-dark); }
+.body-system-row.active .body-system-focus small { color: #4d7d78; }
+.body-system-eye { display: grid; place-items: center; width: 32px; border: 0; border-left: 1px solid rgba(15,118,110,.12); border-radius: 0 7px 7px 0; background: transparent; color: #7fa39d; cursor: pointer; }
+.body-system-eye:hover { background: rgba(15,118,110,.1); color: var(--teal); }
+.body-viewer-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 8px; border-top: 1px solid var(--line); }
+.body-viewer-tools button { display: inline-flex; min-height: 31px; align-items: center; justify-content: center; gap: 5px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: #4b6b70; font-size: 11px; cursor: pointer; }
+.body-viewer-tools button.active { border-color: rgba(15,118,110,.42); background: #e4f1ee; color: var(--teal); }
+.body-fullscreen-button { grid-column: 1 / -1; }
+.anatomy-body-workbench:fullscreen,
+.anatomy-body-workbench:-webkit-full-screen {
+  width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 0;
+  box-shadow: none;
+  background: #f9fcfb;
+}
+.anatomy-body-workbench:fullscreen { grid-template-columns: 264px minmax(0,1fr) 380px; }
+.anatomy-body-workbench:-webkit-full-screen { grid-template-columns: 264px minmax(0,1fr) 380px; }
+.body-viewer-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 0 8px 8px; }
+.body-viewer-meta span { display: grid; gap: 1px; padding: 7px 9px; border-radius: 6px; background: #e7f0ef; }
+.body-viewer-meta strong { color: var(--teal-dark); font-size: 15px; }
+.body-viewer-meta small { color: #6c8489; font-size: 10px; }
+.body-attribution { margin: 0; padding: 4px 12px 12px; color: #93a4a7; font-size: 10px; line-height: 1.5; }
+.body-stage { display: flex; min-width: 0; min-height: 0; flex-direction: column; }
+.body-stage-note { display: flex; min-height: 40px; align-items: center; gap: 14px; padding: 0 14px; border-top: 1px solid var(--line); background: #f2f7f6; }
+.body-stage-note span { display: inline-flex; align-items: center; gap: 5px; color: #5d757a; font-size: 11px; }
+.body-stage-note small { margin-left: auto; color: var(--teal-dark); font-size: 11px; font-weight: 700; }
+.body-detail-panel { display: flex; min-width: 0; min-height: 0; overflow-y: auto; flex-direction: column; gap: 12px; padding: 16px; border-left: 1px solid var(--line); background: #fff; }
+.body-selection-head { display: grid; grid-template-columns: 10px minmax(0,1fr); gap: 10px; align-items: start; }
+.body-selection-head > i { width: 10px; height: 100%; min-height: 38px; border-radius: 3px; }
+.body-selection-head span { color: var(--teal); font-size: 10px; font-weight: 900; }
+.body-selection-head h2 { margin: 3px 0 0; color: #214b51; font-size: 17px; line-height: 1.35; }
+.body-selection-head small { display: block; margin-top: 2px; color: #83a0a4; font-size: 10px; letter-spacing: 0; }
+.body-agent-block { display: grid; gap: 8px; padding: 12px; border-radius: 7px; background: #f3f8f7; }
+.body-agent-block > strong { display: inline-flex; align-items: center; gap: 6px; color: #2b5b62; font-size: 12px; }
+.body-detail-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.body-empty-detail { display: grid; justify-items: center; gap: 7px; margin: auto 0; padding: 24px 12px; color: #6d8489; text-align: center; }
+.body-empty-detail strong { color: #2b5b62; font-size: 14px; }
+.body-empty-detail p { margin: 0; font-size: 11px; line-height: 1.6; }
+
+.anatomy-3d { position: relative; display: flex; flex: 1; min-height: 0; flex-direction: column; background: #101a1d; }
+.anatomy-3d-stage { flex: 1; min-height: 0; }
+.anatomy-3d-stage canvas { display: block; }
+.anatomy-3d-overlay { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 8px; padding: 16px; background: rgba(16,26,29,.94); color: #dce8e6; text-align: center; }
+.anatomy-3d-overlay strong { font-size: 13px; }
+.anatomy-3d-overlay small { color: #8ea3a2; font-size: 11px; }
+.anatomy-3d-bar { width: 200px; height: 4px; overflow: hidden; border-radius: 2px; background: rgba(255,255,255,.16); }
+.anatomy-3d-bar i { display: block; height: 100%; background: #3fbfae; }
+.anatomy-3d-legend { position: absolute; bottom: 10px; left: 10px; display: flex; max-width: calc(100% - 20px); flex-wrap: wrap; gap: 4px 10px; padding: 7px 9px; border-radius: 6px; background: rgba(10,18,20,.72); pointer-events: none; }
+.anatomy-3d-legend span { display: inline-flex; align-items: center; gap: 5px; color: #cfe0de; font-size: 10px; }
+.anatomy-3d-legend i { width: 8px; height: 8px; border-radius: 2px; }
+
+@media (max-width: 1280px) {
+  .anatomy-body-workbench { grid-template-columns: 224px minmax(360px,1fr) 320px; }
+}
 .anatomy-workbench { display: grid; grid-template-columns: 230px minmax(440px,1fr) 350px; grid-template-rows: minmax(0,1fr); height: clamp(680px, calc(100vh - 240px), 820px); min-height: 0; overflow: hidden; border-radius: 8px; background: #f9fcfb; box-shadow: 0 20px 60px rgba(22,59,68,.11); }
 .anatomy-exercise-rail { display: flex; min-width: 0; min-height: 0; overflow: hidden; flex-direction: column; border-right: 1px solid var(--line); background: #f2f7f6; }
 .anatomy-exercise-rail > header { display: flex; justify-content: space-between; align-items: center; min-height: 58px; padding: 0 16px; border-bottom: 1px solid var(--line); }
