@@ -1,0 +1,149 @@
+{
+  "nodes": [
+    {
+      "id": "ai_medicine",
+      "label": "AI+医学学科交叉",
+      "group": "core",
+      "score": 98
+    },
+    {
+      "id": "medical_education",
+      "label": "医学教学",
+      "group": "discipline",
+      "score": 90
+    },
+    {
+      "id": "clinical_research",
+      "label": "临床科研训练",
+      "group": "discipline",
+      "score": 88
+    },
+    {
+      "id": "simulation",
+      "label": "实验实训",
+      "group": "discipline",
+      "score": 84
+    },
+    {
+      "id": "personal_learning",
+      "label": "个性化学习",
+      "group": "discipline",
+      "score": 86
+    },
+    {
+      "id": "rag",
+      "label": "RAG 证据检索",
+      "group": "ai",
+      "score": 93
+    },
+    {
+      "id": "agents",
+      "label": "多 Agent 工作流",
+      "group": "ai",
+      "score": 94
+    },
+    {
+      "id": "kg",
+      "label": "知识图谱",
+      "group": "ai",
+      "score": 89
+    },
+    {
+      "id": "case_reasoning",
+      "label": "病例推理",
+      "group": "task",
+      "score": 82
+    },
+    {
+      "id": "literature",
+      "label": "文献证据",
+      "group": "task",
+      "score": 80
+    },
+    {
+      "id": "privacy",
+      "label": "隐私保护",
+      "group": "governance",
+      "score": 92
+    },
+    {
+      "id": "ethics",
+      "label": "医学伦理",
+      "group": "governance",
+      "score": 91
+    },
+    {
+      "id": "non_diagnosis",
+      "label": "非诊疗边界",
+      "group": "governance",
+      "score": 95
+    }
+  ],
+  "edges": [
+    {
+      "source": "ai_medicine",
+      "target": "medical_education",
+      "relation": "赋能"
+    },
+    {
+      "source": "ai_medicine",
+      "target": "clinical_research",
+      "relation": "赋能"
+    },
+    {
+      "source": "ai_medicine",
+      "target": "simulation",
+      "relation": "赋能"
+    },
+    {
+      "source": "ai_medicine",
+      "target": "personal_learning",
+      "relation": "赋能"
+    },
+    {
+      "source": "agents",
+      "target": "case_reasoning",
+      "relation": "编排"
+    },
+    {
+      "source": "rag",
+      "target": "literature",
+      "relation": "检索"
+    },
+    {
+      "source": "kg",
+      "target": "case_reasoning",
+      "relation": "组织知识"
+    },
+    {
+      "source": "rag",
+      "target": "medical_education",
+      "relation": "证据支撑"
+    },
+    {
+      "source": "agents",
+      "target": "privacy",
+      "relation": "检查"
+    },
+    {
+      "source": "agents",
+      "target": "ethics",
+      "relation": "检查"
+    },
+    {
+      "source": "agents",
+      "target": "non_diagnosis",
+      "relation": "约束"
+    },
+    {
+      "source": "clinical_research",
+      "target": "literature",
+      "relation": "依赖"
+    },
+    {
+      "source": "simulation",
+      "target": "case_reasoning",
+      "relation": "训练"
+    }
+  ]
+}
