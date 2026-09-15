@@ -1,0 +1,6 @@
+INFO:     Will watch for changes in these directories: ['E:\\18_本科计算机专业课程笔记\\07_竞赛\\全球人工智能算法精英赛\\medical_system-2026-7-31-demo\\medical_system-2026-7-31-demo']
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [19172] using StatReload
+INFO:     Started server process [16056]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

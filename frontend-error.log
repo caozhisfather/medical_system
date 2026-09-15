@@ -1,0 +1,73 @@
+$ vite --host 127.0.0.1 --port 5173
+22:21:28 [vite] (client) [console.warn] [Vue warn]: Duplicate keys found during update: "case_emergency_chest_pain-dis_acs" Make sure keys are unique. 
+  at <KnowledgeGraphViewV2 onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <BaseTransition mode="out-in" appear=false persisted=false  ... > 
+  at <Transition name="page" mode="out-in" > 
+  at <RouterView> 
+  at <ProductShell onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+22:21:28 [vite] (client) [console.warn] [Vue warn]: Duplicate keys found during update: "case_emergency_chest_pain-sym_chest_pain" Make sure keys are unique. 
+  at <KnowledgeGraphViewV2 onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <BaseTransition mode="out-in" appear=false persisted=false  ... > 
+  at <Transition name="page" mode="out-in" > 
+  at <RouterView> 
+  at <ProductShell onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+22:21:28 [vite] (client) [console.warn] [Vue warn]: Duplicate keys found during update: "case_emergency_chest_pain-exam_ecg" Make sure keys are unique. 
+  at <KnowledgeGraphViewV2 onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <BaseTransition mode="out-in" appear=false persisted=false  ... > 
+  at <Transition name="page" mode="out-in" > 
+  at <RouterView> 
+  at <ProductShell onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+22:21:29 [vite] (client) [console.warn] [Vue warn]: Duplicate keys found during update: "case_emergency_chest_pain-sym_chest_pain" Make sure keys are unique. 
+  at <KnowledgeGraphViewV2 onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <BaseTransition mode="out-in" appear=false persisted=false  ... > 
+  at <Transition name="page" mode="out-in" > 
+  at <RouterView> 
+  at <ProductShell onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+22:21:39 [vite] (client) [console.warn] [Vue warn]: Duplicate keys found during update: "dis_acs-clinical_exam_8348b6bee54e" Make sure keys are unique. 
+  at <KnowledgeGraphViewV2 onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <BaseTransition mode="out-in" appear=false persisted=false  ... > 
+  at <Transition name="page" mode="out-in" > 
+  at <RouterView> 
+  at <ProductShell onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+22:21:48 [vite] (client) [console.warn] [Vue warn]: Duplicate keys found during update: "case_emergency_chest_pain-dis_acs" Make sure keys are unique. 
+  at <KnowledgeGraphViewV2 onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <BaseTransition mode="out-in" appear=false persisted=false  ... > 
+  at <Transition name="page" mode="out-in" > 
+  at <RouterView> 
+  at <ProductShell onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+22:21:48 [vite] (client) [console.warn] [Vue warn]: Duplicate keys found during update: "case_emergency_chest_pain-sym_chest_pain" Make sure keys are unique. 
+  at <KnowledgeGraphViewV2 onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <BaseTransition mode="out-in" appear=false persisted=false  ... > 
+  at <Transition name="page" mode="out-in" > 
+  at <RouterView> 
+  at <ProductShell onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+22:21:48 [vite] (client) [console.warn] [Vue warn]: Duplicate keys found during update: "case_emergency_chest_pain-exam_ecg" Make sure keys are unique. 
+  at <KnowledgeGraphViewV2 onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <BaseTransition mode="out-in" appear=false persisted=false  ... > 
+  at <Transition name="page" mode="out-in" > 
+  at <RouterView> 
+  at <ProductShell onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+22:23:40 [vite] (client) [console.warn] [Vue warn]: Duplicate keys found during update: "case_emergency_chest_pain-exam_ecg" Make sure keys are unique. 
+  at <KnowledgeGraphViewV2 onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <BaseTransition mode="out-in" appear=false persisted=false  ... > 
+  at <Transition name="page" mode="out-in" > 
+  at <RouterView> 
+  at <ProductShell onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>

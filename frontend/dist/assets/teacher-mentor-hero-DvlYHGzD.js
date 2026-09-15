@@ -1,0 +1,1 @@
+var e=`/assets/teacher-mentor-hero-BYynKg19.png`;export{e as t};
