@@ -116,6 +116,49 @@ def test_realtime_mode_bypasses_cached_quiz(service, monkeypatch) -> None:
     assert service.status()["cached_quizzes"] == 2
 
 
+def test_model_failure_uses_gradable_local_fallback(service, monkeypatch) -> None:
+    monkeypatch.setattr(quiz_module.exam_settings_service, "get", lambda: settings())
+    monkeypatch.setattr(quiz_module, "_chat", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        quiz_module.anatomy_term_service,
+        "all",
+        lambda: {
+            "Heart": "心",
+            "Liver": "肝",
+            "Spleen": "脾",
+            "Kidney": "肾",
+            "Stomach": "胃",
+        },
+    )
+
+    quiz = service.generate("Heart", "心", "循环系统")
+
+    assert quiz["source"] == "local_fallback"
+    assert len(quiz["questions"]) == 5
+    assert {question["type"] for question in quiz["questions"]} == {
+        "single_choice",
+        "true_false",
+        "short_answer",
+    }
+    private_fields = {"answer_index", "answer", "points", "grading_keywords", "explanation"}
+    assert all(private_fields.isdisjoint(question) for question in quiz["questions"])
+
+    choice = next(question for question in quiz["questions"] if question["type"] == "single_choice")
+    cached_choice = next(
+        question
+        for payload in service._load_cache().values()
+        for question in payload["questions"]
+        if question["id"] == choice["id"]
+    )
+    choice_result = service.grade_by_id(choice["id"], cached_choice["answer_index"])
+    assert choice_result["correct"] is True
+
+    short_answer = next(question for question in quiz["questions"] if question["type"] == "short_answer")
+    short_result = service.grade_by_id(short_answer["id"], "心")
+    assert short_result["correct"] is True
+    assert short_result["score"] == 100
+
+
 def test_quiz_api_requires_auth_and_uses_question_id(monkeypatch) -> None:
     client = TestClient(app)
     assert client.post("/api/exam/quiz/generate", json={"structure_en": "Heart"}).status_code == 401

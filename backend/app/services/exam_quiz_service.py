@@ -10,6 +10,7 @@ from urllib.request import Request, urlopen
 
 from ..config import ROOT_DIR, settings
 from .anatomy_textbook_service import anatomy_textbook_service
+from .anatomy_term_service import anatomy_term_service
 from .exam_settings_service import exam_settings_service
 
 QUESTION_CACHE_FILE = ROOT_DIR / "data" / "exam_questions.json"
@@ -214,16 +215,33 @@ class ExamQuizService:
         ])
         parsed = _extract_json(content) if content else None
         raw_questions = parsed.get("questions") if isinstance(parsed, dict) else None
-        if not isinstance(raw_questions, list):
-            return {
-                "structure_en": english_name,
-                "structure_cn": chinese_name,
-                "enabled": True,
-                "questions": [],
-                "message": "题目生成失败，请稍后重试或联系教师。",
-            }
+        questions = self._normalize(
+            raw_questions if isinstance(raw_questions, list) else [],
+            english_name,
+            chinese_name,
+            label,
+            citation,
+        )
+        source = "ai"
+        message = None
+        if not questions:
+            source = "local_fallback"
+            message = "智能出题服务暂时不可用，已切换到本地辨认题库。"
+            questions = self._normalize(
+                self._fallback_questions(
+                    english_name,
+                    chinese_name,
+                    system_label,
+                    enabled,
+                    question_counts,
+                    option_counts,
+                ),
+                english_name,
+                chinese_name,
+                label,
+                citation,
+            )
 
-        questions = self._normalize(raw_questions, english_name, chinese_name, label, citation)
         payload = {
             "quiz_id": uuid4().hex,
             "structure_en": english_name,
@@ -233,6 +251,8 @@ class ExamQuizService:
             "citation": citation,
             "enabled": True,
             "mode": mode,
+            "source": source,
+            "message": message,
             "signature": self._signature(config),
             "questions": questions,
         }
@@ -241,6 +261,117 @@ class ExamQuizService:
             cache.pop(next(iter(cache)))
         self._save_cache(cache)
         return self._public_payload(payload)
+
+    @staticmethod
+    def _fallback_questions(
+        english_name: str,
+        chinese_name: str | None,
+        system_label: str | None,
+        enabled: list[tuple[str, int]],
+        question_counts: dict[str, int],
+        option_counts: list[int],
+    ) -> list[dict[str, Any]]:
+        """Build deterministic identification questions from the local glossary."""
+        terms = anatomy_term_service.all()
+        english_pool = sorted({name for name in terms if name.lower() != english_name.lower()})
+        chinese_pool = sorted({name for name in terms.values() if name and name != chinese_name})
+        seed = int(hashlib.sha256(english_name.lower().encode("utf-8")).hexdigest()[:12], 16)
+
+        def options_for(answer: str, pool: list[str], count: int, offset: int) -> tuple[list[str], int]:
+            size = max(2, min(5, count))
+            candidates: list[str] = []
+            if pool:
+                start = (seed + offset) % len(pool)
+                for step in range(len(pool)):
+                    candidate = pool[(start + step) % len(pool)]
+                    if candidate != answer and candidate not in candidates:
+                        candidates.append(candidate)
+                    if len(candidates) == size - 1:
+                        break
+            generic_index = 1
+            while len(candidates) < size - 1:
+                candidate = f"其他解剖结构 {generic_index}"
+                if candidate != answer:
+                    candidates.append(candidate)
+                generic_index += 1
+            answer_index = (seed + offset) % size
+            candidates.insert(answer_index, answer)
+            return candidates, answer_index
+
+        questions: list[dict[str, Any]] = []
+        enabled_keys = {key for key, _ in enabled}
+        choice_total = question_counts.get("single_choice", 0)
+        for index in range(choice_total):
+            option_count = option_counts[index % len(option_counts)] if option_counts else 4
+            if chinese_name and index % 2 == 0:
+                options, answer_index = options_for(chinese_name, chinese_pool, option_count, index)
+                stem = f"{english_name} 对应的规范中文解剖名称是？"
+            else:
+                options, answer_index = options_for(english_name, english_pool, option_count, index)
+                stem = f"{chinese_name or '当前选中结构'} 对应的英文解剖名称是？"
+            questions.append(
+                {
+                    "type": "single_choice",
+                    "stem": stem,
+                    "options": options,
+                    "answer_index": answer_index,
+                    "explanation": f"当前三维模型选中的结构为 {chinese_name or english_name}（{english_name}）。",
+                }
+            )
+
+        for index in range(question_counts.get("true_false", 0)):
+            if system_label and index % 2:
+                stem = f"当前结构 {chinese_name or english_name} 的训练分类为{system_label}。"
+                explanation = f"该结构在当前训练模型中归入{system_label}。"
+            else:
+                stem = f"{chinese_name or english_name} 的英文解剖名称是 {english_name}。"
+                explanation = f"本地解剖术语表记录为 {chinese_name or english_name}（{english_name}）。"
+            questions.append(
+                {
+                    "type": "true_false",
+                    "stem": stem,
+                    "answer": True,
+                    "explanation": explanation,
+                }
+            )
+
+        short_prompts: list[tuple[str, list[str], list[list[str]]]] = []
+        if chinese_name:
+            short_prompts.append(
+                (
+                    f"写出英文解剖名词 {english_name} 对应的规范中文名称。",
+                    [f"中文名称：{chinese_name}"],
+                    [[chinese_name]],
+                )
+            )
+        short_prompts.append(
+            (
+                f"写出当前结构 {chinese_name or english_name} 的英文解剖名称。",
+                [f"英文名称：{english_name}"],
+                [[english_name]],
+            )
+        )
+        if system_label:
+            short_prompts.append(
+                (
+                    f"当前结构 {chinese_name or english_name} 在本训练模型中归入哪个系统？",
+                    [f"所属系统：{system_label}"],
+                    [[system_label, system_label.removesuffix("系统")]],
+                )
+            )
+        for index in range(question_counts.get("short_answer", 0)):
+            stem, points, keywords = short_prompts[index % len(short_prompts)]
+            questions.append(
+                {
+                    "type": "short_answer",
+                    "stem": stem,
+                    "points": points,
+                    "grading_keywords": keywords,
+                    "explanation": "依据当前三维结构名称与本地解剖术语表评分。",
+                }
+            )
+
+        return [question for question in questions if question["type"] in enabled_keys]
 
     @staticmethod
     def _question_counts(enabled: list[tuple[str, int]], total: int = 5) -> dict[str, int]:
@@ -287,7 +418,7 @@ class ExamQuizService:
             {
                 key: value
                 for key, value in question.items()
-                if key not in {"answer_index", "answer", "points", "explanation"}
+                if key not in {"answer_index", "answer", "points", "grading_keywords", "explanation"}
             }
             for question in payload.get("questions", [])
             if isinstance(question, dict)
@@ -339,6 +470,13 @@ class ExamQuizService:
                 if not points:
                     continue
                 item["points"] = points
+                grading_keywords = raw.get("grading_keywords")
+                if isinstance(grading_keywords, list):
+                    item["grading_keywords"] = [
+                        [str(keyword).strip() for keyword in group if str(keyword).strip()]
+                        for group in grading_keywords
+                        if isinstance(group, list)
+                    ]
             fingerprint = json.dumps(
                 {"structure": english_name, "index": index, "question": item},
                 ensure_ascii=False,
@@ -399,6 +537,24 @@ class ExamQuizService:
 
     def _grade_short(self, question: dict[str, Any], answer: str) -> dict[str, Any]:
         points = question.get("points") or []
+        keyword_groups = question.get("grading_keywords")
+        if isinstance(keyword_groups, list) and keyword_groups:
+            normalized_answer = re.sub(r"\s+", "", answer).lower()
+            matched = [
+                any(re.sub(r"\s+", "", str(keyword)).lower() in normalized_answer for keyword in group)
+                for group in keyword_groups
+                if isinstance(group, list) and group
+            ]
+            hit_points = [point for point, hit in zip(points, matched) if hit]
+            missed_points = [point for point, hit in zip(points, matched) if not hit]
+            score = round(100 * len(hit_points) / len(matched)) if matched else 0
+            return {
+                "correct": score >= 60,
+                "score": score,
+                "feedback": "已按本地术语关键词完成评分。",
+                "hit_points": hit_points,
+                "missed_points": missed_points,
+            }
         fallback = {
             "correct": False,
             "score": 0,

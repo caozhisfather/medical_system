@@ -164,6 +164,7 @@ export interface QuizSet {
   citation?: string | null;
   enabled: boolean;
   mode?: string;
+  source?: 'ai' | 'local_fallback';
   cached?: boolean;
   message?: string;
   questions: QuizQuestion[];
