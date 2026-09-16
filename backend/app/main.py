@@ -44,6 +44,8 @@ from .services.llm_patient_service import llm_patient_service
 from .services.scoring_service import ScoringAgent
 from .services.anatomy_textbook_service import anatomy_textbook_service
 from .services.anatomy_term_service import anatomy_term_service
+from .services.exam_settings_service import exam_settings_service
+from .services.exam_quiz_service import exam_quiz_service
 from .services.history_taking_service import history_taking_service
 from .rag import RagPipeline
 from .workflow import build_trace, load_workflow
@@ -1229,6 +1231,50 @@ def anatomy_glossary() -> dict[str, Any]:
     """Chinese names for the English structure names in the 3D atlas."""
     terms = anatomy_term_service.all()
     return {"count": len(terms), "source": "BodyParts3D 4.0", "terms": terms}
+
+
+@app.get("/api/exam/settings")
+def exam_settings_get(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    require_role(authorization, {"student", "teacher", "admin", "super_admin"})
+    return exam_settings_service.get()
+
+
+@app.put("/api/exam/settings")
+def exam_settings_update(payload: dict[str, Any], authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user = require_role(authorization, {"teacher", "admin", "super_admin"})
+    return exam_settings_service.update(payload, user.account)
+
+
+@app.post("/api/exam/quiz/generate")
+def exam_quiz_generate(payload: dict[str, Any], authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    require_role(authorization, {"student", "teacher", "admin", "super_admin"})
+    english_name = str(payload.get("structure_en") or "").strip()
+    if not english_name:
+        raise HTTPException(status_code=400, detail="structure_en is required")
+    chinese_name = str(payload.get("structure_cn") or "").strip() or None
+    if not chinese_name:
+        chinese_name = anatomy_term_service.lookup(english_name)
+    system_label = str(payload.get("system") or "").strip() or None
+    force = bool(payload.get("force"))
+    return exam_quiz_service.generate(english_name, chinese_name, system_label, force=force)
+
+
+@app.post("/api/exam/quiz/grade")
+def exam_quiz_grade(payload: dict[str, Any], authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    require_role(authorization, {"student", "teacher", "admin", "super_admin"})
+    question_id = str(payload.get("question_id") or "").strip()
+    if not question_id:
+        raise HTTPException(status_code=400, detail="question_id is required")
+    try:
+        return exam_quiz_service.grade_by_id(question_id, payload.get("answer"))
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="题目已过期，请重新生成测验") from exc
+
+
+@app.get("/api/exam/quiz/status")
+def exam_quiz_status(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    require_role(authorization, {"teacher", "admin", "super_admin"})
+    return exam_quiz_service.status()
 
 
 @app.post("/api/anatomy/submit", response_model=AnatomySubmitResponse)

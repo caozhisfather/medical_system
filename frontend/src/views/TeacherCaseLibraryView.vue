@@ -36,8 +36,6 @@ import {
 import type { CaseLibraryDeidentifyResult, CaseLibraryEntry } from '../types';
 import { trainingStore } from '../stores/training';
 
-const emit = defineEmits<{ compile: [payload: { entry_ids: string[]; publish_immediately: boolean }] }>();
-
 interface EntryForm {
   title: string;
   category: string;
@@ -58,7 +56,7 @@ const loading = ref(false);
 const notice = ref('');
 const query = ref('');
 const categoryFilter = ref('');
-const knowledgeTypeFilter = ref<'all' | 'case' | 'textbook' | 'evidence'>('all');
+const knowledgeTypeFilter = ref<'all' | 'textbook' | 'evidence'>('all');
 const filterKind = ref<'all' | 'anonymized' | 'risk'>('all');
 const processingFilter = ref('');
 const selectedId = ref('');
@@ -74,9 +72,8 @@ const embeddingProcessing = ref(false);
 const embeddingCounts = ref<Record<string, number>>({});
 let processingTimer: ReturnType<typeof window.setInterval> | undefined;
 let embeddingTimer: ReturnType<typeof window.setInterval> | undefined;
-const uploadType = ref<'textbook' | 'evidence' | 'case'>('textbook');
+const uploadType = ref<'textbook' | 'evidence'>('textbook');
 const selectedIds = ref<string[]>([]);
-const compilePublish = ref(false);
 const createForm = ref<EntryForm>(emptyForm());
 const editForm = ref<EntryForm>(emptyForm());
 const preview = ref<CaseLibraryDeidentifyResult | null>(null);
@@ -85,7 +82,7 @@ const isAdmin = computed(() => trainingStore.state.profile.role === 'admin');
 const selected = computed(() => entries.value.find((item) => item.id === selectedId.value) || null);
 
 function documentTypeLabel(item: CaseLibraryEntry) {
-  return item.document_type === 'evidence' ? '医学依据' : item.document_type === 'case' ? '病例' : item.knowledge_type === 'textbook' ? '教材' : '病例';
+  return item.document_type === 'evidence' ? '医学依据' : '教材';
 }
 
 function hasRisk(item: CaseLibraryEntry) {
@@ -145,11 +142,6 @@ function toggleSelect(entryId: string) {
   const index = selectedIds.value.indexOf(entryId);
   if (index >= 0) selectedIds.value.splice(index, 1);
   else selectedIds.value.push(entryId);
-}
-
-function compileSelected() {
-  if (!selectedIds.value.length) return;
-  emit('compile', { entry_ids: [...selectedIds.value], publish_immediately: compilePublish.value });
 }
 
 function beginEdit() {
@@ -219,7 +211,7 @@ async function saveCreate() {
   }
   saving.value = true;
   try {
-    await createTeachingKnowledge({ ...createForm.value, knowledge_type: knowledgeTypeFilter.value === 'textbook' ? 'textbook' : 'case' }, isAdmin.value ? 'admin' : 'teacher');
+    await createTeachingKnowledge({ ...createForm.value, knowledge_type: knowledgeTypeFilter.value === 'evidence' ? 'evidence' : 'textbook' }, isAdmin.value ? 'admin' : 'teacher');
     showCreate.value = false;
     notice.value = '新病例已脱敏并写入知识库。';
     await load();
@@ -331,10 +323,6 @@ onUnmounted(() => { if (processingTimer) window.clearInterval(processingTimer); 
         <button v-if="isAdmin" class="button-secondary" type="button" :disabled="embeddingProcessing" @click="runEmbeddingProcessing"><LoaderCircle v-if="embeddingProcessing" class="spin" :size="17" /><Sparkles v-else :size="17" />{{ embeddingProcessing ? '向量生成中' : '生成 Qwen 向量' }}</button>
         <button class="button-primary" type="button" @click="openCreate"><Plus :size="17" />新增知识条目</button>
       </div>
-      <div class="case-library-compile">
-        <label class="compile-publish-toggle"><input v-model="compilePublish" type="checkbox" />整合后直接发布</label>
-        <button class="button-primary ai-compile" type="button" :disabled="!selectedIds.length" @click="compileSelected"><Sparkles :size="16" />AI 整合为训练病例（{{ selectedIds.length }}）</button>
-      </div>
     </div>
 
     <div v-if="isAdmin && processing" class="processing-progress"><LoaderCircle class="spin" :size="16" />正在处理文档，完成后会自动更新列表<span v-if="processingCounts['待脱敏']">已完成 {{ processingCounts['待脱敏'] }} 份</span></div>
@@ -355,7 +343,6 @@ onUnmounted(() => { if (processingTimer) window.clearInterval(processingTimer); 
         <label class="search-control"><Search :size="17" /><input v-model="query" placeholder="搜索病例、教材或知识内容" /></label>
         <div class="knowledge-type-tabs">
           <button type="button" :class="{ active: knowledgeTypeFilter === 'all' }" @click="knowledgeTypeFilter = 'all'; load()">全部</button>
-          <button type="button" :class="{ active: knowledgeTypeFilter === 'case' }" @click="knowledgeTypeFilter = 'case'; load()">病例</button>
           <button type="button" :class="{ active: knowledgeTypeFilter === 'textbook' }" @click="knowledgeTypeFilter = 'textbook'; load()">教材</button>
           <button type="button" :class="{ active: knowledgeTypeFilter === 'evidence' }" @click="knowledgeTypeFilter = 'evidence'; load()">医学依据</button>
         </div>
@@ -451,24 +438,21 @@ onUnmounted(() => { if (processingTimer) window.clearInterval(processingTimer); 
       </section>
     </div>
 
-    <div v-if="showCreate" class="case-library-modal" role="dialog" aria-modal="true" :aria-label="knowledgeTypeFilter === 'textbook' ? '新增教材知识' : '新增病例知识'">
+    <div v-if="showCreate" class="case-library-modal" role="dialog" aria-modal="true" :aria-label="knowledgeTypeFilter === 'evidence' ? '新增医学依据' : '新增教材知识'">
       <div class="case-library-modal-card">
         <header>
-          <div><span><ShieldCheck :size="19" /></span><div><strong>{{ knowledgeTypeFilter === 'textbook' ? '新增教材知识条目' : '新增去标识化病例' }}</strong><small>{{ knowledgeTypeFilter === 'textbook' ? '补充内容将进入教材知识库，保存后需要重建 embedding' : '保存时后端会自动脱敏全部文本字段' }}</small></div></div>
+          <div><span><ShieldCheck :size="19" /></span><div><strong>{{ knowledgeTypeFilter === 'evidence' ? '新增医学依据' : '新增教材知识条目' }}</strong><small>补充内容会作为讲解与命题的依据，保存后需要重建 embedding</small></div></div>
           <button class="icon-button" type="button" title="关闭" @click="showCreate = false"><X :size="18" /></button>
         </header>
         <form @submit.prevent="saveCreate">
           <div>
-            <label>{{ knowledgeTypeFilter === 'textbook' ? '条目标题' : '病例名称' }}<input v-model="createForm.title" :placeholder="knowledgeTypeFilter === 'textbook' ? '例如：心脏四腔结构' : '例如：急性心肌梗死'" /></label>
-            <label>{{ knowledgeTypeFilter === 'textbook' ? '教材分类' : '疾病分类' }}<input v-model="createForm.category" list="category-options" :placeholder="knowledgeTypeFilter === 'textbook' ? '例如：循环系统' : '例如：心血管疾病'" /></label>
+            <label>条目标题<input v-model="createForm.title" placeholder="例如：心脏四腔结构" /></label>
+            <label>分类<input v-model="createForm.category" list="category-options" placeholder="例如：循环系统" /></label>
           </div>
           <div>
-            <label>主要诊断<input v-model="createForm.diagnosis" /></label>
-            <label>来源<input v-model="createForm.source" /></label>
+            <label>来源<input v-model="createForm.source" placeholder="例如：《系统解剖学》第10版" /></label>
           </div>
-          <label>主诉<input v-model="createForm.chief_complaint" placeholder="例如：突发胸痛 3 小时" /></label>
-          <label>现病史<textarea v-model="createForm.present_illness" rows="3" /></label>
-          <label>{{ knowledgeTypeFilter === 'textbook' ? '教材正文' : '病例全文' }}<textarea v-model="createForm.content" rows="8" :placeholder="knowledgeTypeFilter === 'textbook' ? '粘贴教材摘要或教师补充内容' : '可粘贴原始病历，保存前先脱敏预览'" /></label>
+          <label>正文<textarea v-model="createForm.content" rows="8" placeholder="粘贴教材摘要或教师补充内容" /></label>
           <div class="case-library-preview-actions">
             <button class="button-secondary" type="button" :disabled="previewing" @click="runPreview"><LoaderCircle v-if="previewing" class="spin" :size="16" /><Eye v-else :size="16" />脱敏预览</button>
           </div>

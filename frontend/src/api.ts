@@ -1,4 +1,4 @@
-import type { AgentResponse, AnatomyExercise, AnatomyResult, AnatomyTextbookResult, AuthResponse, CaseLibraryDeidentifyResult, CaseLibraryEntry, CaseLibraryImportReport, CaseLibraryListResponse, CaseSummary, ChatMessage, DailyReview, DailyReviewClassSummary, DailyReviewPolicy, DataSourceItem, GuidelineDoc, HistoryTakingTemplate, KnowledgeEdge, KnowledgeItem, KnowledgeNode, Overview, PatientChatResponse, RagResponse, TeacherCaseDraft, TeacherCaseRecommendations, TeacherDashboard, TextbookStage, TrainingAssessment, TrainingReport, TtsResponse } from './types';
+import type { AgentResponse, AnatomyExercise, AnatomyResult, AnatomyTextbookResult, AuthResponse, CaseLibraryDeidentifyResult, CaseLibraryEntry, CaseLibraryImportReport, CaseLibraryListResponse, CaseSummary, ChatMessage, DailyReview, DailyReviewClassSummary, DailyReviewPolicy, DataSourceItem, ExamSettings, GuidelineDoc, HistoryTakingTemplate, KnowledgeEdge, KnowledgeItem, KnowledgeNode, Overview, PatientChatResponse, QuizGrade, QuizSet, RagResponse, TeacherCaseDraft, TeacherCaseRecommendations, TeacherDashboard, TextbookStage, TrainingAssessment, TrainingReport, TtsResponse } from './types';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -132,6 +132,22 @@ export function getAnatomyExercises() { return readJson<AnatomyExercise[]>('/api
 export function submitAnatomy(exerciseId: string, selectedZone: string) { return postJson<AnatomyResult>('/api/anatomy/submit', { exercise_id: exerciseId, selected_zone: selectedZone }); }
 export function getAnatomyTextbook(q: string) { return readJson<AnatomyTextbookResult>(`/api/anatomy/textbook?q=${encodeURIComponent(q)}`); }
 export function getAnatomyGlossary() { return readJson<{ count: number; source: string; terms: Record<string, string> }>('/api/anatomy/glossary'); }
+export function getExamSettings() { return readJson<ExamSettings>('/api/exam/settings'); }
+export function generateQuiz(payload: { structure_en: string; structure_cn?: string; system?: string; force?: boolean }) {
+  return postJson<QuizSet>('/api/exam/quiz/generate', payload);
+}
+export function gradeQuiz(payload: { question_id: string; answer: unknown }) {
+  return postJson<QuizGrade>('/api/exam/quiz/grade', payload);
+}
+export async function saveExamSettings(payload: Partial<ExamSettings>) {
+  const response = await fetch(`${baseUrl}/api/exam/settings`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) throw new Error(await requestError(response));
+  return response.json() as Promise<ExamSettings>;
+}
 export function speak(text: string) { return postJson<TtsResponse>('/api/tts/speak', { text, voice: 'clinical_tutor' }); }
 
 export function startTraining(caseId: string, variantId: string, difficulty: string, mode: string) {

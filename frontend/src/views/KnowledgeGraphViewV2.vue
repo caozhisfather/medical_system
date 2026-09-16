@@ -655,7 +655,7 @@ function endDrag() {
       <aside class="graph-detail">
         <span class="section-kicker">{{ groupLabel(selected) }}</span>
         <h2>{{ label(selected) }}</h2>
-        <p>{{ selected?.description_zh || selected?.summary || '该节点用于连接病例训练、教材知识与指南证据。' }}</p>
+        <p>{{ selected?.description_zh || selected?.summary || '该节点用于连接解剖结构、教材知识与临床指南。' }}</p>
         <div class="graph-focus-actions">
           <button class="graph-focus-button" type="button" @click="focusSelected">
             <LocateFixed :size="16" />展开两跳关系
@@ -704,5 +704,4 @@ function endDrag() {
     </section>
   </div>
 </template>
-
 

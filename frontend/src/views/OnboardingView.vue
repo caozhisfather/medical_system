@@ -32,7 +32,7 @@ async function finish() {
         <span class="brand-mark">临</span>
         <span class="section-kicker">建立专属教学空间</span>
         <h1>{{ role === 'teacher' ? '配置教师工作台' : '配置学生训练路径' }}</h1>
-        <p>{{ role === 'teacher' ? '用于组织班级、病例和报告复核，不涉及真实诊疗。' : '用于推荐适合你的病例难度和复训路径。' }}</p>
+        <p>{{ role === 'teacher' ? '用于组织教学知识库与题型配置，不涉及真实诊疗。' : '用于记录你的解剖学习进度与定位测验结果。' }}</p>
         <div class="onboarding-steps">
           <span class="done"><Check :size="15" /> 身份确认</span>
           <span class="active">2 基础信息</span>

@@ -125,6 +125,59 @@ export interface AnatomyExercise { id: string; title: string; system?: string; o
 export interface AnatomyResult { correct: boolean; score_items: ScoreItem[]; feedback: string; explanation: string; clinical_link: string; }
 export interface AgentResultCard { kind: string; title: string; summary: string; target: string; }
 export interface AgentResponse { intent: string; action: string; target_module?: string | null; target_case_id?: string | null; target_exercise_id?: string | null; reply: string; result_cards: AgentResultCard[]; learning_path: string[]; workflow_trace: WorkflowTrace[]; safety_notes: string[]; }
+
+export type ExamDifficulty = 'basic' | 'exam' | 'clinical';
+export type ExamGenerationMode = 'prebuild' | 'realtime';
+
+export interface ExamSettings {
+  question_types: {
+    single_choice: { enabled: boolean; weight: number; option_counts: number[] };
+    true_false: { enabled: boolean; weight: number };
+    short_answer: { enabled: boolean; weight: number };
+  };
+  difficulty: ExamDifficulty;
+  generation_mode: ExamGenerationMode;
+  system_prompt: string;
+  updated_at?: string | null;
+  updated_by?: string | null;
+}
+
+export type QuizQuestionType = 'single_choice' | 'true_false' | 'short_answer';
+
+export interface QuizQuestion {
+  id: string;
+  type: QuizQuestionType;
+  stem: string;
+  structure_en: string;
+  structure_cn?: string | null;
+  structure_label: string;
+  citation?: string | null;
+  options?: string[];
+}
+
+export interface QuizSet {
+  quiz_id?: string;
+  structure_en: string;
+  structure_cn?: string | null;
+  structure_label?: string;
+  system?: string | null;
+  citation?: string | null;
+  enabled: boolean;
+  mode?: string;
+  cached?: boolean;
+  message?: string;
+  questions: QuizQuestion[];
+}
+
+export interface QuizGrade {
+  correct: boolean;
+  score: number;
+  feedback: string;
+  expected?: string;
+  correct_answer?: number | boolean;
+  hit_points?: string[];
+  missed_points?: string[];
+}
 export interface TtsResponse { status: string; voice: string; duration_seconds: number; audio_url?: string | null; message: string; }
 
 

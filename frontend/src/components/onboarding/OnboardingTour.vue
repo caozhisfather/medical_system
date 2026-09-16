@@ -15,14 +15,15 @@ const step = computed(() => steps.value[index.value]);
 
 function routeFor(role: WorkspaceRole, target: string) {
   if (role === 'teacher') {
-    if (target.includes('class-review')) return '/teacher/class-review';
-    if (target.includes('case-management')) return '/teacher/cases';
+    if (target.includes('exam-settings')) return '/teacher/exam-settings';
+    if (target.includes('case-management')) return '/teacher/knowledge';
+    if (target.includes('teacher-graph')) return '/knowledge-graph';
     return '/teacher/dashboard';
   }
   if (role === 'admin') return '/admin/dashboard';
-  if (target.includes('daily-review')) return '/student/daily-review';
+  if (target.includes('daily-review')) return '/student/archive';
   if (target.includes('knowledge-graph')) return '/knowledge-graph';
-  if (target.includes('case-training')) return '/student/cases';
+  if (target.includes('anatomy-lab')) return '/student/anatomy';
   return '/student/dashboard';
 }
 
@@ -48,7 +49,8 @@ async function show() {
   if (!shouldShowOnboarding(props.role)) return;
   active.value = true;
   index.value = 0;
-  await router.push(routeFor(props.role, steps.value[0].target));
+  // Auto-start must not hijack the URL: if the user opened a deep link, the
+  // tour highlights whatever is on screen instead of bouncing them elsewhere.
   await positionSpotlight();
 }
 
@@ -110,4 +112,3 @@ watch(() => props.role, () => {
     </div>
   </Teleport>
 </template>
-

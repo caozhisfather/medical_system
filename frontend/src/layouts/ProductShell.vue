@@ -5,7 +5,6 @@ import { useRoute, useRouter } from 'vue-router';
 import {
   BarChart3,
   BookOpen,
-  CalendarCheck2,
   ChartNetwork,
   CircleHelp,
   FileChartColumn,
@@ -15,7 +14,7 @@ import {
   LogOut,
   ScanLine,
   Settings2,
-  Stethoscope,
+  SlidersHorizontal,
   Users
 } from '@lucide/vue';
 import AgentCommand from '../components/AgentCommand.vue';
@@ -38,15 +37,14 @@ type NavItem = {
 const studentNav: NavItem[] = [
   { label: '学习总览', path: '/student/dashboard', icon: LayoutDashboard, tour: 'today-task' },
   { label: '虚拟解剖室', path: '/student/anatomy', icon: ScanLine, tour: 'anatomy-lab' },
-  { label: '病例训练', path: '/student/cases', icon: Stethoscope, tour: 'case-training' },
   { label: '知识图谱', path: '/knowledge-graph', icon: ChartNetwork, tour: 'knowledge-graph' },
   { label: '学习档案', path: '/student/archive', icon: History, tour: 'daily-review' }
 ];
 const teacherNav: NavItem[] = [
   { label: '教学总览', path: '/teacher/dashboard', icon: BarChart3, tour: 'teacher-dashboard' },
-  { label: '教学复盘', path: '/teacher/class-review', icon: CalendarCheck2, tour: 'class-review' },
-  { label: '病例库管理', path: '/teacher/cases', icon: Library, tour: 'case-management' },
-  { label: '知识图谱', path: '/knowledge-graph', icon: BookOpen }
+  { label: '教学知识库', path: '/teacher/knowledge', icon: Library, tour: 'case-management' },
+  { label: '题型与提示词', path: '/teacher/exam-settings', icon: SlidersHorizontal, tour: 'exam-settings' },
+  { label: '知识图谱', path: '/knowledge-graph', icon: BookOpen, tour: 'teacher-graph' }
 ];
 const adminNav: NavItem[] = [
   { label: '系统控制台', path: '/admin/dashboard', hash: '#admin-console', icon: Settings2, tour: 'admin-review-policy' },
@@ -67,7 +65,6 @@ function homePath() {
 }
 
 function active(item: NavItem) {
-  if (item.path === '/student/cases') return route.path.startsWith('/student/case');
   if (route.path !== item.path) return false;
   if (item.hash) return route.hash === item.hash || (item.hash === '#admin-console' && !route.hash);
   return role.value !== 'admin' || item.path !== '/admin/dashboard' || !route.hash;

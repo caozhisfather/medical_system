@@ -1115,7 +1115,7 @@ const appendedAtlasNodes: AnatomyAtlasNode[] = blausenAtlasAssets
     description: `${asset.topic}解剖图，按现有系统层级追加，可点击图片查看结构信息并进入相关知识图谱。`,
     instruction: '点击图片查看结构信息',
     hotspots: [{ id: `${asset.id}_image`, label: asset.topic, x: 50, y: 50, width: 100, height: 100, structure_id: `${asset.id}_structure` }],
-    structures: [{ id: `${asset.id}_structure`, name: asset.topic, category: asset.level, description: `${asset.topic}的解剖形态、位置与毗邻关系。`, clinical_note: '可结合病例训练、体格检查和影像定位继续学习。' }],
+    structures: [{ id: `${asset.id}_structure`, name: asset.topic, category: asset.level, description: `${asset.topic}的解剖形态、位置与毗邻关系。`, clinical_note: '可结合体格检查与影像定位继续学习。' }],
     source_label: `Blausen Medical · ${asset.id} · ${asset.license}`
   }));
 

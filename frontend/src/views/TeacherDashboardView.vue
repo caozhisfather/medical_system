@@ -1,78 +1,123 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { AlertTriangle, ArrowRight, BookOpenCheck, Clock3, FileCheck2, TrendingUp, Users } from '@lucide/vue';
-import { getTeacherDashboard } from '../api';
-import teacherDashboardImage from '../assets/medical/teacher-dashboard.png';
-import type { TeacherDashboard } from '../types';
+import { ArrowRight, BookOpenCheck, ChartNetwork, Database, Layers3, ListChecks, SlidersHorizontal, Sparkles } from '@lucide/vue';
+import { getExamSettings, getTeachingKnowledge } from '../api';
+import type { ExamSettings } from '../types';
+import { ANATOMY_SYSTEMS_3D } from '../data/anatomy3d';
 
 const router = useRouter();
-const dashboard = ref<TeacherDashboard>({
-  class_average: 82,
-  completion_rate: 76,
-  training_sessions: 248,
-  teacher_time_saved: '41%',
-  citation_accuracy: '88%',
-  intervention_needed: 6,
-  improvements: [{ label: '临床推理分提升', value: 24 }, { label: '关键问诊遗漏率下降', value: 32 }, { label: '指南引用准确率提升', value: 18 }],
-  common_missing_points: ['尚未询问胸痛性质', '尚未排除主动脉夹层', '建议申请心电图和肌钙蛋白'],
-  students: [],
-  risk_rankings: [],
-  teaching_suggestions: []
+const knowledgeTotal = ref(0);
+const typeCounts = ref<Record<string, number>>({});
+const settings = ref<ExamSettings | null>(null);
+const loading = ref(true);
+
+const enabledTypes = computed(() => {
+  const types = settings.value?.question_types;
+  if (!types) return [];
+  const labels: Array<[string, { enabled: boolean; weight: number }]> = [
+    ['选择题', types.single_choice],
+    ['判断题', types.true_false],
+    ['简答题', types.short_answer]
+  ];
+  return labels.filter(([, value]) => value.enabled).map(([label, value]) => ({ label, weight: value.weight }));
 });
+
+const difficultyLabel = computed(() => {
+  const map: Record<string, string> = { basic: '基础识记', exam: '考试标准', clinical: '临床应用' };
+  return map[settings.value?.difficulty ?? ''] ?? '未设置';
+});
+
+const generationLabel = computed(() => (settings.value?.generation_mode === 'realtime' ? '实时生成' : '预生成题库'));
+
+const documentTypes = computed(() =>
+  Object.entries(typeCounts.value).map(([key, value]) => ({
+    key,
+    label: key === 'textbook' ? '教材' : key === 'evidence' ? '权威依据' : key === 'case' ? '病例资料' : key,
+    value
+  }))
+);
+
 onMounted(async () => {
-  try { dashboard.value = await getTeacherDashboard(); } catch { /* Keep teaching mock data available. */ }
+  const [knowledge, exam] = await Promise.allSettled([getTeachingKnowledge({}, 'teacher'), getExamSettings()]);
+  if (knowledge.status === 'fulfilled') {
+    knowledgeTotal.value = knowledge.value.total ?? knowledge.value.items?.length ?? 0;
+    typeCounts.value = knowledge.value.type_counts ?? {};
+  }
+  if (exam.status === 'fulfilled') settings.value = exam.value;
+  loading.value = false;
 });
-const interventionStudents = computed(() => dashboard.value.students?.filter((item) => item.needs_intervention) ?? []);
 </script>
 
 <template>
   <div class="workspace-page teacher-page">
     <section class="teacher-dashboard-hero">
-      <img :src="teacherDashboardImage" alt="" />
-      <div><span class="section-kicker">诊断学课程 · 2023-2 班</span><h1>教学质量与班级临床思维概览</h1><p>聚合训练表现、共性遗漏和教师复核任务，用于下一轮教学干预。</p></div>
-      <button class="button-primary" type="button" @click="router.push('/teacher/class-review?tab=reports')">查看待复核报告 <ArrowRight :size="18" /></button>
+      <div>
+        <span class="section-kicker">解剖学课程 · 2023-2 班</span>
+        <h1>教学知识库与命题控制</h1>
+        <p>维护可追溯的教学依据，决定学生做哪些题型、按什么难度和提示词出题。</p>
+      </div>
+      <button class="button-primary" type="button" @click="router.push('/teacher/exam-settings')">配置题型与提示词 <ArrowRight :size="18" /></button>
     </section>
 
     <section class="metric-strip teacher-metrics">
-      <article><Users :size="19" /><span><small>班级平均分</small><strong>{{ dashboard.class_average }}</strong></span><b>较上月 +4.8</b></article>
-      <article><FileCheck2 :size="19" /><span><small>训练总次数</small><strong>{{ dashboard.training_sessions }}</strong></span><b>完成率 {{ dashboard.completion_rate }}%</b></article>
-      <article><Clock3 :size="19" /><span><small>批改时间减少</small><strong>{{ dashboard.teacher_time_saved }}</strong></span><b>过程评分辅助</b></article>
-      <article><BookOpenCheck :size="19" /><span><small>引用准确率</small><strong>{{ dashboard.citation_accuracy }}</strong></span><b>可追溯证据</b></article>
+      <article><Database :size="19" /><span><small>知识库条目</small><strong>{{ loading ? '—' : knowledgeTotal }}</strong></span><b>可检索依据</b></article>
+      <article><Layers3 :size="19" /><span><small>覆盖教学系统</small><strong>{{ ANATOMY_SYSTEMS_3D.length }}</strong></span><b>三维模型</b></article>
+      <article><ListChecks :size="19" /><span><small>启用题型</small><strong>{{ enabledTypes.length }} 种</strong></span><b>学生可见</b></article>
+      <article><BookOpenCheck :size="19" /><span><small>当前难度</small><strong>{{ difficultyLabel }}</strong></span><b>可随时调整</b></article>
     </section>
 
     <div class="teacher-dashboard-grid">
-      <section class="surface-panel class-trend">
-        <div class="section-heading"><div><span class="section-kicker">近 8 周</span><h2>班级能力趋势</h2></div><TrendingUp :size="20" /></div>
-        <svg viewBox="0 0 620 245" role="img" aria-label="班级能力趋势图">
-          <line v-for="y in [50,100,150,200]" :key="y" x1="42" :y1="y" x2="594" :y2="y" />
-          <polyline class="trend-main" points="42,178 120,165 198,157 276,142 354,130 432,112 510,93 594,78" />
-          <polyline class="trend-secondary" points="42,190 120,183 198,170 276,176 354,154 432,147 510,126 594,113" />
-        </svg>
-        <div class="trend-legend"><span><i></i>临床推理</span><span><i class="secondary"></i>证据引用</span></div>
+      <section class="surface-panel">
+        <div class="section-heading"><div><span class="section-kicker">命题配置</span><h2>学生将遇到的题型</h2></div><SlidersHorizontal :size="20" /></div>
+        <ul class="teacher-config-list">
+          <li v-for="item in enabledTypes" :key="item.label"><span>{{ item.label }}</span><strong>{{ item.weight }}%</strong></li>
+          <li v-if="!enabledTypes.length" class="is-empty">尚未启用任何题型，学生端不会出题。</li>
+        </ul>
+        <p class="teacher-config-note">出题方式：{{ generationLabel }}。修改后即时生效，无需重新部署。</p>
+        <button class="button-secondary" type="button" @click="router.push('/teacher/exam-settings')">调整配置 <ArrowRight :size="16" /></button>
       </section>
 
-      <section class="surface-panel weakness-panel">
-        <div class="section-heading"><div><span class="section-kicker">共性问题</span><h2>班级薄弱项</h2></div><AlertTriangle :size="20" /></div>
-        <article v-for="(item, index) in dashboard.common_missing_points.slice(0, 5)" :key="item" role="button" tabindex="0" @click="router.push({ path: '/teacher/cases', query: { tab: 'recommendations', focus: item } })" @keydown.enter="router.push({ path: '/teacher/cases', query: { tab: 'recommendations', focus: item } })">
-          <span>{{ String(index + 1).padStart(2, '0') }}</span><div><strong>{{ item }}</strong><small>{{ 34 - index * 5 }} 名学生出现 · 点击查看AI建议</small></div><b :style="{ width: `${88 - index * 12}%` }"></b>
+      <section class="surface-panel">
+        <div class="section-heading"><div><span class="section-kicker">知识库构成</span><h2>依据来源分布</h2></div><Database :size="20" /></div>
+        <article v-for="item in documentTypes" :key="item.key" class="teacher-type-row">
+          <span>{{ item.label }}</span>
+          <b :style="{ width: `${knowledgeTotal ? Math.round((item.value / knowledgeTotal) * 100) : 0}%` }" />
+          <strong>{{ item.value }}</strong>
         </article>
+        <p v-if="!documentTypes.length" class="empty-copy">知识库还没有条目，先导入教材或权威医学依据。</p>
+        <button class="button-secondary" type="button" @click="router.push('/teacher/knowledge')">管理教学知识库 <ArrowRight :size="16" /></button>
       </section>
     </div>
 
     <div class="teacher-dashboard-grid lower">
-      <section class="surface-panel intervention-list">
-        <div class="section-heading"><div><span class="section-kicker">需要关注</span><h2>教学干预名单</h2></div><button class="text-button" type="button" @click="router.push('/teacher/class-review?tab=reports')">全部报告 <ArrowRight :size="15" /></button></div>
-        <article v-for="student in interventionStudents" :key="student.name">
-          <span>{{ student.name.slice(-1) }}</span><div><strong>{{ student.name }}</strong><small>{{ student.last_case }} · 薄弱项：{{ student.weakness }}</small></div><b>{{ student.average_score }}</b><button type="button" @click="router.push('/teacher/class-review?tab=reports')">查看</button>
-        </article>
-        <p v-if="!interventionStudents.length" class="empty-copy">当前没有需要重点干预的学生。</p>
+      <section class="surface-panel">
+        <div class="section-heading"><div><span class="section-kicker">提示词</span><h2>当前出题指令</h2></div><Sparkles :size="20" /></div>
+        <p class="teacher-prompt-preview">{{ settings?.system_prompt || '尚未加载提示词配置。' }}</p>
+        <button class="text-button" type="button" @click="router.push('/teacher/exam-settings')">编辑系统提示词 <ArrowRight :size="15" /></button>
       </section>
-      <section class="surface-panel teaching-advice">
-        <div class="section-heading"><div><span class="section-kicker">智能教学建议</span><h2>下一节课重点</h2></div></div>
-        <ol><li v-for="(item, index) in dashboard.teaching_suggestions" :key="item"><span>{{ index + 1 }}</span><p>{{ item }}</p></li></ol>
-        <button class="button-secondary" type="button" @click="router.push('/teacher/cases')">从病例库布置训练 <ArrowRight :size="16" /></button>
+      <section class="surface-panel">
+        <div class="section-heading"><div><span class="section-kicker">结构关联</span><h2>知识图谱</h2></div><ChartNetwork :size="20" /></div>
+        <p class="teacher-prompt-preview">解剖结构节点连接功能、临床联系与检查处置，用于支撑讲解与命题的依据链。</p>
+        <button class="text-button" type="button" @click="router.push('/knowledge-graph')">打开知识图谱 <ArrowRight :size="15" /></button>
       </section>
     </div>
   </div>
 </template>
+
+<style scoped>
+.teacher-dashboard-hero { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 22px 24px; border-radius: 8px; background: #eef6f4; }
+.teacher-dashboard-hero h1 { margin: 4px 0 6px; color: #16414a; font-size: 1.6rem; }
+.teacher-dashboard-hero p { margin: 0; max-width: 640px; color: #5a757b; font-size: 13px; line-height: 1.6; }
+.teacher-config-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.teacher-config-list li { display: flex; align-items: center; justify-content: space-between; padding: 9px 11px; border-radius: 7px; background: #f2f7f6; color: #35535a; font-size: 13px; }
+.teacher-config-list li strong { color: var(--teal-dark, #075b57); }
+.teacher-config-list li.is-empty { justify-content: flex-start; color: #8b9a9c; font-size: 12px; }
+.teacher-config-note { margin: 0; color: #6d8a8d; font-size: 12px; }
+.teacher-type-row { position: relative; display: grid; grid-template-columns: 1fr 64px; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 7px; background: #f2f7f6; }
+.teacher-type-row span { color: #35535a; font-size: 13px; }
+.teacher-type-row strong { color: #21484e; text-align: right; }
+.teacher-type-row b { position: absolute; left: 11px; bottom: 5px; height: 3px; border-radius: 2px; background: rgba(15,118,110,.35); }
+.teacher-prompt-preview { margin: 0; max-height: 150px; overflow: auto; color: #4f6b70; font-size: 12px; line-height: 1.65; white-space: pre-wrap; }
+.empty-copy { color: #8b9a9c; font-size: 12px; }
+</style>

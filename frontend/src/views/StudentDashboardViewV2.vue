@@ -1,77 +1,98 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { AlertTriangle, ArrowRight, BookOpenCheck, CalendarCheck2, CalendarClock, FileChartColumn, Route, ScanLine, Stethoscope, Target } from '@lucide/vue';
-import mainWorkbenchImage from '../assets/medical/main-workbench.png';
-import { mockDailyReview } from '../data/dailyReview';
+import { ArrowRight, BookOpenCheck, ChartNetwork, Crosshair, History, Layers3, ScanLine, Target } from '@lucide/vue';
+import { getAnatomyGlossary } from '../api';
+import { ANATOMY_SYSTEMS_3D } from '../data/anatomy3d';
 import { trainingStore } from '../stores/training';
 
 const router = useRouter();
-onMounted(() => trainingStore.loadCases());
-const recommended = computed(() => trainingStore.state.cases.slice(0, 3));
-const history = computed(() => trainingStore.state.history.slice(0, 3));
+const termCount = ref(0);
+const totalStructures = ref(0);
+
+const systems = ANATOMY_SYSTEMS_3D;
+
+onMounted(async () => {
+  try {
+    const response = await getAnatomyGlossary();
+    termCount.value = response.count;
+  } catch {
+    termCount.value = 0;
+  }
+  try {
+    const manifest = await fetch('/anatomy/atlas.json').then((response) => response.json());
+    totalStructures.value = manifest.parts?.length ?? 0;
+  } catch {
+    totalStructures.value = 0;
+  }
+});
+
+function openSystem(systemId: string) {
+  router.push({ path: '/student/anatomy', query: { system: systemId } });
+}
 </script>
 
 <template>
   <div class="workspace-page student-home-page">
     <section class="dashboard-hero" data-tour="today-task">
-      <img :src="mainWorkbenchImage" alt="" />
       <div class="dashboard-hero-copy">
         <span class="section-kicker">今日学习任务 · 虚拟解剖实验室</span>
-        <h1>{{ trainingStore.state.profile.name }}，先把人体结构看懂</h1>
-        <p>今天的主线是：探索一个人体系统，定位关键结构，查看教材依据，再把解剖理解带入病例训练。</p>
+        <h1>{{ trainingStore.state.profile.name }}，从三维结构开始今天的训练</h1>
+        <p>按“整体人体 → 系统 → 器官 → 精细结构”逐层深入，点击任意结构查看中文解剖名、教材依据与临床应用。</p>
         <div class="hero-action-row">
           <button class="button-primary" type="button" @click="router.push('/student/anatomy')">
             进入虚拟解剖室 <ScanLine :size="18" />
           </button>
-          <button class="button-secondary" type="button" @click="router.push({ path: '/student/case/new', query: { case: 'emergency_chest_pain' } })"><Stethoscope :size="17" /> 连接病例训练</button>
+          <button class="button-secondary" type="button" @click="router.push({ path: '/student/anatomy', query: { mode: 'practice' } })">
+            <Crosshair :size="17" /> 空间定位测验
+          </button>
         </div>
-        <div class="demo-flow-hint"><span>完整学习链路</span><b>三维探索</b><i>→</i><b>结构讲解</b><i>→</i><b>空间定位</b><i>→</i><b>临床联系</b></div>
+        <div class="demo-flow-hint"><span>学习路径</span><b>整体人体</b><i>→</i><b>系统</b><i>→</i><b>器官</b><i>→</i><b>精细结构</b><i>→</i><b>定位测验</b></div>
       </div>
       <div class="hero-progress">
-        <strong>4</strong><span>连续训练周</span>
-        <div><i style="width: 72%"></i></div>
-        <small>本周目标 3 / 4 次</small>
+        <strong>{{ totalStructures || '—' }}</strong><span>可探索结构</span>
+        <div><i style="width: 100%"></i></div>
+        <small>覆盖 {{ systems.length }} 个教学系统</small>
       </div>
     </section>
 
     <section class="metric-strip">
-      <article><ScanLine :size="19" /><span><small>解剖探索</small><strong>12 次</strong></span><b>本月 +4</b></article>
-      <article><FileChartColumn :size="19" /><span><small>平均得分</small><strong>82.6</strong></span><b>提升 6.4</b></article>
-      <article><Target :size="19" /><span><small>当前薄弱项</small><strong>高危鉴别</strong></span><b>需复训</b></article>
-      <article data-tour="evidence"><BookOpenCheck :size="19" /><span><small>证据引用率</small><strong>84%</strong></span><b>提升 9%</b></article>
+      <article><Layers3 :size="19" /><span><small>教学系统</small><strong>{{ systems.length }} 个</strong></span><b>分层浏览</b></article>
+      <article><ScanLine :size="19" /><span><small>可探索结构</small><strong>{{ totalStructures || '—' }}</strong></span><b>三维模型</b></article>
+      <article><BookOpenCheck :size="19" /><span><small>中文对照</small><strong>{{ termCount || '—' }}</strong></span><b>规范解剖名</b></article>
+      <article data-tour="evidence"><Target :size="19" /><span><small>空间定位测验</small><strong>三种题型</strong></span><b>教师可配置</b></article>
     </section>
 
     <section class="dashboard-card-grid dashboard-loop-cards" aria-label="学习闭环">
-      <details class="dashboard-fold-card" open><summary><span class="fold-icon"><ScanLine :size="17" /></span><span><small>今日主任务</small><strong>探索循环系统与心脏结构</strong></span><i>展开</i></summary><p>先从系统总览进入心脏结构，点击热点查看教材讲解，再完成一次空间定位测验。</p><button class="text-button" type="button" @click="router.push('/student/anatomy')">进入虚拟解剖室 <ArrowRight :size="15" /></button></details>
-      <details class="dashboard-fold-card"><summary><span class="fold-icon"><Stethoscope :size="17" /></span><span><small>AI 训练</small><strong>标准化病人问诊与检查选择</strong></span><i>展开</i></summary><p>在虚拟病例中完成问诊、鉴别诊断、检查和教学用药决策。</p><button class="text-button" type="button" @click="router.push({ path: '/student/case/new', query: { case: 'emergency_chest_pain' } })">开始训练 <ArrowRight :size="15" /></button></details>
-      <details class="dashboard-fold-card" data-tour="daily-review"><summary><span class="fold-icon"><CalendarCheck2 :size="17" /></span><span><small>反馈复盘</small><strong>今日均分 {{ mockDailyReview.average_score }} · {{ mockDailyReview.status }}</strong></span><i>展开</i></summary><p>{{ mockDailyReview.summary }}</p><button class="text-button" type="button" @click="router.push('/student/daily-review')">查看每日复盘 <ArrowRight :size="15" /></button></details>
-      <details class="dashboard-fold-card"><summary><span class="fold-icon"><Route :size="17" /></span><span><small>明日计划</small><strong>{{ mockDailyReview.recommended_graph_path.slice(0, 2).join(' / ') }}</strong></span><i>展开</i></summary><p>系统会根据病例表现、解剖训练和证据引用结果持续调整学习路径。</p><button class="text-button" type="button" @click="router.push('/student/daily-review')">查看计划 <ArrowRight :size="15" /></button></details>
+      <details class="dashboard-fold-card" open><summary><span class="fold-icon"><ScanLine :size="17" /></span><span><small>今日主任务</small><strong>探索循环系统与心脏结构</strong></span><i>展开</i></summary><p>先从整体人体进入循环系统，再下钻到心脏与各心腔，逐个结构查看教材讲解。</p><button class="text-button" type="button" @click="openSystem('circulatory')">打开循环系统 <ArrowRight :size="15" /></button></details>
+      <details class="dashboard-fold-card"><summary><span class="fold-icon"><Crosshair :size="17" /></span><span><small>空间定位测验</small><strong>选择题 · 判断题 · 简答题</strong></span><i>展开</i></summary><p>围绕当前结构作答，系统即时判分并给出错因。题型与难度由教师在后台设定。</p><button class="text-button" type="button" @click="router.push({ path: '/student/anatomy', query: { mode: 'practice' } })">开始测验 <ArrowRight :size="15" /></button></details>
+      <details class="dashboard-fold-card"><summary><span class="fold-icon"><BookOpenCheck :size="17" /></span><span><small>结构讲解</small><strong>教材依据可追溯</strong></span><i>展开</i></summary><p>选中结构后由 AnatomyAgent 结合教材索引讲解，命中时给出书名、章节与页码。</p><button class="text-button" type="button" @click="router.push('/student/anatomy')">查看讲解 <ArrowRight :size="15" /></button></details>
+      <details class="dashboard-fold-card" data-tour="knowledge-graph"><summary><span class="fold-icon"><ChartNetwork :size="17" /></span><span><small>知识图谱</small><strong>从结构延伸到疾病与检查</strong></span><i>展开</i></summary><p>查看结构在知识网络中的上下游关系，串起解剖、功能与临床联系。</p><button class="text-button" type="button" @click="router.push('/knowledge-graph')">打开图谱 <ArrowRight :size="15" /></button></details>
     </section>
 
     <div class="dashboard-card-grid dashboard-content-cards">
-      <details class="dashboard-fold-card dashboard-wide-card" data-tour="case-training" open>
-        <summary><span class="fold-icon"><BookOpenCheck :size="17" /></span><span><small>个性化推荐</small><strong>下一组病例</strong></span><i>展开</i></summary>
-        <div class="fold-card-actions"><button class="text-button" type="button" @click="router.push('/student/cases')">查看病例库 <ArrowRight :size="16" /></button></div>
-        <div class="recommended-cases">
-          <button v-for="(item, index) in recommended" :key="item.id" type="button" @click="router.push({ path: '/student/case/new', query: { case: item.id } })">
-            <span class="case-index">0{{ index + 1 }}</span><span class="case-accent" :class="`accent-${index + 1}`"></span><span class="case-copy"><small>{{ item.department }} · {{ item.difficulty }}</small><strong>{{ item.title }}</strong><p>{{ item.chief_complaint }}</p></span><ArrowRight :size="18" />
+      <details class="dashboard-fold-card dashboard-wide-card" open>
+        <summary><span class="fold-icon"><Layers3 :size="17" /></span><span><small>八大系统</small><strong>按系统进入三维视图</strong></span><i>展开</i></summary>
+        <div class="recommended-cases system-entry-list">
+          <button v-for="(system, index) in systems" :key="system.id" type="button" @click="openSystem(system.id)">
+            <span class="case-index">{{ String(index + 1).padStart(2, '0') }}</span>
+            <span class="case-accent" :style="{ background: system.color }"></span>
+            <span class="case-copy"><small>{{ system.members.length > 1 ? '含心与血管' : '独立三维模型' }}</small><strong>{{ system.name }}</strong><p>{{ system.summary }}</p></span>
+            <ArrowRight :size="18" />
           </button>
         </div>
       </details>
 
       <details class="dashboard-fold-card">
-        <summary><span class="fold-icon"><CalendarClock :size="17" /></span><span><small>最近活动</small><strong>训练记录</strong></span><i>展开</i></summary>
-        <div class="activity-list">
-          <button v-for="item in history" :key="item.id" type="button" @click="router.push(`/training-report/${item.id}`)"><span class="score-orbit">{{ item.score }}</span><span><strong>{{ item.caseTitle }}</strong><small>{{ item.completedAt }} · {{ item.duration }}</small></span><b :class="{ pending: item.status === '待教师复核' }">{{ item.status }}</b></button>
-        </div>
+        <summary><span class="fold-icon"><History :size="17" /></span><span><small>学习档案</small><strong>测验记录与错题</strong></span><i>展开</i></summary>
+        <p>定位测验的作答记录与错因分析会汇总在学习档案中，用于安排下一次复习。</p>
+        <button class="text-button" type="button" @click="router.push('/student/archive')">查看学习档案 <ArrowRight :size="15" /></button>
       </details>
-
-      <details class="dashboard-fold-card">
-        <summary><span class="fold-icon"><Route :size="17" /></span><span><small>推荐路径</small><strong>从薄弱点到复训</strong></span><i>展开</i></summary>
-        <ol class="learning-route-list"><li v-for="(item, index) in mockDailyReview.recommended_graph_path.slice(0, 4)" :key="item"><span>{{ String(index + 1).padStart(2, '0') }}</span><div><strong>{{ item }}</strong><small>{{ index === 0 ? '从今日薄弱点进入' : '与病例训练联动' }}</small></div></li></ol>
-      </details>
-
     </div>
   </div>
 </template>
+
+<style scoped>
+.system-entry-list button { align-items: center; }
+.case-accent { width: 6px; border-radius: 3px; align-self: stretch; min-height: 34px; }
+</style>

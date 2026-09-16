@@ -109,7 +109,7 @@ function relatedNode(edge: KnowledgeEdge) {
       <aside v-if="graphDetailOpen" class="graph-detail">
         <span class="section-kicker">{{ groupLabel(selected) }}</span>
         <h2>{{ label(selected) }}</h2>
-        <p>{{ selected?.description_zh || selected?.summary || '该节点用于连接病例训练、教材知识与指南证据。' }}</p>
+        <p>{{ selected?.description_zh || selected?.summary || '该节点用于连接解剖结构、教材知识与临床指南。' }}</p>
         <div class="graph-source-tags"><span v-for="source in selected?.source_ids ?? []" :key="source"><BookOpenCheck :size="13" /> {{ source }}</span></div>
         <h3>直接关联</h3>
         <button v-for="edge in neighbors" :key="`${edge.source}-${edge.target}`" type="button" @click="selected = relatedNode(edge)">

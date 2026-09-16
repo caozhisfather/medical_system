@@ -15,23 +15,19 @@ const router = createRouter({
       component: ProductShell,
       children: [
         { path: 'student/dashboard', component: () => import('../views/StudentDashboardViewV2.vue'), meta: { role: 'student' } },
-        { path: 'student/cases', component: () => import('../views/CaseLibraryView.vue'), meta: { role: 'student' } },
         { path: 'student/anatomy', component: () => import('../views/AnatomyTrainingView.vue'), meta: { role: 'student' } },
-        { path: 'student/case/new', component: () => import('../views/CaseSetupView.vue'), meta: { role: 'student' } },
         { path: 'student/archive', component: () => import('../views/StudentLearningArchiveView.vue'), meta: { role: 'student' } },
         { path: 'student/history', redirect: { path: '/student/archive', query: { tab: 'history' } }, meta: { role: 'student' } },
         { path: 'student/daily-review', redirect: { path: '/student/archive', query: { tab: 'review' } }, meta: { role: 'student' } },
         { path: 'teacher/dashboard', component: () => import('../views/TeacherDashboardView.vue'), meta: { role: 'teacher' } },
-        { path: 'teacher/cases', component: () => import('../views/TeacherCasesView.vue'), meta: { role: 'teacher' } },
-        { path: 'teacher/class-review', component: () => import('../views/TeacherClassReviewView.vue'), meta: { role: 'teacher' } },
+        { path: 'teacher/knowledge', component: () => import('../views/TeacherCaseLibraryView.vue'), meta: { role: 'teacher' } },
+        { path: 'teacher/exam-settings', component: () => import('../views/TeacherExamSettingsView.vue'), meta: { role: 'teacher' } },
         { path: 'admin/dashboard', component: () => import('../views/AdminDashboardView.vue'), meta: { role: 'admin' } },
         { path: 'admin/knowledge', component: () => import('../views/TeacherCaseLibraryView.vue'), meta: { role: 'admin' } },
         { path: 'help', component: () => import('../views/HelpCenterView.vue') },
         { path: 'knowledge-graph', component: () => import('../views/KnowledgeGraphViewV2.vue') }
       ]
     },
-    { path: '/patient-room/:caseId', component: () => import('../views/PatientRoomView.vue'), meta: { role: 'student', immersive: true } },
-    { path: '/training-report/:sessionId', component: () => import('../views/TrainingReportView.vue'), meta: { immersive: true } },
     { path: '/:pathMatch(.*)*', redirect: '/' }
   ]
 });

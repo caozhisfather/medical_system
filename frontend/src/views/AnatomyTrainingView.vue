@@ -5,10 +5,11 @@ import { Activity, ArrowLeft, ArrowRight, BookOpenCheck, Brain, Check, ChevronDo
 import { getAnatomyExercises, getAnatomyGlossary, getAnatomyTextbook, sendAgentMessage, submitAnatomy } from '../api';
 import anatomyImage from '../assets/medical/anatomy-organs.png';
 import AnatomyViewer3D from '../components/anatomy/AnatomyViewer3D.vue';
+import AnatomyQuizPanel from '../components/anatomy/AnatomyQuizPanel.vue';
 import { mockAnatomyExercises } from '../data/anatomy';
 import { anatomyAtlasNodes, anatomyAtlasSystems, type AnatomyAtlasHotspot } from '../data/anatomyAtlas';
 import { anatomyImageSources, anatomyVideos } from '../data/anatomyResources';
-import { ANATOMY_SYSTEMS_3D, ANATOMY_SYSTEM_3D_BY_ID, system3DColor } from '../data/anatomy3d';
+import { ANATOMY_SYSTEMS_3D, ANATOMY_SYSTEM_3D_BY_ID, ATLAS_3D_URL, ATLAS_ORGAN_URL, system3DColor, system3DName, type AnatomyOrgan, type AnatomyOrganPayload } from '../data/anatomy3d';
 import type { AnatomyExercise, AnatomyResult, AnatomyTextbookResult } from '../types';
 
 interface Point { x: number; y: number }
@@ -49,9 +50,13 @@ const bodySelection = ref<{ id: string; name: string; system: string; systemName
 const hiddenSystems = ref<string[]>([]);
 const bodyAutoRotate = ref(true);
 const bodyStats = ref({ parts: 0, triangles: 0 });
+const quizTarget = ref<{ en: string; cn: string; system: string } | null>(null);
 const bodyWorkbench = ref<HTMLElement | null>(null);
 const isBodyFullscreen = ref(false);
 const focusedSystem = ref('');
+const focusedOrganId = ref('');
+const organPayload = ref<AnatomyOrganPayload | null>(null);
+const partInfo = ref<Map<string, { name: string; system: string }>>(new Map());
 const bodySystemCounts = ref<Record<string, number>>({});
 const glossary = ref<Record<string, string>>({});
 const bodyDisplayName = computed(() => {
@@ -65,6 +70,24 @@ const hiddenDataSystems = computed(() =>
 const focusedMembers = computed(() =>
   focusedSystem.value ? (ANATOMY_SYSTEM_3D_BY_ID[focusedSystem.value]?.members ?? []) : []
 );
+const focusedSystemName = computed(() => ANATOMY_SYSTEM_3D_BY_ID[focusedSystem.value]?.name ?? '');
+const systemOrgans = computed<AnatomyOrgan[]>(() => {
+  if (!focusedSystem.value || !organPayload.value) return [];
+  return organPayload.value.systems.find((entry) => entry.system === focusedSystem.value)?.organs ?? [];
+});
+const focusedOrgan = computed<AnatomyOrgan | null>(
+  () => systemOrgans.value.find((organ) => organ.id === focusedOrganId.value) ?? null
+);
+const focusParts = computed(() => focusedOrgan.value?.partIds ?? []);
+const organFineStructures = computed(() => {
+  const organ = focusedOrgan.value;
+  if (!organ) return [];
+  return organ.partIds.map((id) => {
+    const info = partInfo.value.get(id);
+    const english = info?.name ?? id;
+    return { id, english, label: glossary.value[english] ?? english };
+  });
+});
 
 const zones: Record<string, Zone> = {
   neck_midline: { x: 50, y: 9, width: 10, height: 14, shape: 'rect' },
@@ -147,9 +170,33 @@ function focusOnSystem(systemId: string) {
   // Focusing a hidden system would show an empty stage, so reveal it first.
   if (systemId) hiddenSystems.value = hiddenSystems.value.filter((id) => id !== systemId);
   focusedSystem.value = systemId;
+  focusedOrganId.value = '';
   bodySelection.value = null;
   agentReply.value = '';
   agentPrompt.value = '';
+}
+
+function focusOrgan(organId: string) {
+  focusedOrganId.value = focusedOrganId.value === organId ? '' : organId;
+  bodySelection.value = null;
+  agentReply.value = '';
+  agentPrompt.value = '';
+}
+
+function selectOrganPart(partId: string) {
+  const info = partInfo.value.get(partId);
+  if (!info) return;
+  onBodySelect({ id: partId, name: info.name, system: info.system, systemName: system3DName(info.system) });
+}
+
+function startQuizForSelection() {
+  const selected = bodySelection.value;
+  if (!selected) return;
+  quizTarget.value = {
+    en: selected.name,
+    cn: glossary.value[selected.name] ?? '',
+    system: selected.systemName
+  };
 }
 
 function groupCount(systemId: string): number {
@@ -354,10 +401,26 @@ onMounted(async () => {
     const terms = await getAnatomyGlossary();
     glossary.value = terms.terms ?? {};
   } catch {}
+  try {
+    const [organResponse, atlasResponse] = await Promise.all([fetch(ATLAS_ORGAN_URL), fetch(ATLAS_3D_URL)]);
+    if (organResponse.ok) organPayload.value = (await organResponse.json()) as AnatomyOrganPayload;
+    if (atlasResponse.ok) {
+      const manifest = await atlasResponse.json() as { parts?: Array<{ id: string; name: string; system: string }> };
+      partInfo.value = new Map((manifest.parts ?? []).map((part) => [part.id, { name: part.name, system: part.system }]));
+    }
+  } catch {}
   const requested = typeof route.query.exercise === 'string' ? route.query.exercise : '';
   if (requested && exercises.value.some((item) => item.id === requested)) {
     viewMode.value = 'practice';
     choose(requested);
+  }
+  const requestedMode = typeof route.query.mode === 'string' ? route.query.mode : '';
+  if (requestedMode === 'practice') viewMode.value = 'practice';
+  if (requestedMode === 'atlas') viewMode.value = 'atlas';
+  const requestedSystem = typeof route.query.system === 'string' ? route.query.system : '';
+  if (requestedSystem && ANATOMY_SYSTEM_3D_BY_ID[requestedSystem]) {
+    viewMode.value = 'body';
+    focusOnSystem(requestedSystem);
   }
   document.addEventListener('fullscreenchange', syncFullscreenState);
 });
@@ -416,6 +479,15 @@ onBeforeUnmount(() => {
             </button>
           </div>
         </div>
+        <div v-if="focusedSystem && systemOrgans.length" class="body-organ-list">
+          <header><span><Layers3 :size="16" /><b>{{ focusedSystemName }} · 器官</b></span><small>{{ systemOrgans.length }} 个</small></header>
+          <div>
+            <button v-for="organ in systemOrgans" :key="organ.id" type="button" :class="{ active: focusedOrganId === organ.id }" @click="focusOrgan(organ.id)">
+              <span><strong>{{ organ.name }}</strong><small>{{ organ.partIds.length }} 个精细结构</small></span>
+              <ChevronRight :size="15" />
+            </button>
+          </div>
+        </div>
         <div class="body-viewer-tools">
           <button type="button" :class="{ active: bodyAutoRotate }" @click="bodyAutoRotate = !bodyAutoRotate"><RotateCcw :size="15" />自动旋转</button>
           <button type="button" @click="bodyViewer?.resetView()"><LocateFixed :size="15" />复位</button>
@@ -435,6 +507,7 @@ onBeforeUnmount(() => {
           ref="bodyViewer"
           :hidden-systems="hiddenDataSystems"
           :focus-systems="focusedMembers"
+          :focus-parts="focusParts"
           :selected-id="bodySelection?.id ?? ''"
           :auto-rotate="bodyAutoRotate"
           @select="onBodySelect"
@@ -451,6 +524,20 @@ onBeforeUnmount(() => {
       </main>
 
       <aside class="body-detail-panel">
+        <div v-if="quizTarget" class="body-quiz-drawer">
+          <button class="text-button" type="button" @click="quizTarget = null">关闭测验</button>
+          <AnatomyQuizPanel :structure-en="quizTarget.en" :structure-cn="quizTarget.cn" :system="quizTarget.system" />
+        </div>
+        <section v-if="focusedOrgan" class="organ-structure-block">
+          <header><span>{{ focusedSystemName }}</span><h3>{{ focusedOrgan.name }}</h3><small>{{ focusedOrgan.nameEn }}</small></header>
+          <strong><Layers3 :size="15" />精细结构 · {{ organFineStructures.length }} 项</strong>
+          <div class="organ-structure-list">
+            <button v-for="item in organFineStructures" :key="item.id" type="button" :class="{ active: bodySelection?.id === item.id }" @click="selectOrganPart(item.id)">
+              <span><b>{{ item.label }}</b><small v-if="item.label !== item.english">{{ item.english }}</small></span>
+              <ChevronRight :size="14" />
+            </button>
+          </div>
+        </section>
         <template v-if="bodySelection">
           <div class="body-selection-head">
             <i :style="{ background: system3DColor(bodySelection.system) }" />
@@ -471,6 +558,7 @@ onBeforeUnmount(() => {
             </div>
           </section>
           <div class="body-detail-actions">
+            <button class="button-primary" type="button" @click="startQuizForSelection"><Crosshair :size="16" />针对该结构出题</button>
             <button class="button-secondary" type="button" @click="openTextbook(bodyDisplayName)"><BookOpenCheck :size="16" />教材详解</button>
             <button class="text-button" type="button" @click="router.push({ path: '/knowledge-graph', query: { q: bodyDisplayName } })">知识图谱 <ArrowRight :size="15" /></button>
           </div>

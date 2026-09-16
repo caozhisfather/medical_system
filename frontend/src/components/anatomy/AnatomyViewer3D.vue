@@ -14,11 +14,13 @@ import {
 const props = withDefaults(defineProps<{
   hiddenSystems?: string[];
   focusSystems?: string[];
+  focusParts?: string[];
   selectedId?: string;
   autoRotate?: boolean;
 }>(), {
   hiddenSystems: () => [],
   focusSystems: () => [],
+  focusParts: () => [],
   selectedId: '',
   autoRotate: false
 });
@@ -63,6 +65,8 @@ interface SystemLayer {
   colorAttribute: THREE.BufferAttribute;
   ranges: PartRange[];
   faceStarts: number[];
+  bounds: THREE.Box3;
+  partIds: string[];
 }
 
 const scene = shallowRef<THREE.Scene | null>(null);
@@ -73,6 +77,11 @@ const controls = shallowRef<OrbitControls | null>(null);
 let manifest: Atlas3D | null = null;
 let partsBySystem = new Map<string, AtlasPart[]>();
 let chunkIndexBySystem = new Map<string, number>();
+let partById = new Map<string, AtlasPart>();
+let systemByPart = new Map<string, string>();
+const chunkBuffers = new Map<number, ArrayBuffer>();
+const organMeshes = new Map<string, SystemLayer>();
+let activeOrgan: SystemLayer | null = null;
 const loadedSystems = new Set<string>();
 const systemBoundsMap = new Map<string, THREE.Box3>();
 let overallBounds = new THREE.Box3();
@@ -95,7 +104,16 @@ function markDirty() {
   dirty = true;
 }
 
-function buildLayer(systemId: string, parts: AtlasPart[], buffer: ArrayBuffer): SystemLayer {
+/**
+ * Merge a set of atlas parts into one drawable mesh. Parts may come from
+ * different chunks, so the buffer for each part is resolved on demand.
+ */
+function buildMerged(
+  id: string,
+  parts: AtlasPart[],
+  resolveBuffer: (part: AtlasPart) => ArrayBuffer,
+  renderOrder: number
+): SystemLayer {
   const vertexTotal = parts.reduce((total, part) => total + part.vertexCount, 0);
   const indexTotal = parts.reduce((total, part) => total + part.indexCount, 0);
 
@@ -110,6 +128,7 @@ function buildLayer(systemId: string, parts: AtlasPart[], buffer: ArrayBuffer): 
   let indexOffset = 0;
 
   for (const part of parts) {
+    const buffer = resolveBuffer(part);
     const partPositions = new Float32Array(buffer, part.positions, part.vertexCount * 3);
     const partNormals = new Int16Array(buffer, part.normals, part.vertexCount * 3);
     const partIndices = new Uint32Array(buffer, part.indices, part.indexCount);
@@ -126,7 +145,7 @@ function buildLayer(systemId: string, parts: AtlasPart[], buffer: ArrayBuffer): 
     ranges.push({
       id: part.id,
       name: part.name,
-      system: systemId,
+      system: systemByPart.get(part.id) ?? id,
       vertexStart: vertexOffset,
       vertexCount: part.vertexCount,
       faceStart: indexOffset / 3,
@@ -136,8 +155,6 @@ function buildLayer(systemId: string, parts: AtlasPart[], buffer: ArrayBuffer): 
     vertexOffset += part.vertexCount;
     indexOffset += part.indexCount;
   }
-
-  systemBoundsMap.set(systemId, bounds);
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -154,21 +171,49 @@ function buildLayer(systemId: string, parts: AtlasPart[], buffer: ArrayBuffer): 
   });
 
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.name = `system-${systemId}`;
-  mesh.userData.system = systemId;
-  mesh.renderOrder = Math.max(DRAW_ORDER.indexOf(systemId), 0);
+  mesh.name = id;
+  mesh.userData.group = id;
+  mesh.renderOrder = renderOrder;
 
   const layer: SystemLayer = {
-    id: systemId,
+    id,
     mesh,
     geometry,
     material,
     colorAttribute: geometry.getAttribute('color') as THREE.BufferAttribute,
     ranges,
-    faceStarts: ranges.map((range) => range.faceStart)
+    faceStarts: ranges.map((range) => range.faceStart),
+    bounds,
+    partIds: parts.map((part) => part.id)
   };
 
   paintLayer(layer, props.selectedId);
+  return layer;
+}
+
+function buildLayer(systemId: string, parts: AtlasPart[], buffer: ArrayBuffer): SystemLayer {
+  const layer = buildMerged(systemId, parts, () => buffer, Math.max(DRAW_ORDER.indexOf(systemId), 0));
+  systemBoundsMap.set(systemId, layer.bounds);
+  return layer;
+}
+
+/** Build (or reuse) an isolated mesh for a single organ. */
+function ensureOrganMesh(partIds: string[]): SystemLayer | null {
+  const key = partIds.join('|');
+  const cached = organMeshes.get(key);
+  if (cached) return cached;
+
+  const parts = partIds.map((id) => partById.get(id)).filter((part): part is AtlasPart => Boolean(part));
+  if (!parts.length) return null;
+
+  const layer = buildMerged(`organ:${key}`, parts, (part) => {
+    const system = systemByPart.get(part.id);
+    const chunkIndex = system ? chunkIndexBySystem.get(system) : undefined;
+    const buffer = chunkIndex === undefined ? undefined : chunkBuffers.get(chunkIndex);
+    if (!buffer) throw new Error('器官模型分块尚未就绪');
+    return buffer;
+  }, 100);
+  organMeshes.set(key, layer);
   return layer;
 }
 
@@ -229,6 +274,7 @@ async function ensureSystems(ids: string[]) {
     if (!response.ok) throw new Error(`模型分块读取失败（${response.status}）`);
     const buffer = await response.arrayBuffer();
     const layer = buildLayer(systemId, partsBySystem.get(systemId)!, buffer);
+    chunkBuffers.set(chunkIndex, buffer);
     active.add(layer.mesh);
     layers.value = [...layers.value, layer];
     loadedSystems.add(systemId);
@@ -244,8 +290,13 @@ function applyVisibility() {
   for (const layer of layers.value) {
     // A focused system is shown on its own so the group reads as a specimen;
     // otherwise the viewer falls back to the manual visibility toggles.
-    layer.mesh.visible = focus.length ? focus.includes(layer.id) : !hidden.has(layer.id);
+    layer.mesh.visible = activeOrgan
+      ? false
+      : focus.length
+        ? focus.includes(layer.id)
+        : !hidden.has(layer.id);
   }
+  for (const organ of organMeshes.values()) organ.mesh.visible = organ === activeOrgan;
   markDirty();
 }
 
@@ -259,6 +310,7 @@ function boundsFor(systemIds: string[]): THREE.Box3 {
 }
 
 function activeBounds(): THREE.Box3 {
+  if (activeOrgan) return activeOrgan.bounds.clone();
   const focus = props.focusSystems;
   if (focus.length) {
     const box = boundsFor(focus);
@@ -307,27 +359,51 @@ function resetView() {
   frameBox(activeBounds(), true);
 }
 
+/**
+ * Show a single organ in isolation. Other organs stay cached in the scene but
+ * hidden, so switching between them is instant after the first build.
+ */
+async function syncOrgan() {
+  const active = scene.value;
+  if (!active) return;
+  const ids = props.focusParts;
+  if (!ids.length) {
+    activeOrgan = null;
+    applyVisibility();
+    return;
+  }
+  const systems = new Set(
+    ids.map((id) => systemByPart.get(id)).filter((system): system is string => Boolean(system))
+  );
+  await ensureSystems([...systems]);
+  const organ = ensureOrganMesh(ids);
+  if (!organ) return;
+  activeOrgan = organ;
+  if (!organ.mesh.parent) active.add(organ.mesh);
+  applyVisibility();
+}
+
 function pick(event: PointerEvent) {
   const currentCamera = camera.value;
   const currentRenderer = renderer.value;
   if (!currentCamera || !currentRenderer) return;
 
-  const visible = layers.value.filter((layer) => layer.mesh.visible);
-  if (!visible.length) return;
+  const candidates = activeOrgan ? [activeOrgan] : layers.value.filter((layer) => layer.mesh.visible);
+  if (!candidates.length) return;
 
   const rect = currentRenderer.domElement.getBoundingClientRect();
   pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
   pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
   raycaster.setFromCamera(pointer, currentCamera);
 
-  const hits = raycaster.intersectObjects(visible.map((layer) => layer.mesh), false);
+  const hits = raycaster.intersectObjects(candidates.map((layer) => layer.mesh), false);
   if (!hits.length) {
     emit('clear');
     return;
   }
 
   const hit = hits[0];
-  const layer = layers.value.find((item) => item.mesh === hit.object);
+  const layer = candidates.find((item) => item.mesh === hit.object);
   if (!layer) return;
   const range = rangeAt(layer, hit.faceIndex ?? 0);
   if (!range) return;
@@ -381,6 +457,8 @@ onMounted(async () => {
       else partsBySystem.set(part.system, [part]);
     }
     chunkIndexBySystem = new Map(manifest.chunks.map((chunk, index) => [chunk.system, index]));
+    partById = new Map(manifest.parts.map((part) => [part.id, part]));
+    systemByPart = new Map(manifest.parts.map((part) => [part.id, part.system]));
 
     overallBounds = new THREE.Box3();
     for (const part of manifest.parts) {
@@ -461,6 +539,7 @@ onMounted(async () => {
     loop();
 
     loading.value = false;
+    await syncOrgan();
     applyVisibility();
     frameBox(activeBounds(), false);
     repaintSelection(props.selectedId);
@@ -489,6 +568,13 @@ onBeforeUnmount(() => {
     layer.geometry.dispose();
     layer.material.dispose();
   }
+  for (const organ of organMeshes.values()) {
+    organ.geometry.dispose();
+    organ.material.dispose();
+  }
+  organMeshes.clear();
+  activeOrgan = null;
+  chunkBuffers.clear();
   currentRenderer?.dispose();
   scene.value = null;
   camera.value = null;
@@ -507,6 +593,12 @@ watch(() => props.hiddenSystems, () => {
 watch(() => props.focusSystems, () => {
   void ensureSystems(neededSystems()).then(() => {
     applyVisibility();
+    frameBox(activeBounds(), true);
+    repaintSelection(props.selectedId);
+  });
+}, { deep: true });
+watch(() => props.focusParts, () => {
+  void syncOrgan().then(() => {
     frameBox(activeBounds(), true);
     repaintSelection(props.selectedId);
   });

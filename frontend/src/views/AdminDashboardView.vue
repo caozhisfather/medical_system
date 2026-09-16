@@ -81,11 +81,9 @@ async function syncSources() {
         <div class="section-heading"><div><span class="section-kicker">复盘策略配置</span><h2>每日复盘生成逻辑</h2></div><SlidersHorizontal :size="20" /></div>
         <div class="policy-form-grid">
           <label>复盘生成时间<input v-model="policy.generate_time" /></label>
-          <label>推荐病例数量<input v-model.number="policy.recommended_case_count" type="number" min="1" max="5" /></label>
           <label>推荐知识点数量<input v-model.number="policy.recommended_knowledge_count" type="number" min="1" max="8" /></label>
         </div>
         <div class="policy-toggle-grid">
-          <label><input v-model="policy.digital_human_review_enabled" type="checkbox" /> 启用数字人复盘</label>
           <label><input v-model="policy.teacher_alert_enabled" type="checkbox" /> 启用教师预警</label>
         </div>
         <div class="weight-list">

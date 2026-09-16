@@ -44,6 +44,7 @@ class AnatomyTermService:
 
     def __init__(self) -> None:
         self._map: dict[str, str] = {}
+        self._lower: dict[str, str] = {}
         self._load()
 
     def _load(self) -> None:
@@ -56,6 +57,8 @@ class AnatomyTermService:
         terms = payload.get("terms") if isinstance(payload, dict) else None
         if isinstance(terms, dict):
             self._map = {str(key): str(value) for key, value in terms.items() if value}
+            for key, value in self._map.items():
+                self._lower.setdefault(key.lower(), value)
 
     def save(self) -> None:
         GLOSSARY_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -68,7 +71,10 @@ class AnatomyTermService:
         GLOSSARY_FILE.write_text(json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
 
     def lookup(self, english_name: str) -> str | None:
-        return self._map.get(english_name.strip())
+        key = english_name.strip()
+        # The model occasionally echoes a name back with different casing, so
+        # lookups must not be case-sensitive.
+        return self._map.get(key) or self._lower.get(key.lower())
 
     def all(self) -> dict[str, str]:
         return dict(self._map)
@@ -78,18 +84,22 @@ class AnatomyTermService:
         for english, chinese in mapping.items():
             key = english.strip()
             value = str(chinese).strip()
-            if not key or not value or key in self._map:
+            if not key or not value or key in self._map or key.lower() in self._lower:
                 continue
             self._map[key] = value
+            self._lower[key.lower()] = value
             added += 1
         return added
 
     def missing(self, names: list[str]) -> list[str]:
         seen: list[str] = []
+        seen_lower: set[str] = set()
         for name in names:
             key = name.strip()
-            if key and key not in self._map and key not in seen:
+            lower = key.lower()
+            if key and key not in self._map and lower not in self._lower and lower not in seen_lower:
                 seen.append(key)
+                seen_lower.add(lower)
         return seen
 
     def configured(self) -> bool:
@@ -130,7 +140,10 @@ class AnatomyTermService:
             if choice.get("finish_reason") == "length":
                 return {}
             content = str(choice.get("message", {}).get("content", ""))
-        except (HTTPError, URLError, TimeoutError, OSError, json.JSONDecodeError, IndexError, AttributeError):
+        except Exception:
+            # Network hiccups and truncated responses are expected when
+            # translating hundreds of names in a row; skip the batch and let
+            # the caller retry the remainder.
             return {}
         parsed = _extract_json(content)
         if not parsed:

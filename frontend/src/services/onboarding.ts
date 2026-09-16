@@ -1,6 +1,6 @@
 import type { WorkspaceRole } from '../stores/training';
 
-const version = 'v2-daily-review';
+const version = 'v3-anatomy-lab';
 
 export interface TourStepConfig {
   target: string;
@@ -10,19 +10,17 @@ export interface TourStepConfig {
 
 export const tourSteps: Record<WorkspaceRole, TourStepConfig[]> = {
   student: [
-    { target: '[data-tour="today-task"]', title: '今日任务', body: '查看今天推荐病例和学习目标。' },
-    { target: '[data-tour="case-training"]', title: '病例训练', body: '选择病例，与 AI 标准化病人问诊。' },
-    { target: '[data-tour="evidence"]', title: '指南依据', body: '查看 AI 反馈引用的教材和指南。' },
-    { target: '[data-tour="knowledge-graph"]', title: '知识图谱', body: '沿症状、疾病、检查和解剖结构建立学习路径。' },
-    { target: '[data-tour="daily-review"]', title: '每日复盘', body: '训练结束后查看 AI 生成的复盘和明日计划。' },
-    { target: '[data-tour="digital-human"]', title: '数字人病人', body: '在病例训练中切换数字人病人模式；它与文字问诊共用同一病例事实和会话，不会主动泄露诊断。' }
+    { target: '[data-tour="today-task"]', title: '学习总览', body: '查看八大系统入口与今日推荐的学习路径。' },
+    { target: '[data-tour="anatomy-lab"]', title: '虚拟解剖室', body: '按“整体人体 → 系统 → 器官 → 精细结构”逐层探索三维模型。' },
+    { target: '[data-tour="evidence"]', title: '教材依据', body: '选中结构后查看讲解引用的教材章节与页码。' },
+    { target: '[data-tour="knowledge-graph"]', title: '知识图谱', body: '沿结构与功能、临床联系建立学习路径。' },
+    { target: '[data-tour="daily-review"]', title: '学习档案', body: '查看空间定位测验的作答记录与错题。' }
   ],
   teacher: [
-    { target: '[data-tour="teacher-dashboard"]', title: '班级看板', body: '查看班级整体训练表现。' },
-    { target: '[data-tour="student-alert"]', title: '学生预警', body: '定位需要干预的学生。' },
-    { target: '[data-tour="common-weakness"]', title: '共性问题', body: '查看班级薄弱知识点。' },
-    { target: '[data-tour="case-management"]', title: '病例管理', body: '维护病例脚本和评分点。' },
-    { target: '[data-tour="class-review"]', title: '班级复盘', body: '查看 AI 生成的教学建议。' }
+    { target: '[data-tour="teacher-dashboard"]', title: '教学总览', body: '查看知识库规模、索引状态与练习概况。' },
+    { target: '[data-tour="case-management"]', title: '教学知识库', body: '导入教材与权威依据，作为讲解与命题的来源。' },
+    { target: '[data-tour="exam-settings"]', title: '题型与提示词', body: '决定启用哪些题型与选项数，并编辑出题的系统提示词。' },
+    { target: '[data-tour="teacher-graph"]', title: '知识图谱', body: '检查结构节点与关系是否完整。' }
   ],
   admin: [
     { target: '[data-tour="admin-data-source"]', title: '数据源管理', body: '查看 ModelScope、知识库和指南数据源。' },

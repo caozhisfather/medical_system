@@ -34,7 +34,7 @@ const roleMeta = computed(() => {
   };
   return {
     title: '登录学生训练空间',
-    description: '进入病例训练、临床推理复盘与个性化学习路径。',
+    description: '进入虚拟解剖室、空间定位测验与知识图谱。',
     accountHint: 'student01',
     destination: '/student/dashboard'
   };
@@ -53,8 +53,8 @@ function fillDemoAccount() {
 
 function safeDestination() {
   const requested = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/') ? route.query.redirect : '';
-  if (role.value === 'student' && (requested.startsWith('/student/') || requested.startsWith('/patient-room/') || requested.startsWith('/training-report/'))) return requested;
-  if (role.value === 'teacher' && (requested.startsWith('/teacher/') || requested.startsWith('/training-report/'))) return requested;
+  if (role.value === 'student' && requested.startsWith('/student/')) return requested;
+  if (role.value === 'teacher' && requested.startsWith('/teacher/')) return requested;
   if (role.value === 'admin' && requested.startsWith('/admin/')) return requested;
   return roleMeta.value.destination;
 }

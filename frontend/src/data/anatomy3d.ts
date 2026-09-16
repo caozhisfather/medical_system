@@ -49,6 +49,25 @@ export interface AnatomySystem3D {
 }
 
 export const ATLAS_3D_URL = '/anatomy/atlas.json';
+export const ATLAS_ORGAN_URL = '/anatomy/organs.json';
+
+export interface AnatomyOrgan {
+  id: string;
+  name: string;
+  nameEn: string;
+  system: string;
+  partIds: string[];
+}
+
+export interface AnatomyOrganGroup {
+  system: string;
+  organs: AnatomyOrgan[];
+}
+
+export interface AnatomyOrganPayload {
+  source: string;
+  systems: AnatomyOrganGroup[];
+}
 
 /** Render colours keyed by the atlas data systems. */
 export const ANATOMY_DATA_SYSTEM_COLORS: Record<string, string> = {

@@ -1,0 +1,24 @@
+{
+  "question_types": {
+    "single_choice": {
+      "enabled": true,
+      "option_counts": [
+        4
+      ],
+      "weight": 40
+    },
+    "true_false": {
+      "enabled": true,
+      "weight": 20
+    },
+    "short_answer": {
+      "enabled": true,
+      "weight": 40
+    }
+  },
+  "difficulty": "clinical",
+  "generation_mode": "realtime",
+  "system_prompt": "你是医学解剖学命题专家。根据给定的三维解剖结构，生成符合《系统解剖学》教学要求的题目。\n要求：\n1. 只考察该结构的形态、位置、毗邻、功能与常见临床联系，不涉及超纲内容。\n2. 干扰项必须来自同一系统或邻近结构，具有迷惑性但不能有歧义。\n3. 题干简洁，不使用否定式提问，不出现“以上都对”这类选项。\n4. 解析要给出判断依据，并尽量指向教材章节。",
+  "updated_at": "2026-09-14T13:12:45.408558+00:00",
+  "updated_by": "teacher01"
+}
