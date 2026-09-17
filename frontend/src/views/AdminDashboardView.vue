@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { Activity, Bot, Database, FileClock, FileCog, GitBranch, PlayCircle, ShieldAlert, SlidersHorizontal } from '@lucide/vue';
-import { getAdminAuditLogs, getAdminDataSources, getDailyReviewPolicy, getGraphStatus, getKnowledgeStatus, syncAdminDataSources } from '../api';
+import { getAdminAuditLogs, getAdminDataSources, getAdminUsers, getDailyReviewPolicy, getGraphStatus, getKnowledgeStatus, reviewTeacher, syncAdminDataSources } from '../api';
 import { mockAdminData } from '../data/admin';
 import { mockDailyReviewPolicy } from '../data/dailyReview';
 import type { DailyReviewPolicy, DataSourceItem } from '../types';
@@ -15,6 +15,9 @@ const syncing = ref(false);
 const loadWarning = ref('');
 const syncMessage = ref('');
 const auditLogs = ref<Array<{ id: string; timestamp: string; account: string; name: string; role: string; action: string; target: string; detail: string }>>([]);
+type AdminUser = { id: string; account: string; name: string; email: string; role: string; status: string };
+const users = ref<AdminUser[]>([]);
+const reviewingUserId = ref('');
 const route = useRoute();
 
 const weights = computed(() => Object.entries(policy.value.score_weights));
@@ -31,6 +34,7 @@ onMounted(async () => {
   try { knowledgeStatus.value = await getKnowledgeStatus(); } catch { failures.push('知识库'); }
   try { graphStatus.value = await getGraphStatus(); } catch { failures.push('知识图谱'); }
   try { auditLogs.value = (await getAdminAuditLogs()).items; } catch { failures.push('审计日志'); }
+  try { users.value = await getAdminUsers() as AdminUser[]; } catch { failures.push('用户管理'); }
   if (failures.length) loadWarning.value = `${failures.join('、')}暂未连接，当前显示本地演示数据。`;
   scrollToSection();
 });
@@ -49,6 +53,19 @@ async function syncSources() {
     syncMessage.value = error instanceof Error ? error.message : '同步请求失败，请检查后端服务。';
   } finally {
     syncing.value = false;
+  }
+}
+
+async function decideTeacher(userId: string, approved: boolean) {
+  reviewingUserId.value = userId;
+  try {
+    await reviewTeacher(userId, approved);
+    users.value = await getAdminUsers() as AdminUser[];
+    auditLogs.value = (await getAdminAuditLogs()).items;
+  } catch (error) {
+    syncMessage.value = error instanceof Error ? error.message : '教师审核失败。';
+  } finally {
+    reviewingUserId.value = '';
   }
 }
 </script>
@@ -120,6 +137,20 @@ async function syncSources() {
         <p>当前演示只使用虚拟教学病例、公开来源元数据和本地 mock 复盘结果。真实部署前必须完成授权、隐私、伦理和教师审核流程。</p>
       </section>
     </div>
+
+    <section class="surface-panel admin-user-panel">
+      <div class="section-heading"><div><span class="section-kicker">账号与权限</span><h2>注册用户与教师审核</h2></div><ShieldAlert :size="20" /></div>
+      <div class="admin-user-list">
+        <article v-for="user in users" :key="user.id">
+          <span><strong>{{ user.name }}</strong><small>{{ user.account }} · {{ user.email || '演示账号' }}</small></span>
+          <b>{{ user.role }} · {{ user.status }}</b>
+          <div v-if="user.role === 'teacher' && user.status === 'pending_review'">
+            <button type="button" :disabled="reviewingUserId === user.id" @click="decideTeacher(user.id, false)">拒绝</button>
+            <button class="approve" type="button" :disabled="reviewingUserId === user.id" @click="decideTeacher(user.id, true)">批准</button>
+          </div>
+        </article>
+      </div>
+    </section>
 
     <details class="surface-panel admin-audit-panel">
       <summary>

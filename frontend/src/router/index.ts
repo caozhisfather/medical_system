@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import ProductShell from '../layouts/ProductShell.vue';
 import { trainingStore } from '../stores/training';
+import { getCurrentUser } from '../api';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -9,6 +10,11 @@ const router = createRouter({
     { path: '/', redirect: () => trainingStore.state.authenticated ? (trainingStore.state.profile.role === 'teacher' ? '/teacher/dashboard' : trainingStore.state.profile.role === 'admin' ? '/admin/dashboard' : '/student/dashboard') : '/landing' },
     { path: '/landing', component: () => import('../views/LandingView.vue'), meta: { public: true } },
     { path: '/login', component: () => import('../views/LoginView.vue'), meta: { public: true } },
+    { path: '/register', component: () => import('../views/AuthAccountView.vue'), meta: { public: true } },
+    { path: '/forgot-password', component: () => import('../views/AuthAccountView.vue'), meta: { public: true } },
+    { path: '/reset-password', component: () => import('../views/AuthAccountView.vue'), meta: { public: true } },
+    { path: '/verify-email', component: () => import('../views/AuthAccountView.vue'), meta: { public: true } },
+    { path: '/resend-verification', component: () => import('../views/AuthAccountView.vue'), meta: { public: true } },
     { path: '/onboarding', component: () => import('../views/OnboardingView.vue') },
     {
       path: '/',
@@ -32,13 +38,17 @@ const router = createRouter({
   ]
 });
 
-router.beforeEach((to) => {
-  const demoRole = import.meta.env.DEV ? (to.query.demo === 'teacher' ? 'teacher' : to.query.demo === 'admin' ? 'admin' : to.query.demo === 'student' ? 'student' : null) : null;
-  if (demoRole) {
-    trainingStore.signIn(demoRole);
-    trainingStore.saveProfile({ role: demoRole, completed: true });
-  }
+router.beforeEach(async (to) => {
   if (to.meta.public) return true;
+  if (trainingStore.state.authenticated) {
+    try {
+      const user = await getCurrentUser();
+      const role = user.role === 'super_admin' ? 'admin' : user.role as 'student' | 'teacher' | 'admin';
+      trainingStore.saveProfile({ role, name: user.name });
+    } catch {
+      trainingStore.signOut();
+    }
+  }
   if (!trainingStore.state.authenticated) {
     const role = to.path.startsWith('/teacher/') ? 'teacher' : to.path.startsWith('/admin/') ? 'admin' : 'student';
     return { path: '/login', query: { role, redirect: to.fullPath } };

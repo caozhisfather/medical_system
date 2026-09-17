@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import json
 import re
+import smtplib
 import subprocess
 import sys
+from pathlib import Path
 from datetime import datetime, timezone
 from threading import Lock
 from typing import Any
@@ -25,6 +27,7 @@ from .knowledge_graph_service import AnatomyKnowledgeGraphService, KnowledgeGrap
 from .obsidian_export_service import ObsidianGraphExportService
 from .models import (
     AgentChatRequest, AgentChatResponse, AnatomySubmitRequest, AnatomySubmitResponse, AuthLoginRequest, AuthLoginResponse, AuthUser, CaseSummary, ChatMessage,
+    AuthRegisterRequest, AuthEmailTokenRequest, AuthForgotPasswordRequest, AuthResetPasswordRequest, AuthTeacherReviewRequest,
     MissingPoint, PatientChatRequest, PatientChatResponse, RagAnswer, RagQuery, ScoreItem, TTSRequest, TTSResponse,
     TrainingReport, TrainingScoreRequest, CaseRandomRequest, TrainingStartRequest, TrainingOrderTestRequest, TrainingDiagnosisRequest, CaseValidateRequest,
     TeacherCaseDraftRequest, TeacherCaseEditRequest, TeacherCaseDecisionRequest, TeacherRecommendationDecisionRequest,
@@ -47,6 +50,8 @@ from .services.anatomy_term_service import anatomy_term_service
 from .services.exam_settings_service import exam_settings_service
 from .services.exam_quiz_service import exam_quiz_service
 from .services.history_taking_service import history_taking_service
+from .services.auth_service import AuthService
+from .services.mail_service import MailService
 from .rag import RagPipeline
 from .workflow import build_trace, load_workflow
 
@@ -85,6 +90,12 @@ AUDIT_LOG_LOCK = Lock()
 _teacher_case_state = json.loads(TEACHER_CASE_STATE_FILE.read_text(encoding="utf-8")) if TEACHER_CASE_STATE_FILE.exists() else {"drafts": [], "recommendation_decisions": {}}
 teacher_case_drafts: dict[str, dict[str, Any]] = {item["draft_id"]: item for item in _teacher_case_state.get("drafts", [])}
 teacher_recommendation_decisions: dict[str, dict[str, str]] = _teacher_case_state.get("recommendation_decisions", {})
+auth_service = AuthService(Path(settings.auth_database_path))
+auth_service.seed_demo_users(load_admin_users())
+mail_service = MailService(
+    settings.mail_host, settings.mail_port, settings.mail_username, settings.mail_password,
+    settings.mail_from_name, settings.public_frontend_url,
+)
 
 
 def read_json(name: str) -> Any:
@@ -107,18 +118,15 @@ def persist_training_sessions() -> None:
 def require_role(authorization: str | None, allowed_roles: set[str]) -> AuthUser:
     if not authorization or not authorization.lower().startswith("bearer "):
         raise HTTPException(status_code=401, detail="请先登录")
-    token = authorization[7:].strip()
-    users = load_admin_users()
-    for item in users:
-        expected = f"mock-{item['role']}-{item['account']}-token"
-        if token == expected:
-            user = AuthUser(**item)
-            if user.status != "active":
-                raise HTTPException(status_code=403, detail="账号当前不可用")
-            if user.role not in allowed_roles:
-                raise HTTPException(status_code=403, detail="没有权限访问该接口")
-            return user
-    raise HTTPException(status_code=401, detail="登录状态无效或已过期")
+    item = auth_service.authenticated_user(authorization[7:].strip())
+    if not item:
+        raise HTTPException(status_code=401, detail="登录状态无效或已过期")
+    user = AuthUser(**item)
+    if user.status != "active":
+        raise HTTPException(status_code=403, detail="账号当前不可用")
+    if user.role not in allowed_roles:
+        raise HTTPException(status_code=403, detail="没有权限访问该接口")
+    return user
 
 
 def write_audit_log(user: AuthUser, action: str, target: str, detail: str = "") -> None:
@@ -380,7 +388,7 @@ def resolve_agent(message: str, role: str, active_module: str) -> AgentChatRespo
 
 @app.get("/api/health")
 def health() -> dict:
-    return {"status": "ok", "app": settings.app_name, "environment": settings.environment, "rag_provider": settings.rag_provider, "vector_stores": {"chroma_db_path": settings.chroma_db_path, "milvus_uri": settings.milvus_uri}, "tts_provider": settings.tts_provider, "active_training_sessions": len(training_sessions), "persistence": {"training_sessions": TRAINING_SESSION_FILE.exists(), "teacher_workbench": TEACHER_CASE_STATE_FILE.exists(), "audit_log": AUDIT_LOG_FILE.exists()}, "ai": {"llm_configured": bool(settings.openai_api_key), "llm_model": settings.openai_model, "sparkos_configured": bool(settings.sparkos_app_id and settings.sparkos_api_key and settings.sparkos_api_secret)}}
+    return {"status": "ok", "app": settings.app_name, "environment": settings.environment, "rag_provider": settings.rag_provider, "vector_stores": {"chroma_db_path": settings.chroma_db_path, "milvus_uri": settings.milvus_uri}, "tts_provider": settings.tts_provider, "active_training_sessions": len(training_sessions), "persistence": {"training_sessions": TRAINING_SESSION_FILE.exists(), "teacher_workbench": TEACHER_CASE_STATE_FILE.exists(), "audit_log": AUDIT_LOG_FILE.exists()}, "auth": {"database": True, "mail_configured": mail_service.configured}, "ai": {"llm_configured": bool(settings.openai_api_key), "llm_model": settings.openai_model, "sparkos_configured": bool(settings.sparkos_app_id and settings.sparkos_api_key and settings.sparkos_api_secret)}}
 
 
 @app.get("/api/site/overview")
@@ -390,19 +398,81 @@ def site_overview() -> dict:
 
 @app.post("/api/auth/login", response_model=AuthLoginResponse)
 def auth_login(payload: AuthLoginRequest) -> AuthLoginResponse:
-    passwords = {"admin": "admin123", "student": "student123", "student01": "student123", "teacher": "teacher123", "teacher01": "teacher123"}
-    if passwords.get(payload.account) != payload.password:
-        raise HTTPException(status_code=401, detail="账号或密码错误")
-    users = load_admin_users()
-    user = next((item for item in users if item["account"] == payload.account), None)
-    if user is None and payload.account == "teacher":
-        user = next(item for item in users if item["role"] == "teacher")
-    if user is None and payload.account == "student":
-        user = next(item for item in users if item["role"] == "student")
-    if user is None:
-        raise HTTPException(status_code=401, detail="账号未配置")
-    token = f"mock-{user['role']}-{user['account']}-token"
+    try:
+        token, user = auth_service.login(payload.account, payload.password, payload.role)
+    except ValueError as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
     return AuthLoginResponse(token=token, user=AuthUser(**user))
+
+
+def _valid_email(email: str) -> bool:
+    return bool(re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email.strip()))
+
+
+def _strong_password(password: str) -> bool:
+    return 8 <= len(password) <= 120 and bool(re.search(r"[A-Za-z]", password) and re.search(r"\d", password))
+
+
+@app.post("/api/auth/register", status_code=201)
+def auth_register(payload: AuthRegisterRequest) -> dict[str, Any]:
+    if not _valid_email(payload.email):
+        raise HTTPException(status_code=422, detail="请输入有效的邮箱地址")
+    if not _strong_password(payload.password):
+        raise HTTPException(status_code=422, detail="密码至少8位，且必须同时包含字母和数字")
+    try:
+        user, token = auth_service.register(payload.account, payload.name, payload.email, payload.password, payload.role)
+        mail_service.send_verification(payload.email, token)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except (OSError, RuntimeError, smtplib.SMTPException) as exc:
+        raise HTTPException(status_code=503, detail="账号已创建，但验证邮件发送失败，请稍后重新发送验证邮件") from exc
+    return {"message": "验证邮件已发送，请在30分钟内完成验证", "user": user}
+
+
+@app.post("/api/auth/resend-verification")
+def auth_resend_verification(payload: AuthForgotPasswordRequest) -> dict[str, str]:
+    try:
+        result = auth_service.create_verification(payload.email)
+        if result:
+            mail_service.send_verification(*result)
+    except ValueError as exc:
+        raise HTTPException(status_code=429, detail=str(exc)) from exc
+    except (OSError, RuntimeError, smtplib.SMTPException) as exc:
+        raise HTTPException(status_code=503, detail="邮件发送失败，请稍后重试") from exc
+    return {"message": "如果该邮箱存在且尚未验证，验证邮件已发送"}
+
+
+@app.post("/api/auth/verify-email")
+def auth_verify_email(payload: AuthEmailTokenRequest) -> dict[str, Any]:
+    try:
+        user = auth_service.verify_email(payload.token)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    message = "邮箱验证成功，可以登录" if user["role"] == "student" else "邮箱验证成功，教师账号正在等待管理员审核"
+    return {"message": message, "user": user}
+
+
+@app.post("/api/auth/forgot-password")
+def auth_forgot_password(payload: AuthForgotPasswordRequest) -> dict[str, str]:
+    if _valid_email(payload.email):
+        try:
+            result = auth_service.create_password_reset(payload.email)
+            if result:
+                mail_service.send_password_reset(*result)
+        except (ValueError, OSError, RuntimeError, smtplib.SMTPException):
+            pass
+    return {"message": "如果该邮箱已注册，重置邮件将在几分钟内发送"}
+
+
+@app.post("/api/auth/reset-password")
+def auth_reset_password(payload: AuthResetPasswordRequest) -> dict[str, str]:
+    if not _strong_password(payload.password):
+        raise HTTPException(status_code=422, detail="密码至少8位，且必须同时包含字母和数字")
+    try:
+        auth_service.reset_password(payload.token, payload.password)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"message": "密码已重置，请使用新密码登录"}
 
 
 @app.get("/api/auth/me", response_model=AuthUser)
@@ -411,8 +481,10 @@ def auth_me(authorization: str | None = Header(default=None)) -> AuthUser:
 
 
 @app.post("/api/auth/logout")
-def auth_logout() -> dict[str, str]:
-    return {"status": "ok", "message": "已退出演示登录"}
+def auth_logout(authorization: str | None = Header(default=None)) -> dict[str, str]:
+    if authorization and authorization.lower().startswith("bearer "):
+        auth_service.logout(authorization[7:].strip())
+    return {"status": "ok", "message": "已安全退出"}
 
 
 @app.get("/api/cases")
@@ -1129,7 +1201,18 @@ def public_data_sources() -> list[dict[str, Any]]:
 @app.get("/api/admin/users")
 def admin_users(authorization: str | None = Header(default=None)) -> list[dict[str, Any]]:
     require_role(authorization, {"admin", "super_admin"})
-    return load_admin_users()
+    return auth_service.list_users()
+
+
+@app.put("/api/admin/users/{user_id}/teacher-review")
+def admin_review_teacher(user_id: str, payload: AuthTeacherReviewRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    admin = require_role(authorization, {"admin", "super_admin"})
+    try:
+        user = auth_service.review_teacher(user_id, payload.approved)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    write_audit_log(admin, "admin.teacher.approve" if payload.approved else "admin.teacher.reject", user_id, user["account"])
+    return user
 
 
 @app.get("/api/admin/data-sources")

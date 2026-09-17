@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 from typing import Any
+from pathlib import Path
 
 from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel
 
-from ..data_sources import load_admin_users
+from ..config import settings
+from ..services.auth_service import AuthService
 from ..services.daily_review_service import DailyReviewService
 
 
 router = APIRouter(prefix="/api/daily-review", tags=["daily-review"])
 service = DailyReviewService()
+auth_service = AuthService(Path(settings.auth_database_path))
 
 
 class DailyReviewGenerateRequest(BaseModel):
@@ -21,15 +24,14 @@ class DailyReviewGenerateRequest(BaseModel):
 def require_review_role(authorization: str | None, allowed_roles: set[str]) -> dict[str, Any]:
     if not authorization or not authorization.lower().startswith("bearer "):
         raise HTTPException(status_code=401, detail="请先登录")
-    token = authorization[7:].strip()
-    for user in load_admin_users():
-        if token == f"mock-{user['role']}-{user['account']}-token":
-            if user.get("status") != "active":
-                raise HTTPException(status_code=403, detail="账号当前不可用")
-            if user["role"] not in allowed_roles:
-                raise HTTPException(status_code=403, detail="没有权限访问该接口")
-            return user
-    raise HTTPException(status_code=401, detail="登录状态无效或已过期")
+    user = auth_service.authenticated_user(authorization[7:].strip())
+    if not user:
+        raise HTTPException(status_code=401, detail="登录状态无效或已过期")
+    if user.get("status") != "active":
+        raise HTTPException(status_code=403, detail="账号当前不可用")
+    if user["role"] not in allowed_roles:
+        raise HTTPException(status_code=403, detail="没有权限访问该接口")
+    return user
 
 
 @router.get("/today/{student_id}")

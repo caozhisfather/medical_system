@@ -51,6 +51,13 @@ class Settings:
     sparkos_scene: str = env_value("LLM_SCENE", "sos_app")
     rag_url: str = env_value("RAG_URL", "")
     rag_api_password: str = env_value("RAG_APIPWD", "")
+    auth_database_path: str = env_value("AUTH_DATABASE_PATH", str(ROOT_DIR / "data" / "auth.sqlite3"))
+    mail_host: str = env_value("MAIL_HOST", "smtp.163.com")
+    mail_port: int = int(env_value("MAIL_PORT", "465"))
+    mail_username: str = env_value("MAIL_USERNAME", "")
+    mail_password: str = env_value("MAIL_PASSWORD", "")
+    mail_from_name: str = env_value("MAIL_FROM_NAME", "临思智训")
+    public_frontend_url: str = env_value("PUBLIC_FRONTEND_URL", env_value("FRONTEND_ORIGIN", "http://127.0.0.1:5173"))
 
     @property
     def milvus_uri(self) -> str:

@@ -7,7 +7,7 @@ import { trainingStore, type WorkspaceRole } from '../stores/training';
 
 const route = useRoute();
 const router = useRouter();
-const role = computed<WorkspaceRole>(() => route.query.role === 'teacher' ? 'teacher' : 'student');
+const role = computed<WorkspaceRole>(() => trainingStore.state.profile.role);
 const form = reactive({
   name: role.value === 'teacher' ? '张老师' : '陈同学',
   school: '东部医科大学',

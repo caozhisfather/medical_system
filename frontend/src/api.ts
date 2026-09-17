@@ -187,7 +187,20 @@ export async function sendAgentMessage(message: string, role: string, activeModu
 
 export function login(account: string, password: string, role: string) { return postJson<AuthResponse>('/api/auth/login', { account, password, role }); }
 export function logout() { return postJson<{ status: string; message: string }>('/api/auth/logout', {}); }
+export function getCurrentUser() { return readJson<AuthResponse['user']>('/api/auth/me'); }
+export function registerAccount(payload: { account: string; name: string; email: string; password: string; role: 'student' | 'teacher' }) {
+  return postJson<{ message: string }>('/api/auth/register', payload);
+}
+export function verifyEmail(token: string) { return postJson<{ message: string }>('/api/auth/verify-email', { token }); }
+export function resendVerification(email: string) { return postJson<{ message: string }>('/api/auth/resend-verification', { email }); }
+export function forgotPassword(email: string) { return postJson<{ message: string }>('/api/auth/forgot-password', { email }); }
+export function resetPassword(token: string, password: string) { return postJson<{ message: string }>('/api/auth/reset-password', { token, password }); }
 export function getAdminUsers() { return readJson<unknown[]>('/api/admin/users'); }
+export function reviewTeacher(userId: string, approved: boolean) {
+  return fetch(`${baseUrl}/api/admin/users/${encodeURIComponent(userId)}/teacher-review`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ approved })
+  }).then(async (response) => { if (!response.ok) throw new Error(await requestError(response)); return response.json(); });
+}
 export function getAdminDataSources() { return readJson<DataSourceItem[]>('/api/admin/data-sources'); }
 export function syncAdminDataSources() { return postJson<{ status: string; message: string; sources: DataSourceItem[] }>('/api/admin/data-sources/sync', {}); }
 export function getKnowledgeStatus() { return readJson<Record<string, unknown>>('/api/admin/knowledge-status'); }

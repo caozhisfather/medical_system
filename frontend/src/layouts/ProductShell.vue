@@ -21,6 +21,7 @@ import AgentCommand from '../components/AgentCommand.vue';
 import OnboardingTour from '../components/onboarding/OnboardingTour.vue';
 import SafetyNotice from '../components/SafetyNotice.vue';
 import { trainingStore } from '../stores/training';
+import { logout } from '../api';
 
 const route = useRoute();
 const router = useRouter();
@@ -71,8 +72,12 @@ function active(item: NavItem) {
 }
 
 async function signOut() {
-  trainingStore.signOut();
-  await router.push('/landing');
+  try {
+    await logout();
+  } finally {
+    trainingStore.signOut();
+    await router.push('/landing');
+  }
 }
 </script>
 

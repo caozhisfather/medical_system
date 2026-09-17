@@ -133,11 +133,37 @@ class AuthUser(BaseModel):
     status: str
     department: str = ""
     permissions: list[str] = Field(default_factory=list)
+    email: str = ""
 
 
 class AuthLoginResponse(BaseModel):
     token: str
     user: AuthUser
+
+
+class AuthRegisterRequest(BaseModel):
+    account: str = Field(..., min_length=3, max_length=40, pattern=r"^[A-Za-z0-9_]+$")
+    name: str = Field(..., min_length=2, max_length=40)
+    email: str = Field(..., min_length=5, max_length=120)
+    password: str = Field(..., min_length=8, max_length=120)
+    role: str = Field(default="student", max_length=20)
+
+
+class AuthEmailTokenRequest(BaseModel):
+    token: str = Field(..., min_length=20, max_length=200)
+
+
+class AuthForgotPasswordRequest(BaseModel):
+    email: str = Field(..., min_length=5, max_length=120)
+
+
+class AuthResetPasswordRequest(BaseModel):
+    token: str = Field(..., min_length=20, max_length=200)
+    password: str = Field(..., min_length=8, max_length=120)
+
+
+class AuthTeacherReviewRequest(BaseModel):
+    approved: bool
 
 
 class TrainingScoreRequest(BaseModel):

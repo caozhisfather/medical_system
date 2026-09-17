@@ -8,9 +8,9 @@
 
 ## 当前版本
 
-- 开发分支：`2026-9-16-11th-demo`
+- 开发分支：`2026-9-17-12th`
 - 前端重点：三维解剖训练、AI 测验、学习档案、教师考试配置、教学知识库、知识图谱
-- 后端形态：FastAPI 单体 API，保留部分早期临床训练与数字人实验接口
+- 后端形态：FastAPI 单体 API + SQLite 认证，保留部分早期临床训练与数字人实验接口
 - 运行方式：本地前后端分离开发，前端默认代理到 `http://127.0.0.1:8000`
 
 ## 核心能力
@@ -38,6 +38,14 @@
 - 兼容保留的临床综合图谱包含 `662` 个节点和 `1,612` 条边，可供后续扩展临床检索。
 - 面向当前解剖主线的图谱包含 `736` 个节点和 `1,011` 条关系，按人体解剖、系统、器官、精细结构四层组织；原临床综合图谱作为兼容数据保留。
 - 后端保留 ChromaDB、Milvus 和混合 RAG 的配置入口，便于扩展检索增强问答。
+
+### 账号与邮箱认证
+
+- 支持学生和教师通过邮箱注册，验证链接 30 分钟有效且仅可使用一次。
+- 学生验证邮箱后可直接登录；教师还需管理员审核。
+- 支持忘记密码、15 分钟一次性重置链接和重发验证邮件。
+- 密码使用 PBKDF2-SHA256 加盐哈希，登录使用服务端随机会话；重置密码会吊销旧会话。
+- 用户、令牌和会话保存在本地 SQLite，默认文件为 `data/auth.sqlite3`，不会提交到 Git。
 
 ### 三类角色
 
@@ -71,7 +79,7 @@ flowchart LR
 | 前端 | Vue 3、TypeScript、Vite、Vue Router、Three.js、Lucide Icons |
 | 后端 | Python、FastAPI、Uvicorn、Pydantic、python-dotenv |
 | AI / RAG | OpenAI 兼容接口、LangChain、ChromaDB、Milvus（可选） |
-| 数据 | JSON、本地静态资源、浏览器本地状态 |
+| 数据 | SQLite、JSON、本地静态资源、浏览器本地状态 |
 | 工程化 | pnpm、vue-tsc、pytest |
 
 ## 项目结构
@@ -81,6 +89,7 @@ medical_system/
 ├─ backend/
 │  ├─ app/
 │  │  ├─ api/                 # 扩展 API 路由
+│  │  ├─ services/            # 认证、邮件、测验等领域服务
 │  │  ├─ config.py            # 环境变量与服务配置
 │  │  └─ main.py              # FastAPI 入口与核心 API
 │  ├─ scripts/                # 数据构建与校验脚本
@@ -152,6 +161,13 @@ pnpm --dir frontend dev
 
 后端启动时读取 `env/.env`。不配置外部服务时，仍可使用项目内置数据和预生成演示能力；实时 AI、Embedding 或外部向量库功能需要填写相应配置。
 
+先从无密钥模板创建本地配置：
+
+```powershell
+New-Item -ItemType Directory -Force env
+Copy-Item .env.example env/.env
+```
+
 ```dotenv
 OPENAI_API_KEY=
 OPENAI_BASE_URL=https://api.openai.com
@@ -169,21 +185,31 @@ MILVUS_PORT=19530
 
 不要提交真实密钥。部署环境应通过环境变量或密钥管理服务注入敏感配置。
 
+## 邮箱认证配置
+
+注册验证和密码找回需要 SMTP SSL 服务。在 `env/.env` 中填写邮箱服务商提供的 SMTP 地址、邮箱账号和独立授权码：
+
+```dotenv
+MAIL_HOST=smtp.163.com
+MAIL_PORT=465
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_FROM_NAME=临思智训
+PUBLIC_FRONTEND_URL=http://127.0.0.1:5173
+AUTH_DATABASE_PATH=./data/auth.sqlite3
+```
+
+未配置 SMTP 时，演示账号仍可登录，但新账号无法收到验证或重置邮件。完整说明见 [`docs/EMAIL_AUTH_SETUP.md`](docs/EMAIL_AUTH_SETUP.md)。
+
 ## 演示账号
 
 | 角色 | 用户名 | 密码 |
 | --- | --- | --- |
-| 学生 | `student` | `student123` |
-| 教师 | `teacher` | `teacher123` |
+| 学生 | `student` 或 `student01` | `student123` |
+| 教师 | `teacher` 或 `teacher01` | `teacher123` |
 | 管理员 | `admin` | `admin123` |
 
-开发模式还支持通过查询参数快速进入对应角色：
-
-- `http://127.0.0.1:5173/?demo=student`
-- `http://127.0.0.1:5173/?demo=teacher`
-- `http://127.0.0.1:5173/?demo=admin`
-
-该快捷入口只在 Vite 开发模式下生效。
+演示账号同样通过真实服务端会话登录。`student` 和 `teacher` 是兼容别名；项目不再通过 URL 查询参数绕过登录。
 
 ## 前端路由
 
@@ -191,6 +217,11 @@ MILVUS_PORT=19530
 | --- | --- | --- |
 | `/landing` | 公开 | 产品入口 |
 | `/login` | 公开 | 登录与角色选择 |
+| `/register` | 公开 | 学生/教师邮箱注册 |
+| `/verify-email` | 公开 | 邮箱验证回调 |
+| `/resend-verification` | 公开 | 重发验证邮件 |
+| `/forgot-password` | 公开 | 申请密码重置邮件 |
+| `/reset-password` | 公开 | 设置新密码 |
 | `/onboarding` | 已登录 | 首次使用信息设置 |
 | `/student/dashboard` | 学生 | 学习概览 |
 | `/student/anatomy` | 学生 | 三维解剖训练与测验 |
@@ -211,7 +242,14 @@ MILVUS_PORT=19530
 | --- | --- | --- |
 | `GET` | `/api/health` | 服务健康检查 |
 | `POST` | `/api/auth/login` | 登录 |
+| `POST` | `/api/auth/register` | 注册学生或教师账号 |
+| `POST` | `/api/auth/verify-email` | 验证邮箱 |
+| `POST` | `/api/auth/resend-verification` | 重发验证邮件 |
+| `POST` | `/api/auth/forgot-password` | 申请密码重置 |
+| `POST` | `/api/auth/reset-password` | 使用一次性令牌重置密码 |
 | `GET` | `/api/auth/me` | 获取当前用户 |
+| `POST` | `/api/auth/logout` | 注销当前服务端会话 |
+| `PUT` | `/api/admin/users/{user_id}/teacher-review` | 管理员审核教师账号 |
 | `GET` | `/api/anatomy` | 获取解剖教学数据 |
 | `GET` | `/api/anatomy/glossary` | 获取解剖术语表 |
 | `POST` | `/api/anatomy/submit` | 提交解剖训练结果 |
@@ -265,10 +303,10 @@ pnpm --dir frontend build
 
 当前分支最近一次验证结果：
 
-- 后端测试：`8` 项通过
+- 后端测试：`18` 项通过
 - Vue TypeScript 检查：通过
 - Vite 生产构建：通过
-- Python 编译检查：`66` 个文件通过
+- Python 编译检查：通过
 - 真实 AI 出题与服务器端判分链路：通过
 
 ## 数据与许可
@@ -279,7 +317,7 @@ pnpm --dir frontend build
 
 ## 已知限制
 
-- 当前认证与数据存储以本地竞赛演示为目标，不等同于生产级身份认证和数据库方案。
+- 当前认证已使用密码哈希、一次性令牌和服务端会话，但 SQLite 单机存储与进程内限流仍以竞赛演示为目标，不等同于生产级身份平台。
 - 实时 AI 出题依赖可用的 OpenAI 兼容服务、网络与正确的模型配置。
 - 大型三维模型首次加载受设备 GPU、浏览器和磁盘读取速度影响。
 - 测验缓存当前为单机 JSON 文件，不适用于并发多实例部署。
@@ -287,7 +325,7 @@ pnpm --dir frontend build
 
 ## 后续方向
 
-- 将用户、训练记录、题库和教学资料迁移到正式数据库。
+- 将认证、训练记录、题库和教学资料迁移到正式数据库或学校统一身份平台。
 - 为测验缓存增加用户绑定、过期策略、幂等控制和共享存储。
 - 扩充医学课程数据，并建立可审核、可追溯的数据治理流程。
 - 增加端到端测试、视觉回归测试和性能基准。

@@ -39,7 +39,7 @@ function persist(key: string, value: unknown) {
 }
 
 function hasStoredSession() {
-  return Boolean(localStorage.getItem('medical_auth_token')) || readStored('medical_auth', false);
+  return Boolean(localStorage.getItem('medical_auth_token'));
 }
 
 const state = reactive({
@@ -51,16 +51,9 @@ export const trainingStore = {
   state,
 
   signIn(role: WorkspaceRole) {
+    if (!localStorage.getItem('medical_auth_token') || role !== state.profile.role) return;
     state.authenticated = true;
     state.profile = { ...state.profile, role };
-    if (import.meta.env.DEV) {
-      const demoTokens: Record<WorkspaceRole, string> = {
-        student: 'mock-student-student01-token',
-        teacher: 'mock-teacher-teacher01-token',
-        admin: 'mock-super_admin-admin-token'
-      };
-      localStorage.setItem('medical_auth_token', demoTokens[role]);
-    }
     persist('medical_auth', true);
     persist('medical_profile', state.profile);
   },

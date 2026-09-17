@@ -6,6 +6,7 @@
 
 | 能力 | 当前调用位置 | 需要配置 | 未接入时表现 | 建议优先级 |
 | --- | --- | --- | --- | --- |
+| SMTP 邮件 | 注册验证、重发验证、找回密码 | `MAIL_HOST`、`MAIL_PORT`、`MAIL_USERNAME`、`MAIL_PASSWORD`、`PUBLIC_FRONTEND_URL` | 演示账号可登录；新注册账号无法收到验证与重置邮件 | P0 |
 | 大语言模型（OpenAI 兼容） | 实时出题、虚拟病人对话 | `OPENAI_API_KEY`、`OPENAI_BASE_URL`、`OPENAI_MODEL` | 解剖测验使用本地题库；虚拟病人使用规则兜底 | P0 |
 | Embedding 向量化 | 教材检索、教学知识入库、RAG 召回 | `EMBEDDING_API_KEY`、`EMBEDDING_BASE_URL`、`EMBEDDING_MODEL` | 使用已有本地索引；新增资料无法获得线上向量 | P0 |
 | AnatomyAgent 生成式讲解 | `POST /api/agent/chat` 的 `anatomy_lab` 分支 | 需要在 `resolve_agent` 中接入所选 LLM，并复用上方 OpenAI 兼容配置 | 当前是本地教材检索 + 规则模板，稳定但不是生成式回答 | P1 |
@@ -27,7 +28,7 @@
 
 | 模块 | 当前状态 | 正式环境需要 |
 | --- | --- | --- |
-| 登录与用户 | 演示账号、本地 token | 学校统一认证或正式用户服务、服务端会话、密码哈希 |
+| 登录与用户 | SQLite、PBKDF2 密码哈希、一次性邮件令牌、服务端会话 | 学校统一认证或正式用户服务、共享会话存储、集中限流、备份与审计 |
 | 学习记录 | 本地 JSON 文件 | 数据库、用户隔离、备份与审计 |
 | 教师知识库 | 本地 JSON 和本地处理任务 | 对象存储、任务队列、数据库、文档权限 |
 | 解剖图谱维护 | 启动时由 `atlas.json`、`organs.json` 和术语表构建 | 图谱数据库或后台编辑 API、版本管理、教师审核 |
@@ -43,6 +44,12 @@
 ## 五、最小配置示例
 
 ```dotenv
+MAIL_HOST=smtp.163.com
+MAIL_PORT=465
+MAIL_USERNAME=
+MAIL_PASSWORD=
+PUBLIC_FRONTEND_URL=http://127.0.0.1:5173
+
 OPENAI_API_KEY=
 OPENAI_BASE_URL=https://api.openai.com
 OPENAI_MODEL=gpt-4.1

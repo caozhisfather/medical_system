@@ -121,7 +121,10 @@ watch(role, () => {
             <div class="login-input"><LockKeyhole :size="18" /><input v-model="form.password" name="password" :type="showPassword ? 'text' : 'password'" autocomplete="current-password" required placeholder="请输入密码" /><button type="button" :title="showPassword ? '隐藏密码' : '显示密码'" :aria-label="showPassword ? '隐藏密码' : '显示密码'" @click="showPassword = !showPassword"><EyeOff v-if="showPassword" :size="18" /><Eye v-else :size="18" /></button></div>
           </label>
 
-          <label class="remember-account"><input v-model="form.remember" type="checkbox" /> <span>记住账号</span></label>
+          <div class="login-options">
+            <label class="remember-account"><input v-model="form.remember" type="checkbox" /> <span>记住账号</span></label>
+            <router-link to="/forgot-password">忘记密码？</router-link>
+          </div>
           <p v-if="errorMessage" class="login-error" role="alert">{{ errorMessage }}</p>
 
           <button class="login-submit" type="submit" :disabled="loading">
@@ -130,6 +133,9 @@ watch(role, () => {
             <ArrowRight v-if="!loading" :size="18" />
           </button>
         </form>
+
+        <p class="register-entry">还没有账号？ <router-link to="/register">通过邮箱注册</router-link></p>
+        <p class="register-entry"><router-link to="/resend-verification">重新发送验证邮件</router-link></p>
 
         <div class="demo-account">
           <span><strong>教学演示账号</strong><small>{{ roleMeta.accountHint }} · 密码由管理员分配</small></span>
@@ -168,6 +174,9 @@ watch(role, () => {
 .login-input button { display: grid; width: 36px; height: 36px; place-items: center; border: 0; border-radius: 8px; color: #6d8588; background: transparent; }
 .remember-account { display: inline-flex; align-items: center; gap: 8px; width: max-content; color: #5f777a; font-size: 13px; }
 .remember-account input { width: 16px; height: 16px; accent-color: #0f766e; }
+.login-options { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.login-options a, .register-entry a { color: #0f766e; font-size: 13px; font-weight: 800; text-decoration: none; }
+.register-entry { margin: 18px 0 0; color: #71888b; font-size: 13px; text-align: center; }
 .login-error { margin: -4px 0 0; padding: 11px 13px; border-radius: 9px; color: #9b3418; background: #fff1e9; font-size: 13px; line-height: 1.55; }
 .login-submit { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 52px; border: 0; border-radius: 10px; color: #fff; background: #0f766e; font-weight: 900; box-shadow: 0 16px 32px rgba(15, 118, 110, .18); }
 .login-submit:hover:not(:disabled) { background: #0a6861; transform: translateY(-1px); }

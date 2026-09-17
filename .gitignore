@@ -144,6 +144,10 @@ data/document_library.json
 storage/document_ocr/
 data/document_embeddings.json
 data/document_embeddings.npz
+data/auth.sqlite3
+data/auth.sqlite3-journal
+data/auth.sqlite3-wal
+data/auth.sqlite3-shm
 data/exam_questions.json
 
 # ActiveMQ
@@ -155,6 +159,7 @@ activemq-data/
 # Environments
 .env
 .env.*
+!.env.example
 .envrc
 .venv
 env/
