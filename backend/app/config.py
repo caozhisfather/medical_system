@@ -52,6 +52,7 @@ class Settings:
     rag_url: str = env_value("RAG_URL", "")
     rag_api_password: str = env_value("RAG_APIPWD", "")
     auth_database_path: str = env_value("AUTH_DATABASE_PATH", str(ROOT_DIR / "data" / "auth.sqlite3"))
+    skill_database_path: str = env_value("SKILL_DATABASE_PATH", str(ROOT_DIR / "data" / "skills.sqlite3"))
     mail_host: str = env_value("MAIL_HOST", "smtp.163.com")
     mail_port: int = int(env_value("MAIL_PORT", "465"))
     mail_username: str = env_value("MAIL_USERNAME", "")

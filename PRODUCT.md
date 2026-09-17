@@ -8,41 +8,43 @@ web
 
 ## Users
 
-Primary users are medical students practicing clinical reasoning and medical teachers supervising training. Students need a safe virtual patient environment to practice inquiry, differential diagnosis, examination selection, guideline evidence lookup, and communication. Teachers need class-level scoring, common missing points, citation accuracy, and report summaries.
+Medical students study 3D anatomy, identify structures and complete quizzes. Teachers manage materials and exam settings. Administrators approve teacher accounts and control Skill activation, role permissions and hourly usage budgets.
 
 ## Product Purpose
 
-“临思智训” is an AI standardized patient clinical reasoning training platform for medical education. It is not used for real clinical diagnosis. It helps students practice with virtual teaching cases, receive process scoring, inspect traceable guideline citations, and generate training reports.
+“临思智训” focuses on 3D anatomy observation, traceable textbook evidence, knowledge relationships and practice feedback. It is for education and competition demonstrations, not diagnosis, treatment or clinical decision support.
 
 ## Positioning
 
-The product turns AI+medicine interdisciplinary work into a usable teaching workflow: PatientAgent simulates scripted virtual patients, RetrievalAgent retrieves guideline evidence, ScoringAgent evaluates clinical thinking, SafetyAgent enforces education-only boundaries, and ReportAgent closes the training loop.
+AnatomyTutor links resources through three read-only Skills: model structure search, textbook retrieval and anatomy graph queries. The current implementation is bounded local tool orchestration, not autonomous LLM reasoning. Skills remain disabled until an administrator approves them.
 
 ## Operating Context
 
-The project lives at `D:\cc项目\ai+medicine`. The frontend is Vue 3, TypeScript, Vite, HTML, CSS, and JavaScript. The backend is Python with FastAPI, a Flask auxiliary module, LangChain-ready RAG structure, Milvus and ChromaDB adapter placeholders, TTS placeholders, Neo4j placeholders, and mock medical education data.
+Vue 3, TypeScript, Vite, Three.js and FastAPI. SQLite stores authentication sessions and Skill configuration/call records. JSON and local assets store teaching content, model metadata and quiz caches. Earlier clinical training, RAG, voice and digital-human modules remain compatibility or experimental components, not the primary product story.
 
 ## Capabilities and Constraints
 
-Confirmed capabilities include AI standardized patient chat, default “急诊胸痛” case, controlled patient replies from case scripts, clinical reasoning scoring, missing-point detection, traceable guideline knowledge base, teacher dashboard, training report, Agent workflow, RAG skeleton, and medical education knowledge graph.
+Implemented: interactive 3D anatomy, structure highlighting, textbook lookup, anatomy graph browsing, configurable quizzes with server-side grading, email registration, teacher approval, administrator-controlled Skills and authenticated anatomy tool orchestration. Some dashboards and learning-review data remain demonstrations. Graph hierarchy is not a verified spatial, vascular or innervation model. Learning effectiveness still requires evaluation.
 
 Constraint: all cases are virtual teaching cases. The platform must not contain real patient data and must not generate real diagnostic or treatment advice.
 
 ## Evidence on Hand
 
-- `data/cases.json`: virtual teaching cases.
-- `data/guidelines.json`: guideline, textbook, and consensus mock knowledge sources.
-- `data/teacher_dashboard.json`: class-level teaching dashboard metrics.
-- `data/medical_kg.json`: medical education knowledge graph mock data.
-- `backend/app/main.py`: FastAPI endpoints for training, scoring, reports, RAG, and graph.
+- `frontend/public/anatomy/atlas.json` and `organs.json`: model structure sources.
+- `data/anatomy_term_glossary.json`: bilingual terminology.
+- `backend/app/knowledge_graph_service.py`: anatomy hierarchy built from those sources.
+- `backend/app/services/anatomy_skills.py`: read-only retrieval adapters.
+- `backend/app/services/skill_registry.py`: persisted permissions and usage accounting.
+- `backend/tests/test_skills.py`: governance, concurrency and API regression tests.
 
 ## Product Principles
 
-- Make training usable before explaining architecture.
-- Keep AI patient behavior constrained by virtual case scripts.
-- Always expose citations and safety notes beside feedback.
-- Score the learning process, not only the final answer.
-- Give teachers a feedback loop they can act on.
+- Keep anatomy learning as the primary experience.
+- Show actual evidence and real tool-call outcomes, not invented traces.
+- Treat retrieved text as data, not executable instructions.
+- Keep administrators in control of capability activation and permissions.
+- Show missing evidence explicitly instead of fabricating explanations.
+- Preserve server-side answers and grade students on the server.
 
 ## Accessibility & Inclusion
 

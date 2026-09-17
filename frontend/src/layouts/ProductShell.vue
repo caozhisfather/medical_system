@@ -49,6 +49,7 @@ const teacherNav: NavItem[] = [
 ];
 const adminNav: NavItem[] = [
   { label: '系统控制台', path: '/admin/dashboard', hash: '#admin-console', icon: Settings2, tour: 'admin-review-policy' },
+  { label: 'Skill 管理', path: '/admin/skills', icon: SlidersHorizontal },
   { label: '教学知识库', path: '/admin/knowledge', icon: Library, tour: 'admin-knowledge-library' },
   { label: '知识图谱', path: '/knowledge-graph', icon: ChartNetwork, tour: 'admin-graph' }
 ];

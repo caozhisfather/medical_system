@@ -33,6 +33,7 @@ from .models import (
     TeacherCaseDraftRequest, TeacherCaseEditRequest, TeacherCaseDecisionRequest, TeacherRecommendationDecisionRequest,
     CaseLibraryEntryCreateRequest, CaseLibraryEntryUpdateRequest, CaseLibraryDeidentifyRequest, CaseLibraryImportRequest,
     CaseLibraryCompileRequest, TeachingKnowledgeCreateRequest, TeachingKnowledgeUpdateRequest,
+    SkillPolicyUpdate, SkillQuery, SkillResult,
 )
 from .services.case_generation_service import CaseGenerationService
 from .services.case_citation_service import CaseCitationService
@@ -52,6 +53,9 @@ from .services.exam_quiz_service import exam_quiz_service
 from .services.history_taking_service import history_taking_service
 from .services.auth_service import AuthService
 from .services.mail_service import MailService
+from .services.anatomy_skills import AnatomySkills
+from .services.skill_registry import SkillRegistry
+from .services.anatomy_tutor import AnatomyTutor
 from .rag import RagPipeline
 from .workflow import build_trace, load_workflow
 
@@ -66,6 +70,9 @@ rag_pipeline = RagPipeline(settings.rag_provider)
 hybrid_service = HybridRetrievalService()
 graph_service = KnowledgeGraphService()
 anatomy_graph_service = AnatomyKnowledgeGraphService()
+anatomy_skills = AnatomySkills(ROOT_DIR, anatomy_term_service, anatomy_textbook_service, anatomy_graph_service)
+skill_registry = SkillRegistry(Path(settings.skill_database_path), anatomy_skills.handlers)
+anatomy_tutor = AnatomyTutor(skill_registry)
 obsidian_service = ObsidianGraphExportService()
 case_repository = CaseRepository()
 case_citation_service = CaseCitationService(
@@ -1299,8 +1306,45 @@ def admin_audit_logs(limit: int = 100, authorization: str | None = Header(defaul
     return {"count": len(items), "items": items}
 
 @app.post("/api/agent/chat", response_model=AgentChatResponse)
-def agent_chat(payload: AgentChatRequest) -> AgentChatResponse:
-    return resolve_agent(payload.message, payload.role, payload.active_module)
+def agent_chat(payload: AgentChatRequest, authorization: str | None = Header(default=None)) -> AgentChatResponse:
+    user = require_role(authorization, {'student', 'teacher', 'admin', 'super_admin'})
+    if payload.active_module == 'anatomy_lab':
+        return anatomy_tutor.run(payload, user)
+    return resolve_agent(payload.message, user.role, payload.active_module)
+
+
+@app.get('/api/admin/skills')
+def admin_skills(authorization: str | None = Header(default=None)) -> list[dict[str, Any]]:
+    require_role(authorization, {'admin', 'super_admin'})
+    return skill_registry.list_skills()
+
+
+@app.get('/api/admin/skills/calls')
+def admin_skill_calls(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    require_role(authorization, {'admin', 'super_admin'})
+    return {'items': skill_registry.recent_calls()}
+
+
+@app.put('/api/admin/skills/{skill_id}')
+def admin_skill_update(skill_id: str, payload: SkillPolicyUpdate, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user = require_role(authorization, {'admin', 'super_admin'})
+    try:
+        result = skill_registry.update(skill_id, payload, user.account)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail='未注册的 Skill') from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    write_audit_log(user, 'admin.skill.configure', skill_id, json.dumps(payload.model_dump(), ensure_ascii=False))
+    return result
+
+
+@app.post('/api/admin/skills/{skill_id}/test', response_model=SkillResult)
+def admin_skill_test(skill_id: str, payload: SkillQuery, authorization: str | None = Header(default=None)) -> SkillResult:
+    user = require_role(authorization, {'admin', 'super_admin'})
+    try:
+        return skill_registry.invoke(skill_id, payload, user.account, user.role, 'test-' + uuid4().hex)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail='未注册的 Skill') from exc
 
 
 @app.get("/api/anatomy")

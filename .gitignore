@@ -148,6 +148,10 @@ data/auth.sqlite3
 data/auth.sqlite3-journal
 data/auth.sqlite3-wal
 data/auth.sqlite3-shm
+data/skills.sqlite3
+data/skills.sqlite3-journal
+data/skills.sqlite3-wal
+data/skills.sqlite3-shm
 data/exam_questions.json
 
 # ActiveMQ

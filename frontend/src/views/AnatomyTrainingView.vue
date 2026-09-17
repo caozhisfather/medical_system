@@ -6,11 +6,12 @@ import { getAnatomyExercises, getAnatomyGlossary, getAnatomyTextbook, sendAgentM
 import anatomyImage from '../assets/medical/anatomy-organs.png';
 import AnatomyViewer3D from '../components/anatomy/AnatomyViewer3D.vue';
 import AnatomyQuizPanel from '../components/anatomy/AnatomyQuizPanel.vue';
+import AgentEvidence from '../components/anatomy/AgentEvidence.vue';
 import { mockAnatomyExercises } from '../data/anatomy';
 import { anatomyAtlasNodes, anatomyAtlasSystems, type AnatomyAtlasHotspot } from '../data/anatomyAtlas';
 import { anatomyImageSources, anatomyVideos } from '../data/anatomyResources';
 import { ANATOMY_SYSTEMS_3D, ANATOMY_SYSTEM_3D_BY_ID, ATLAS_3D_URL, ATLAS_ORGAN_URL, system3DColor, system3DName, type AnatomyOrgan, type AnatomyOrganPayload } from '../data/anatomy3d';
-import type { AnatomyExercise, AnatomyResult, AnatomyTextbookResult } from '../types';
+import type { AgentAction, AgentResponse, AnatomyExercise, AnatomyResult, AnatomyTextbookResult } from '../types';
 
 interface Point { x: number; y: number }
 interface Zone extends Point { width: number; height: number; shape?: 'ellipse' | 'rect'; covered?: boolean }
@@ -44,6 +45,8 @@ const textbookLoading = ref(false);
 const showTextbook = ref(false);
 const agentLoading = ref(false);
 const agentReply = ref('');
+const agentResponse = ref<AgentResponse | null>(null);
+watch(agentReply, value => { if (!value) agentResponse.value = null; }, { flush: 'sync' });
 const agentPrompt = ref('');
 const bodyViewer = ref<InstanceType<typeof AnatomyViewer3D> | null>(null);
 const bodySelection = ref<{ id: string; name: string; system: string; systemName: string } | null>(null);
@@ -251,11 +254,14 @@ async function askBodyAgent(prompt: string) {
     const response = await sendAgentMessage(
       `${context}\n请围绕“${prompt}”进行医学教学讲解。只用于医学教育，不作诊断；优先引用已接入教材依据。`,
       'student',
-      'anatomy_lab'
+      'anatomy_lab',
+      { query: selected.name, part_id: selected.id }
     );
+    if (bodySelection.value?.id !== selected.id || viewMode.value !== 'body') return;
     agentReply.value = response.reply;
-  } catch {
-    agentReply.value = '智能讲解服务暂不可用。你可以先查看教材详解，或稍后重试。';
+    agentResponse.value = response;
+  } catch (error) {
+    if (bodySelection.value?.id === selected.id && viewMode.value === 'body') agentReply.value = error instanceof Error ? error.message : '智能讲解服务暂不可用。';
   } finally {
     agentLoading.value = false;
   }
@@ -281,12 +287,40 @@ async function askAnatomyAgent(prompt: string) {
   const structure = atlasStructure.value;
   const context = `当前解剖系统：${atlasNode.value.system}；图谱：${atlasNode.value.title}；结构：${structure.name}；分类：${structure.category}；已知说明：${structure.description}；临床关联：${structure.clinical_note || '暂无'}`;
   try {
-    const response = await sendAgentMessage(`${context}\n请围绕“${prompt}”进行医学教学讲解。只用于医学教育，不作诊断；优先引用已接入教材依据。`, 'student', 'anatomy_lab');
+    const response = await sendAgentMessage(`${context}\n请围绕“${prompt}”进行医学教学讲解。只用于医学教育，不作诊断；优先引用已接入教材依据。`, 'student', 'anatomy_lab', { query: structure.name });
+    if (atlasStructure.value?.id !== structure.id || viewMode.value !== 'atlas') return;
     agentReply.value = response.reply;
-  } catch {
-    agentReply.value = '智能讲解服务暂不可用。你可以先查看教材详解，或稍后重试。';
+    agentResponse.value = response;
+  } catch (error) {
+    if (atlasStructure.value?.id === structure.id && viewMode.value === 'atlas') agentReply.value = error instanceof Error ? error.message : '智能讲解服务暂不可用。';
   } finally {
     agentLoading.value = false;
+  }
+}
+
+async function executeAgentAction(action: AgentAction) {
+  if (action.type === 'open_textbook') {
+    await openTextbook(action.target);
+  } else if (action.type === 'open_graph') {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    await router.push({ path: '/knowledge-graph', query: { q: action.target } });
+  } else if (action.type === 'highlight_structure') {
+    if (!partInfo.value.has(action.target)) return;
+    const group = organPayload.value?.systems.find(entry => entry.organs.some(organ => organ.partIds.includes(action.target)));
+    const organ = group?.organs.find(entry => entry.partIds.includes(action.target));
+    if (group && organ) {
+      focusedSystem.value = group.system;
+      focusedOrganId.value = organ.id;
+      hiddenSystems.value = hiddenSystems.value.filter(id => id !== group.system);
+    } else {
+      focusedSystem.value = '';
+      focusedOrganId.value = '';
+      hiddenSystems.value = [];
+    }
+    viewMode.value = 'body';
+    const previous = agentResponse.value;
+    selectOrganPart(action.target);
+    if (previous) { agentReply.value = previous.reply; agentResponse.value = previous; }
   }
 }
 
@@ -554,7 +588,8 @@ onBeforeUnmount(() => {
             <div v-if="agentLoading || agentReply" class="atlas-agent-answer" role="status" aria-live="polite">
               <strong><Sparkles :size="15" /> AnatomyAgent{{ agentLoading ? ' 正在检索教材并组织讲解' : ' 讲解' }}</strong>
               <p v-if="agentLoading">正在结合当前结构、教材索引和知识图谱生成回答…</p>
-              <p v-else>{{ agentReply }}</p>
+              <p v-else style="white-space: pre-line">{{ agentReply }}</p>
+              <AgentEvidence v-if="!agentLoading && agentResponse" :response="agentResponse" @action="executeAgentAction" />
             </div>
           </section>
           <div class="body-detail-actions">
@@ -622,7 +657,8 @@ onBeforeUnmount(() => {
           <div v-if="agentLoading || agentReply" class="atlas-agent-answer" role="status" aria-live="polite">
             <strong><Sparkles :size="15" /> AnatomyAgent{{ agentLoading ? ' 正在检索教材并组织讲解' : ' 讲解' }}</strong>
             <p v-if="agentLoading">正在结合当前结构、教材索引和知识图谱生成回答…</p>
-            <p v-else>{{ agentReply }}</p>
+            <p v-else style="white-space: pre-line">{{ agentReply }}</p>
+            <AgentEvidence v-if="!agentLoading && agentResponse" :response="agentResponse" @action="executeAgentAction" />
             <small v-if="agentPrompt">本次问题：{{ agentPrompt }}</small>
           </div>
         </article>

@@ -1,6 +1,16 @@
 import type { AgentResponse, AnatomyExercise, AnatomyResult, AnatomyTextbookResult, AuthResponse, CaseLibraryDeidentifyResult, CaseLibraryEntry, CaseLibraryImportReport, CaseLibraryListResponse, CaseSummary, ChatMessage, DailyReview, DailyReviewClassSummary, DailyReviewPolicy, DataSourceItem, ExamSettings, GuidelineDoc, HistoryTakingTemplate, KnowledgeEdge, KnowledgeItem, KnowledgeNode, Overview, PatientChatResponse, QuizGrade, QuizSet, RagResponse, TeacherCaseDraft, TeacherCaseRecommendations, TeacherDashboard, TextbookStage, TrainingAssessment, TrainingReport, TtsResponse } from './types';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+import type { SkillCall, SkillDefinition, SkillPolicy, SkillQuery, SkillResult } from './types';
+
+export function getAdminSkills() { return readJson<SkillDefinition[]>('/api/admin/skills'); }
+export function getSkillCalls() { return readJson<{ items: SkillCall[] }>('/api/admin/skills/calls'); }
+export async function updateSkill(id: string, policy: SkillPolicy) {
+  const response = await fetch(`${baseUrl}/api/admin/skills/${encodeURIComponent(id)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(policy) });
+  if (!response.ok) throw new Error(await requestError(response));
+  return response.json() as Promise<SkillDefinition>;
+}
+export function testSkill(id: string, query: SkillQuery) { return postJson<SkillResult>(`/api/admin/skills/${encodeURIComponent(id)}/test`, query); }
 
 function authHeaders(): Record<string, string> {
   const token = localStorage.getItem('medical_auth_token');
@@ -181,8 +191,8 @@ export async function askRag(question: string, scenario: string) {
   return postJson<RagResponse>('/api/rag/query', { question, scenario });
 }
 
-export async function sendAgentMessage(message: string, role: string, activeModule: string) {
-  return postJson<AgentResponse>('/api/agent/chat', { message, role, active_module: activeModule });
+export async function sendAgentMessage(message: string, role: string, activeModule: string, context?: SkillQuery) {
+  return postJson<AgentResponse>('/api/agent/chat', { message, role, active_module: activeModule, context });
 }
 
 export function login(account: string, password: string, role: string) { return postJson<AuthResponse>('/api/auth/login', { account, password, role }); }

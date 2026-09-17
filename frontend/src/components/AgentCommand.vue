@@ -15,6 +15,7 @@ type LocalIntent = { action: string; target: string; reply: string };
 
 function localIntent(message: string): LocalIntent {
   const role = trainingStore.state.profile.role;
+  if (role === 'admin' && /skill|技能|能力管理/i.test(message)) return { action: 'skills', target: '', reply: '正在打开 Skill 管理。' };
   if (role === 'teacher' && /题型|命题|提示词|出题/.test(message)) return { action: 'examSettings', target: '', reply: '正在打开题型与提示词配置。' };
   if (role === 'teacher' && /知识库|教材|资料|依据/.test(message)) return { action: 'knowledgeBase', target: '', reply: '正在打开教学知识库。' };
   if (role === 'admin' && /数据源|ModelScope|知识库|后台|系统/.test(message)) return { action: 'admin', target: '', reply: '正在打开超级管理员控制台。' };
@@ -38,7 +39,8 @@ async function execute() {
     // Local intent keeps navigation available when the backend is offline.
   }
   feedback.value = intent.reply;
-  if (intent.action === 'admin') await router.push('/admin/dashboard');
+  if (intent.action === 'skills') await router.push('/admin/skills');
+  else if (intent.action === 'admin') await router.push('/admin/dashboard');
   else if (intent.action === 'examSettings') await router.push('/teacher/exam-settings');
   else if (intent.action === 'knowledgeBase') await router.push('/teacher/knowledge');
   else if (intent.action === 'anatomy') await router.push({ path: '/student/anatomy', query: intent.target ? { exercise: intent.target } : {} });

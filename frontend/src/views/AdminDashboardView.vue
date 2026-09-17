@@ -127,10 +127,11 @@ async function decideTeacher(userId: string, approved: boolean) {
       <section class="surface-panel admin-agent-panel" data-tour="admin-debug">
         <div class="section-heading"><div><span class="section-kicker">Agent 工作流</span><h2>接口与任务状态</h2></div><Bot :size="20" /></div>
         <ol>
-          <li><span>RouterAgent</span><strong>识别复盘、病例、图谱和后台配置意图</strong></li>
-          <li><span>ReviewAgent</span><strong>聚合训练记录、错题、解剖与图谱路径</strong></li>
-          <li><span>SafetyAgent</span><strong>保持医学教育边界，不输出真实诊断建议</strong></li>
+          <li><span>AnatomyTutor</span><strong>本地有界工具编排</strong></li>
+          <li><span>Skill Registry</span><strong>服务端角色校验与小时额度</strong></li>
+          <li><span>调用审计</span><strong>记录成功、拒绝与失败</strong></li>
         </ol>
+        <router-link class="button-secondary" to="/admin/skills"><SlidersHorizontal :size="16" />Skill 管理</router-link>
       </section>
       <section class="surface-panel admin-safety-panel">
         <div class="section-heading"><div><span class="section-kicker">系统调试</span><h2>安全与合规边界</h2></div><ShieldAlert :size="20" /></div>

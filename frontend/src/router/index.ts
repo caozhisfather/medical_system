@@ -29,6 +29,7 @@ const router = createRouter({
         { path: 'teacher/knowledge', component: () => import('../views/TeacherCaseLibraryView.vue'), meta: { role: 'teacher' } },
         { path: 'teacher/exam-settings', component: () => import('../views/TeacherExamSettingsView.vue'), meta: { role: 'teacher' } },
         { path: 'admin/dashboard', component: () => import('../views/AdminDashboardView.vue'), meta: { role: 'admin' } },
+        { path: 'admin/skills', component: () => import('../views/AdminSkillsView.vue'), meta: { role: 'admin' } },
         { path: 'admin/knowledge', component: () => import('../views/TeacherCaseLibraryView.vue'), meta: { role: 'admin' } },
         { path: 'help', component: () => import('../views/HelpCenterView.vue') },
         { path: 'knowledge-graph', component: () => import('../views/KnowledgeGraphViewV2.vue') }

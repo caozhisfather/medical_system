@@ -124,7 +124,15 @@ export interface AnatomyVideoResource { title: string; url: string; platform: 'b
 export interface AnatomyExercise { id: string; title: string; system?: string; organ?: string; target: string; prompt: string; answer_zone: string; standard_region?: string; explanation: string; clinical_link: string; graph_node_ids?: string[]; substructures?: readonly AnatomySubstructure[]; video_resources?: readonly AnatomyVideoResource[]; }
 export interface AnatomyResult { correct: boolean; score_items: ScoreItem[]; feedback: string; explanation: string; clinical_link: string; }
 export interface AgentResultCard { kind: string; title: string; summary: string; target: string; }
-export interface AgentResponse { intent: string; action: string; target_module?: string | null; target_case_id?: string | null; target_exercise_id?: string | null; reply: string; result_cards: AgentResultCard[]; learning_path: string[]; workflow_trace: WorkflowTrace[]; safety_notes: string[]; }
+export type SkillRole = 'student' | 'teacher' | 'admin';
+export interface SkillQuery { query: string; part_id?: string; }
+export interface SkillPolicy { enabled: boolean; allowed_roles: SkillRole[]; hourly_limit: number; }
+export interface SkillDefinition extends SkillPolicy { id: string; name: string; description: string; source: string; version: string; read_only: boolean; updated_by: string; updated_at: string; }
+export interface SkillCitation { source: string; reference: string; page?: number | null; }
+export interface SkillResult { skill_id: string; status: 'success' | 'empty' | 'disabled' | 'forbidden' | 'rate_limited' | 'error'; message: string; data: Record<string, unknown>; citations: SkillCitation[]; duration_ms: number; call_id: string; }
+export interface SkillCall { id: string; run_id: string; skill_id: string; account: string; role: string; status: string; duration_ms: number; message: string; created_at: string; }
+export interface AgentAction { type: 'highlight_structure' | 'open_graph' | 'open_textbook'; target: string; label: string; }
+export interface AgentResponse { intent: string; action: string; target_module?: string | null; target_case_id?: string | null; target_exercise_id?: string | null; reply: string; result_cards: AgentResultCard[]; learning_path: string[]; workflow_trace: WorkflowTrace[]; safety_notes: string[]; execution_mode?: string; skill_results?: SkillResult[]; citations?: SkillCitation[]; actions?: AgentAction[]; }
 
 export type ExamDifficulty = 'basic' | 'exam' | 'clinical';
 export type ExamGenerationMode = 'prebuild' | 'realtime';

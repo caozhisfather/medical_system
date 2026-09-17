@@ -47,6 +47,17 @@
 - 密码使用 PBKDF2-SHA256 加盐哈希，登录使用服务端随机会话；重置密码会吊销旧会话。
 - 用户、令牌和会话保存在本地 SQLite，默认文件为 `data/auth.sqlite3`，不会提交到 Git。
 
+### 管理员控制的 Skill 与解剖 Agent
+
+- `/admin/skills` 管理三个预置只读能力：`anatomy_search`、`textbook_search`、`graph_query`。
+- 所有 Skill 默认关闭；管理员决定启停、允许角色和每账号每小时额度，配置即时影响后续调用。
+- 解剖导师按输入规划最多三次工具调用，展示实际教材片段、引用、图谱归属关系和调用状态，支持联动模型定位。
+- Agent 身份来自服务端会话，不相信请求中的 `role`；管理员测试也遵守相同权限与额度。
+- 配置与调用记录保存在 `data/skills.sqlite3`，可通过 `SKILL_DATABASE_PATH` 配置位置，不纳入 Git。
+- 当前为本地有界工具编排，不是大模型自主推理；不支持任意脚本、远程插件安装或 AI 修改知识库。
+
+接口与验收说明见 [`docs/SKILL_AGENT_SETUP.md`](docs/SKILL_AGENT_SETUP.md)。
+
 ### 三类角色
 
 | 角色 | 当前主要功能 |
@@ -232,6 +243,7 @@ AUTH_DATABASE_PATH=./data/auth.sqlite3
 | `/teacher/knowledge` | 教师 | 教学知识管理 |
 | `/teacher/exam-settings` | 教师 | 测验参数配置 |
 | `/admin/dashboard` | 管理员 | 管理概览 |
+| `/admin/skills` | 管理员 | Skill 启停、权限、额度、测试与调用记录 |
 | `/admin/knowledge` | 管理员 | 教学知识管理 |
 | `/knowledge-graph` | 已登录 | 医学知识图谱 |
 | `/help` | 已登录 | 帮助中心 |
@@ -248,6 +260,11 @@ AUTH_DATABASE_PATH=./data/auth.sqlite3
 | `POST` | `/api/auth/forgot-password` | 申请密码重置 |
 | `POST` | `/api/auth/reset-password` | 使用一次性令牌重置密码 |
 | `GET` | `/api/auth/me` | 获取当前用户 |
+| `GET` | `/api/admin/skills` | 获取预置 Skill 与生效配置 |
+| `PUT` | `/api/admin/skills/{skill_id}` | 管理员更新 Skill 配置 |
+| `POST` | `/api/admin/skills/{skill_id}/test` | 在当前管理员权限和额度内测试 |
+| `GET` | `/api/admin/skills/calls` | 获取最近调用记录 |
+| `POST` | `/api/agent/chat` | 已登录用户的导航或解剖工具编排 |
 | `POST` | `/api/auth/logout` | 注销当前服务端会话 |
 | `PUT` | `/api/admin/users/{user_id}/teacher-review` | 管理员审核教师账号 |
 | `GET` | `/api/anatomy` | 获取解剖教学数据 |
@@ -303,7 +320,7 @@ pnpm --dir frontend build
 
 当前分支最近一次验证结果：
 
-- 后端测试：`18` 项通过
+- 后端测试：`32` 项通过
 - Vue TypeScript 检查：通过
 - Vite 生产构建：通过
 - Python 编译检查：通过

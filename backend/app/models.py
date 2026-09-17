@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -308,10 +308,44 @@ class CaseValidateRequest(BaseModel):
     case_id: str | None = None
 
 
+class SkillQuery(BaseModel):
+    query: str = Field(..., min_length=1, max_length=200, pattern=r'\S')
+    part_id: str | None = Field(default=None, max_length=80)
+
+
+class SkillPolicyUpdate(BaseModel):
+    enabled: bool
+    allowed_roles: list[Literal['student', 'teacher', 'admin']] = Field(..., max_length=3)
+    hourly_limit: int = Field(default=120, ge=1, le=1000)
+
+
+class SkillCitation(BaseModel):
+    source: str
+    reference: str
+    page: int | None = None
+
+
+class SkillResult(BaseModel):
+    skill_id: str
+    status: Literal['success', 'empty', 'disabled', 'forbidden', 'rate_limited', 'error']
+    message: str
+    data: dict[str, Any] = Field(default_factory=dict)
+    citations: list[SkillCitation] = Field(default_factory=list)
+    duration_ms: int = 0
+    call_id: str = ''
+
+
+class AgentAction(BaseModel):
+    type: Literal['highlight_structure', 'open_graph', 'open_textbook']
+    target: str
+    label: str
+
+
 class AgentChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=1200)
     role: str = "student"
     active_module: str = "training"
+    context: SkillQuery | None = None
 
 
 class AgentChatResponse(BaseModel):
@@ -325,6 +359,10 @@ class AgentChatResponse(BaseModel):
     learning_path: list[str] = Field(default_factory=list)
     workflow_trace: list[WorkflowStep] = Field(default_factory=list)
     safety_notes: list[str] = Field(default_factory=list)
+    execution_mode: str = 'legacy_rules'
+    skill_results: list[SkillResult] = Field(default_factory=list)
+    citations: list[SkillCitation] = Field(default_factory=list)
+    actions: list[AgentAction] = Field(default_factory=list)
 
 
 class AnatomySubmitRequest(BaseModel):

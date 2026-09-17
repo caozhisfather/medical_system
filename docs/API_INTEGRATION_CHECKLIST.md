@@ -9,7 +9,7 @@
 | SMTP 邮件 | 注册验证、重发验证、找回密码 | `MAIL_HOST`、`MAIL_PORT`、`MAIL_USERNAME`、`MAIL_PASSWORD`、`PUBLIC_FRONTEND_URL` | 演示账号可登录；新注册账号无法收到验证与重置邮件 | P0 |
 | 大语言模型（OpenAI 兼容） | 实时出题、虚拟病人对话 | `OPENAI_API_KEY`、`OPENAI_BASE_URL`、`OPENAI_MODEL` | 解剖测验使用本地题库；虚拟病人使用规则兜底 | P0 |
 | Embedding 向量化 | 教材检索、教学知识入库、RAG 召回 | `EMBEDDING_API_KEY`、`EMBEDDING_BASE_URL`、`EMBEDDING_MODEL` | 使用已有本地索引；新增资料无法获得线上向量 | P0 |
-| AnatomyAgent 生成式讲解 | `POST /api/agent/chat` 的 `anatomy_lab` 分支 | 需要在 `resolve_agent` 中接入所选 LLM，并复用上方 OpenAI 兼容配置 | 当前是本地教材检索 + 规则模板，稳定但不是生成式回答 | P1 |
+| 解剖 Agent 的可选 LLM 增强 | `POST /api/agent/chat` 的 `anatomy_lab` 分支，由 `AnatomyTutor` 处理 | 当前无需 LLM API；后续生成式讲解或工具选择需新增受控适配器，可复用 OpenAI 兼容配置 | 当前为本地有界 Skill 编排，最多调用三个管理员批准的只读工具，返回教材依据和实际调用状态 | P2 |
 | TTS 语音合成 | 数字人和讲解语音 | 需要实现具体供应商适配器，再配置 `TTS_PROVIDER`、供应商密钥和 `TTS_VOICE` | `/api/tts/speak` 仅返回模拟状态，不返回音频 | P1 |
 
 ## 二、增强能力
@@ -34,11 +34,13 @@
 | 解剖图谱维护 | 启动时由 `atlas.json`、`organs.json` 和术语表构建 | 图谱数据库或后台编辑 API、版本管理、教师审核 |
 | 考试题库 | 本地运行时缓存 | 持久化题库、考试发布、作答记录、防重复提交 |
 | 审计日志 | 本地 JSONL | 集中式审计存储、访问控制与留存策略 |
+| Skill 配置与调用记录 | 本地 SQLite，服务端会话鉴权、角色授权、每账号小时额度 | 共享生产存储、请求限流、记录留存策略、配置并发版本控制 |
 
 ## 四、当前不需要申请 API 的资源
 
 - BodyParts3D 三维模型作为本地静态资源加载，不需要远程 API。
 - 本地《系统解剖学》索引和术语表不需要远程 API。
+- `anatomy_search`、`textbook_search`、`graph_query` 是本地预置 Skill，首次启动默认关闭，由管理员在 `/admin/skills` 启用并授权；不依赖外部 LLM 工具选择，教材语义检索可能沿用现有 Embedding 服务。详见 [Skill 与解剖导师](SKILL_AGENT_SETUP.md)。
 - Wikimedia/OpenStax/B 站资源目前使用公开链接，不需要 API Key，但正式发布前必须继续做版权、可用性和内容审核。
 
 ## 五、最小配置示例
