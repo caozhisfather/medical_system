@@ -739,6 +739,7 @@ p { color: var(--muted); line-height: 1.68; }
 .kg-node.selected circle, .kg-node:focus-visible circle { stroke: #123f45; stroke-width: 3; }
 .kg-node text { pointer-events: none; fill: #f5ffff; font-size: 12px; font-weight: 800; }
 .node-Disease { fill: #287da0; background: #287da0; }.node-Symptom { fill: #11a092; background: #11a092; }.node-Exam { fill: #8a77b7; background: #8a77b7; }.node-Anatomy { fill: #cf7d4a; background: #cf7d4a; }.node-Case { fill: #b15562; background: #b15562; }.node-Guideline { fill: #6d9256; background: #6d9256; }.node-LearningObjective { fill: #c19743; background: #c19743; }.node-Treatment { fill: #3a8a73; background: #3a8a73; }
+.node-AnatomyRoot { fill: #185b5b; background: #185b5b; }.node-AnatomySystem { fill: #287da0; background: #287da0; }.node-AnatomyOrgan { fill: #cf7d4a; background: #cf7d4a; }.node-AnatomyStructure { fill: #6d9256; background: #6d9256; }
 .graph-legend { position: absolute; z-index: 2; top: 14px; left: 14px; display: flex; flex-wrap: wrap; gap: 7px; max-width: 70%; padding: 9px; border: 1px solid var(--line); border-radius: 7px; background: rgba(255,255,255,.86); backdrop-filter: blur(12px); box-shadow: 0 8px 22px rgba(22,59,68,.07); }
 .graph-legend span { display: flex; align-items: center; gap: 4px; color: #506d73; font-size: 11px; }
 .graph-legend i { width: 7px; height: 7px; border-radius: 50%; }
@@ -2762,6 +2763,8 @@ p { color: var(--muted); line-height: 1.68; }
 }
 
 .textbook-modal { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(10, 28, 33, 0.55); }
+.anatomy-body-workbench:fullscreen > .textbook-modal,
+.anatomy-body-workbench:-webkit-full-screen > .textbook-modal { z-index: 1000; width: 100%; height: 100%; }
 .textbook-modal-card { width: min(860px, 100%); max-height: calc(100vh - 48px); display: flex; flex-direction: column; overflow: hidden; border-radius: 12px; background: #fff; box-shadow: 0 24px 70px rgba(8, 28, 33, 0.34); }
 .textbook-modal-card header { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 16px 20px; border-bottom: 1px solid #e1e9ea; }
 .textbook-modal-card header > div:first-child { display: flex; align-items: center; gap: 11px; }

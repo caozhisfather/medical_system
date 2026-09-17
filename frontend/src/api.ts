@@ -125,9 +125,9 @@ export function importCaseLibrary(sourceDir?: string) { return postJson<CaseLibr
 export function compileCaseLibraryEntries(payload: { entry_ids: string[]; title?: string; department?: string; learning_goal?: string; suspected_diagnosis?: string; difficulty?: string; publish_immediately?: boolean }) { return postJson<TeacherCaseDraft>('/api/teacher/case-library/compile', payload); }
 export function getHistoryTakingTemplate(q: string) { return readJson<HistoryTakingTemplate>(`/api/teacher/history-taking?q=${encodeURIComponent(q)}`); }
 export function getTrainingReport(caseId = 'emergency_chest_pain') { return readJson<TrainingReport>(`/api/training/report?case_id=${encodeURIComponent(caseId)}`); }
-export function getKnowledgeGraph(lang = 'zh') { return readJson<{ nodes: KnowledgeNode[]; edges: KnowledgeEdge[] }>(`/api/graph?lang=${encodeURIComponent(lang)}`); }
+export function getKnowledgeGraph(lang = 'zh', scope: 'anatomy' | 'clinical' = 'anatomy') { return readJson<{ nodes: KnowledgeNode[]; edges: KnowledgeEdge[] }>(`/api/graph?lang=${encodeURIComponent(lang)}&scope=${scope}`); }
 export function getDataSources() { return readJson<DataSourceItem[]>('/api/data-sources'); }
-export function searchGraph(q: string, lang = 'zh') { return readJson<{ query: string; nodes: KnowledgeNode[]; edges: KnowledgeEdge[]; learning_path: string[] }>(`/api/graph/search?q=${encodeURIComponent(q)}&lang=${encodeURIComponent(lang)}`); }
+export function searchGraph(q: string, lang = 'zh', scope: 'anatomy' | 'clinical' = 'anatomy') { return readJson<{ query: string; nodes: KnowledgeNode[]; edges: KnowledgeEdge[]; learning_path: string[] }>(`/api/graph/search?q=${encodeURIComponent(q)}&lang=${encodeURIComponent(lang)}&scope=${scope}`); }
 export function getAnatomyExercises() { return readJson<AnatomyExercise[]>('/api/anatomy'); }
 export function submitAnatomy(exerciseId: string, selectedZone: string) { return postJson<AnatomyResult>('/api/anatomy/submit', { exercise_id: exerciseId, selected_zone: selectedZone }); }
 export function getAnatomyTextbook(q: string) { return readJson<AnatomyTextbookResult>(`/api/anatomy/textbook?q=${encodeURIComponent(q)}`); }

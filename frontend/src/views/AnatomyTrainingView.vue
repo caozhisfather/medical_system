@@ -719,10 +719,11 @@ onBeforeUnmount(() => {
       </aside>
     </section>
 
-    <div v-if="showTextbook" class="textbook-modal" role="dialog" aria-modal="true" aria-label="教材详解">
+    <Teleport :to="isBodyFullscreen && bodyWorkbench ? bodyWorkbench : 'body'">
+    <div v-if="showTextbook" class="textbook-modal" role="dialog" aria-modal="true" aria-label="教材详解" @click.self="showTextbook = false">
       <div class="textbook-modal-card">
         <header>
-          <div><span><BookOpenCheck :size="20" /></span><div><strong>{{ atlasStructure?.name }} · 教材详解</strong><small>基于《系统解剖学》（第10版）本地索引检索</small></div></div>
+          <div><span><BookOpenCheck :size="20" /></span><div><strong>{{ textbook?.query || bodyDisplayName || atlasStructure?.name || '解剖结构' }} · 教材详解</strong><small>基于《系统解剖学》（第10版）本地索引检索</small></div></div>
           <button class="icon-button" type="button" title="关闭" aria-label="关闭教材详解" @click="showTextbook = false"><X :size="18" /></button>
         </header>
         <div class="textbook-modal-body">
@@ -736,5 +737,6 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </div>
+    </Teleport>
   </div>
 </template>

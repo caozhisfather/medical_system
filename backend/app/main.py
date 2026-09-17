@@ -21,7 +21,7 @@ from .config import ROOT_DIR, settings
 from .data_sources import load_admin_users, load_data_sources, load_textbook_pathways
 from .flask_app import create_flask_app
 from .hybrid_retrieval_service import HybridRetrievalService
-from .knowledge_graph_service import KnowledgeGraphService
+from .knowledge_graph_service import AnatomyKnowledgeGraphService, KnowledgeGraphService
 from .obsidian_export_service import ObsidianGraphExportService
 from .models import (
     AgentChatRequest, AgentChatResponse, AnatomySubmitRequest, AnatomySubmitResponse, AuthLoginRequest, AuthLoginResponse, AuthUser, CaseSummary, ChatMessage,
@@ -60,6 +60,7 @@ app.include_router(sparkos_router)
 rag_pipeline = RagPipeline(settings.rag_provider)
 hybrid_service = HybridRetrievalService()
 graph_service = KnowledgeGraphService()
+anatomy_graph_service = AnatomyKnowledgeGraphService()
 obsidian_service = ObsidianGraphExportService()
 case_repository = CaseRepository()
 case_citation_service = CaseCitationService(
@@ -1069,8 +1070,8 @@ def history_taking_template(q: str = "", authorization: str | None = Header(defa
 
 @app.get("/api/knowledge-graph")
 @app.get("/api/graph")
-def knowledge_graph(lang: str = "zh") -> dict[str, Any]:
-    graph = read_json("medical_kg_bilingual.json")
+def knowledge_graph(lang: str = "zh", scope: str = "clinical") -> dict[str, Any]:
+    graph = anatomy_graph_service.graph if scope == "anatomy" else read_json("medical_kg_bilingual.json")
     nodes = []
     for node in graph["nodes"]:
         node_group = node.get("group") or node.get("type")
@@ -1081,11 +1082,12 @@ def knowledge_graph(lang: str = "zh") -> dict[str, Any]:
 
 
 @app.get("/api/graph/search")
-def graph_search(q: str = "", query: str = "", node_type: str = "", lang: str = "zh") -> dict[str, Any]:
+def graph_search(q: str = "", query: str = "", node_type: str = "", lang: str = "zh", scope: str = "clinical") -> dict[str, Any]:
     search_text = query or q
-    nodes = graph_service.search_nodes(search_text, node_type=node_type, lang=lang)
-    neighborhood = graph_service.get_neighbors(nodes[0]["id"], depth=2, lang=lang) if nodes else {"nodes": [], "edges": []}
-    return {"query": search_text, "nodes": nodes[:16], "edges": neighborhood["edges"][:32], "neighbors": neighborhood["nodes"][:24], "learning_path": graph_service.build_learning_path(search_text, lang=lang)}
+    service = anatomy_graph_service if scope == "anatomy" else graph_service
+    nodes = service.search_nodes(search_text, node_type=node_type, lang=lang)
+    neighborhood = service.get_neighbors(nodes[0]["id"], depth=2, lang=lang) if nodes else {"nodes": [], "edges": []}
+    return {"query": search_text, "nodes": nodes[:16], "edges": neighborhood["edges"][:64], "neighbors": neighborhood["nodes"][:48], "learning_path": service.build_learning_path(search_text, lang=lang)}
 
 
 @app.get("/api/workflow")
@@ -1153,11 +1155,16 @@ def admin_knowledge_status(authorization: str | None = Header(default=None)) -> 
 @app.get("/api/admin/graph-status")
 def admin_graph_status(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     require_role(authorization, {"admin", "super_admin"})
-    graph = read_json("medical_kg_bilingual.json")
+    graph = anatomy_graph_service.graph
     node_types: dict[str, int] = {}
     for node in graph["nodes"]:
         node_types[node.get("type", node.get("group", "Unknown"))] = node_types.get(node.get("type", node.get("group", "Unknown")), 0) + 1
-    return {"nodes": len(graph["nodes"]), "edges": len(graph["edges"]), "node_types": node_types, "obsidian_ready": True, "neo4j_status": "env_placeholder"}
+    clinical_graph = read_json("medical_kg_bilingual.json")
+    return {
+        "nodes": len(graph["nodes"]), "edges": len(graph["edges"]), "node_types": node_types,
+        "scope": "anatomy", "clinical_archive": {"nodes": len(clinical_graph["nodes"]), "edges": len(clinical_graph["edges"])},
+        "obsidian_ready": True, "neo4j_status": "env_placeholder",
+    }
 
 
 @app.post("/api/admin/obsidian/export")

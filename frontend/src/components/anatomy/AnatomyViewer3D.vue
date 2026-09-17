@@ -39,7 +39,7 @@ const note = ref('正在载入三维解剖模型');
 const failed = ref('');
 const layers = shallowRef<SystemLayer[]>([]);
 
-const HIGHLIGHT = new THREE.Color('#f2a33b');
+const HIGHLIGHT = new THREE.Color('#ffbf1f');
 
 // Painter order: deep structures first, surface vessels last.
 const DRAW_ORDER = [
@@ -218,10 +218,10 @@ function ensureOrganMesh(partIds: string[]): SystemLayer | null {
 }
 
 function paintLayer(layer: SystemLayer, selectedId: string) {
-  const base = new THREE.Color(system3DColor(layer.id));
   const colors = layer.colorAttribute.array as Float32Array;
 
   for (const range of layer.ranges) {
+    const base = new THREE.Color(system3DColor(range.system));
     const color = range.id === selectedId ? HIGHLIGHT : base;
     for (let index = 0; index < range.vertexCount; index += 1) {
       const offset = (range.vertexStart + index) * 3;
@@ -237,6 +237,7 @@ function paintLayer(layer: SystemLayer, selectedId: string) {
 
 function repaintSelection(selectedId: string) {
   for (const layer of layers.value) paintLayer(layer, selectedId);
+  if (activeOrgan) paintLayer(activeOrgan, selectedId);
 }
 
 function rangeAt(layer: SystemLayer, faceIndex: number): PartRange | undefined {
@@ -381,6 +382,7 @@ async function syncOrgan() {
   activeOrgan = organ;
   if (!organ.mesh.parent) active.add(organ.mesh);
   applyVisibility();
+  repaintSelection(props.selectedId);
 }
 
 function pick(event: PointerEvent) {

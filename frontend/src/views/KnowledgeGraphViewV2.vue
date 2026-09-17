@@ -34,8 +34,7 @@ const VIEWBOX_WIDTH = 920;
 const VIEWBOX_HEIGHT = 620;
 const MAX_VISIBLE_NODES = 46;
 const MAX_ANCHOR_NODES = 14;
-const OVERVIEW_ROOT_ID = '__clinical_knowledge_overview__';
-const STAGE_IDS = ['basic_medicine', 'bridge_courses', 'clinical_core', 'specialty_extension', 'practice_ability'];
+const OVERVIEW_ROOT_ID = 'anatomy_root';
 const route = useRoute();
 const query = ref(String(route.query.q || ''));
 const type = ref(String(route.query.type || '全部类型'));
@@ -61,29 +60,25 @@ let previousFrame = 0;
 let intersectionObserver: IntersectionObserver | null = null;
 
 const typeLabels: Record<string, string> = {
-  Disease: '疾病',
-  Symptom: '症状',
-  Exam: '检查',
-  Anatomy: '解剖',
-  Case: '病例',
-  Guideline: '指南',
-  LearningObjective: '学习目标',
-  Treatment: '处理原则',
-  Department: '学科',
-  Drug: '药物',
-  Imaging: '影像检查',
-  LabTest: '实验室检查'
-};
-
-const overviewRoot: KnowledgeNode = {
-  id: OVERVIEW_ROOT_ID,
-  label: '临床医学知识体系',
-  label_zh: '临床医学知识体系',
-  group: 'LearningObjective',
-  type: 'LearningObjective',
-  description_zh: '从基础医学、桥梁课程、临床核心、专科拓展到实践能力的医学学习网络。'
+  AnatomyRoot: '人体解剖',
+  AnatomySystem: '人体系统',
+  AnatomyOrgan: '器官',
+  AnatomyStructure: '精细结构'
 };
 const sourceFallbacks: Record<string, DataSourceItem> = {
+  bodyparts3d: {
+    id: 'bodyparts3d',
+    name: 'BodyParts3D 4.0',
+    platform: 'BodyParts3D',
+    type: '三维人体解剖模型',
+    modules: ['三维人体', '解剖知识图谱'],
+    license: 'CC BY 4.0，使用时保留来源与署名。',
+    connected: true,
+    index_status: 'local_ready',
+    sync_status: 'bundled',
+    url: 'https://lifesciencedb.jp/bp3d/',
+    mapping: { system: 'anatomy_system', organ: 'curated_organ', structure: 'FMA_part' }
+  },
   pmph_undergraduate_textbooks: {
     id: 'pmph_undergraduate_textbooks',
     name: '人民卫生出版社本科临床医学规划教材体系',
@@ -162,10 +157,8 @@ const sourceNodes = computed<KnowledgeNode[]>(() => {
   }
 
   if (!keyword && type.value === '全部类型') {
-    const featuredLabels = new Set(['急诊胸痛', '急性腹痛', '发热待查', '呼吸困难', '糖尿病健康宣教']);
-    const featuredCases = nodes.value.filter((node) => nodeGroup(node) === 'Case' && featuredLabels.has(label(node)));
-    const fallbackCases = rankNodes(nodes.value.filter((node) => nodeGroup(node) === 'Case')).slice(0, 5);
-    return expandNeighborhood(featuredCases.length ? featuredCases : fallbackCases, 2);
+    const root = nodes.value.find((node) => node.id === OVERVIEW_ROOT_ID);
+    return root ? expandNeighborhood([root], 1) : nodes.value.slice(0, MAX_VISIBLE_NODES);
   }
 
   const directMatches = nodes.value.filter((node) => {
@@ -187,12 +180,6 @@ const sourceNodes = computed<KnowledgeNode[]>(() => {
 const sourceEdges = computed<KnowledgeEdge[]>(() => {
   const ids = new Set(sourceNodes.value.map((node) => node.id));
   const visible = edges.value.filter((edge) => ids.has(edge.source) && ids.has(edge.target));
-  if (ids.has(OVERVIEW_ROOT_ID)) {
-    const overviewEdges: KnowledgeEdge[] = STAGE_IDS
-      .filter((id) => ids.has(id))
-      .map((id) => ({ source: OVERVIEW_ROOT_ID, target: id, relation: 'learning_stage', relation_zh: '学习阶段' }));
-    return [...overviewEdges, ...visible].slice(0, 110);
-  }
   return visible.slice(0, 110);
 });
 
@@ -217,7 +204,7 @@ const graphStatus = computed(() => `${graphMode.value === 'mindmap' ? '层级脑
 onMounted(async () => {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) isMotionPaused.value = true;
   try {
-    const graph = await getKnowledgeGraph('zh');
+    const graph = await getKnowledgeGraph('zh', 'anatomy');
     nodes.value = graph.nodes;
     edges.value = graph.edges;
   } catch {
@@ -556,9 +543,9 @@ function endDrag() {
   <div class="workspace-page graph-page">
     <section class="page-title-row">
       <div>
-        <span class="section-kicker">RAG 与可追溯证据网络</span>
-        <h1>指南知识图谱</h1>
-        <p>连接症状、疾病、检查、病例、指南与学习目标，辅助医学教育检索。</p>
+        <span class="section-kicker">系统 · 器官 · 精细结构</span>
+        <h1>人体解剖知识图谱</h1>
+        <p>从人体系统进入器官和精细结构，建立与三维模型一致的解剖学习路径。</p>
       </div>
       <div class="graph-stat">
         <Network :size="19" />
@@ -569,7 +556,7 @@ function endDrag() {
     <section class="graph-toolbar">
       <label class="search-control">
         <Search :size="17" />
-        <input v-model="query" placeholder="检索症状、疾病、检查或教材" @keydown.enter="retrieveEvidence" />
+        <input v-model="query" placeholder="检索人体系统、器官或精细结构" @keydown.enter="retrieveEvidence" />
       </label>
       <select v-model="type" aria-label="筛选知识类型">
         <option value="全部类型">全部类型</option>
@@ -655,7 +642,7 @@ function endDrag() {
       <aside class="graph-detail">
         <span class="section-kicker">{{ groupLabel(selected) }}</span>
         <h2>{{ label(selected) }}</h2>
-        <p>{{ selected?.description_zh || selected?.summary || '该节点用于连接解剖结构、教材知识与临床指南。' }}</p>
+        <p>{{ selected?.description_zh || selected?.summary || '该节点用于连接人体系统、器官与精细结构。' }}</p>
         <div class="graph-focus-actions">
           <button class="graph-focus-button" type="button" @click="focusSelected">
             <LocateFixed :size="16" />展开两跳关系
@@ -683,11 +670,11 @@ function endDrag() {
           <span><small>{{ edge.relation_zh || edge.relation }}</small><strong>{{ label(relatedNode(edge)) }}</strong><em v-if="edge.evidence_source">依据：{{ sourceName(edge.evidence_source) }}</em></span>
           <ChevronRight :size="16" />
         </button>
-        <h3>推荐学习路径</h3>
+        <h3>推荐观察顺序</h3>
         <ol>
-          <li><span>1</span>症状表征与关键问诊</li>
-          <li><span>2</span>致命性鉴别诊断</li>
-          <li><span>3</span>检查证据与指南依据</li>
+          <li><span>1</span>确认所属人体系统</li>
+          <li><span>2</span>观察器官位置与毗邻</li>
+          <li><span>3</span>下钻精细结构与教材依据</li>
         </ol>
       </aside>
     </div>
@@ -704,4 +691,3 @@ function endDrag() {
     </section>
   </div>
 </template>
-

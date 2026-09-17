@@ -35,7 +35,8 @@
 
 - 支持教学资料的新增、编辑、删除、上传、处理和向量化任务。
 - 内置 `85` 条教学知识数据。
-- 当前知识图谱包含 `662` 个节点和 `1,612` 条边，支持搜索与交互浏览。
+- 兼容保留的临床综合图谱包含 `662` 个节点和 `1,612` 条边，可供后续扩展临床检索。
+- 面向当前解剖主线的图谱包含 `736` 个节点和 `1,011` 条关系，按人体解剖、系统、器官、精细结构四层组织；原临床综合图谱作为兼容数据保留。
 - 后端保留 ChromaDB、Milvus 和混合 RAG 的配置入口，便于扩展检索增强问答。
 
 ### 三类角色
@@ -224,7 +225,7 @@ MILVUS_PORT=19530
 | `GET` | `/api/knowledge-graph` | 获取知识图谱 |
 | `GET` | `/api/graph/search` | 搜索图谱节点 |
 
-完整接口以 `backend/app/main.py` 和 FastAPI 自动文档为准：启动后访问 `http://127.0.0.1:8000/docs`。
+完整接口以 `backend/app/main.py` 和 FastAPI 自动文档为准：启动后访问 `http://127.0.0.1:8000/docs`。需要配置外部服务时，按 [`docs/API_INTEGRATION_CHECKLIST.md`](docs/API_INTEGRATION_CHECKLIST.md) 逐项检查。
 
 ## 测验安全流程
 
@@ -264,7 +265,7 @@ pnpm --dir frontend build
 
 当前分支最近一次验证结果：
 
-- 后端测试：`5` 项通过
+- 后端测试：`8` 项通过
 - Vue TypeScript 检查：通过
 - Vite 生产构建：通过
 - Python 编译检查：`66` 个文件通过
