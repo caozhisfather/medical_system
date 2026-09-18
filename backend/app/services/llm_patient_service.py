@@ -25,7 +25,7 @@ class LlmPatientService:
     """OpenAI-compatible patient dialogue adapter with safe local fallback."""
 
     def configured(self) -> bool:
-        return bool(settings.openai_api_key and settings.openai_base_url and settings.openai_model)
+        return not settings.demo_mode and bool(settings.openai_api_key and settings.openai_base_url and settings.openai_model)
 
     def answer(self, case: dict[str, Any], message: str, history: list[dict[str, Any]]) -> dict[str, Any] | None:
         if not self.configured():

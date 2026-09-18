@@ -395,7 +395,45 @@ def resolve_agent(message: str, role: str, active_module: str) -> AgentChatRespo
 
 @app.get("/api/health")
 def health() -> dict:
-    return {"status": "ok", "app": settings.app_name, "environment": settings.environment, "rag_provider": settings.rag_provider, "vector_stores": {"chroma_db_path": settings.chroma_db_path, "milvus_uri": settings.milvus_uri}, "tts_provider": settings.tts_provider, "active_training_sessions": len(training_sessions), "persistence": {"training_sessions": TRAINING_SESSION_FILE.exists(), "teacher_workbench": TEACHER_CASE_STATE_FILE.exists(), "audit_log": AUDIT_LOG_FILE.exists()}, "auth": {"database": True, "mail_configured": mail_service.configured}, "ai": {"llm_configured": bool(settings.openai_api_key), "llm_model": settings.openai_model, "sparkos_configured": bool(settings.sparkos_app_id and settings.sparkos_api_key and settings.sparkos_api_secret)}}
+    required_data = {
+        "anatomy": DATA_DIR / "anatomy.json",
+        "anatomy_glossary": DATA_DIR / "anatomy_term_glossary.json",
+        "anatomy_textbook": DATA_DIR / "anatomy_textbook.json",
+        "anatomy_graph": DATA_DIR / "anatomy_asset_graph.json",
+        "exam_settings": DATA_DIR / "exam_settings.json",
+        "atlas_manifest": ROOT_DIR / "frontend" / "public" / "anatomy" / "atlas.json",
+        "organs_manifest": ROOT_DIR / "frontend" / "public" / "anatomy" / "organs.json",
+    }
+    data_status = {
+        name: {"exists": path.exists(), "bytes": path.stat().st_size if path.exists() else 0}
+        for name, path in required_data.items()
+    }
+    ready = all(item["exists"] and item["bytes"] > 0 for item in data_status.values())
+    return {
+        "status": "ok",
+        "readiness": "ready" if ready else "degraded",
+        "app": settings.app_name,
+        "environment": settings.environment,
+        "demo_mode": settings.demo_mode,
+        "backend_reload": settings.backend_reload,
+        "rag_provider": settings.rag_provider,
+        "vector_stores": {"chroma_db_path": settings.chroma_db_path, "milvus_uri": settings.milvus_uri},
+        "tts_provider": settings.tts_provider,
+        "active_training_sessions": len(training_sessions),
+        "persistence": {
+            "training_sessions": TRAINING_SESSION_FILE.exists(),
+            "teacher_workbench": TEACHER_CASE_STATE_FILE.exists(),
+            "audit_log": AUDIT_LOG_FILE.exists(),
+        },
+        "data": data_status,
+        "auth": {"database": True, "mail_configured": mail_service.configured},
+        "ai": {
+            "llm_configured": not settings.demo_mode and bool(settings.openai_api_key),
+            "llm_model": settings.openai_model,
+            "sparkos_configured": bool(settings.sparkos_app_id and settings.sparkos_api_key and settings.sparkos_api_secret),
+            "external_calls_disabled": settings.demo_mode,
+        },
+    }
 
 
 @app.get("/api/site/overview")
@@ -1428,7 +1466,7 @@ def tts_speak(payload: TTSRequest) -> TTSResponse:
 
 
 if __name__ == "__main__":
-    uvicorn.run("backend.app.main:app", host=settings.backend_host, port=settings.backend_port, reload=True)
+    uvicorn.run("backend.app.main:app", host=settings.backend_host, port=settings.backend_port, reload=settings.backend_reload)
 
 
 

@@ -16,10 +16,16 @@ def env_value(name: str, default: str) -> str:
     return value if value not in (None, "") else default
 
 
+def env_bool(name: str, default: str = "false") -> bool:
+    return env_value(name, default).strip().lower() in {"1", "true", "yes", "on"}
+
+
 @dataclass(frozen=True)
 class Settings:
     app_name: str = "AI标准化病人临床思维训练平台"
     environment: str = env_value("FASTAPI_ENV", env_value("ENVIRONMENT", "development"))
+    demo_mode: bool = env_bool("DEMO_MODE")
+    backend_reload: bool = env_bool("BACKEND_RELOAD")
     backend_host: str = env_value("BACKEND_HOST", "127.0.0.1")
     backend_port: int = int(env_value("BACKEND_PORT", "8000"))
     frontend_origin: str = env_value("FRONTEND_ORIGIN", "http://127.0.0.1:5173")

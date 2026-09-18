@@ -153,6 +153,7 @@ data/skills.sqlite3-journal
 data/skills.sqlite3-wal
 data/skills.sqlite3-shm
 data/exam_questions.json
+runtime/
 
 # ActiveMQ
 activemq-data/

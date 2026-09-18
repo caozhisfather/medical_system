@@ -103,7 +103,7 @@ class AnatomyTermService:
         return seen
 
     def configured(self) -> bool:
-        return bool(settings.openai_api_key and settings.openai_base_url and settings.openai_model)
+        return not settings.demo_mode and bool(settings.openai_api_key and settings.openai_base_url and settings.openai_model)
 
     def translate(self, names: list[str]) -> dict[str, str]:
         if not names or not self.configured():

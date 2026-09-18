@@ -56,7 +56,7 @@ def _extract_json(text: str) -> dict[str, Any] | None:
 
 
 def _chat(messages: list[dict[str, str]], max_tokens: int = 8000) -> str | None:
-    if not (settings.openai_api_key and settings.openai_base_url and settings.openai_model):
+    if settings.demo_mode or not (settings.openai_api_key and settings.openai_base_url and settings.openai_model):
         return None
     body = json.dumps(
         {
@@ -120,7 +120,7 @@ class ExamQuizService:
         temporary.replace(QUESTION_CACHE_FILE)
 
     def configured(self) -> bool:
-        return bool(settings.openai_api_key and settings.openai_base_url and settings.openai_model)
+        return not settings.demo_mode and bool(settings.openai_api_key and settings.openai_base_url and settings.openai_model)
 
     def _enabled_types(self, config: dict[str, Any]) -> list[tuple[str, int]]:
         types = config.get("question_types", {})

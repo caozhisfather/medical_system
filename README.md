@@ -161,6 +161,29 @@ pnpm --dir frontend dev
 
 浏览器访问：`http://127.0.0.1:5173`
 
+### 4. 比赛演示模式
+
+比赛现场建议使用仓库内的稳定运行脚本。它会固定使用 `pytorch_env`、本地教材与图谱、模拟 TTS，并关闭后端热重载，避免外部 API 或文件变化影响主流程：
+
+```powershell
+.\scripts\start-project.ps1
+.\scripts\verify-project.ps1
+```
+
+停止服务：
+
+```powershell
+.\scripts\stop-project.ps1
+```
+
+重置本地演示数据前，先停止服务；脚本会把认证、Skill、测验和训练运行数据备份到 `runtime/backups/`：
+
+```powershell
+.\scripts\reset-demo-data.ps1
+```
+
+完整的比赛现场检查表见 [`docs/COMPETITION_STABILITY.md`](docs/COMPETITION_STABILITY.md)。
+
 如后端不在默认地址，可在启动前设置：
 
 ```powershell
@@ -320,7 +343,7 @@ pnpm --dir frontend build
 
 当前分支最近一次验证结果：
 
-- 后端测试：`32` 项通过
+- 后端测试：`33` 项通过
 - Vue TypeScript 检查：通过
 - Vite 生产构建：通过
 - Python 编译检查：通过
