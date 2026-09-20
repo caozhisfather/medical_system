@@ -52,6 +52,13 @@
 - `/admin/skills` 管理三个预置只读能力：`anatomy_search`、`textbook_search`、`graph_query`。
 - 所有 Skill 默认关闭；管理员决定启停、允许角色和每账号每小时额度，配置即时影响后续调用。
 - 解剖导师按输入规划最多三次工具调用，展示实际教材片段、引用、图谱归属关系和调用状态，支持联动模型定位。
+
+### 教材证据、页码定位与逐页笔记
+
+- 教材优先：检索管理员上传资料中的逐页 OCR，优先返回最相似教材页，显示文档名、页码、行号、相似度和原文行高亮。
+- 模型补充：只有教材未覆盖或一笔带过时才允许模型补充，并在回答中明确区分“教材依据”和“模型补充说明（非教材原文）”。
+- 教材页阅读：教材弹窗直接渲染原始 PDF 页图，支持全屏三维解剖时打开，不因 Fullscreen API 的渲染子树而消失。
+- 学生笔记：笔记按“文档 + 页码”分别保存到当前账号，输入后自动保存，不覆盖其它证据页的笔记。
 - Agent 身份来自服务端会话，不相信请求中的 `role`；管理员测试也遵守相同权限与额度。
 - 配置与调用记录保存在 `data/skills.sqlite3`，可通过 `SKILL_DATABASE_PATH` 配置位置，不纳入 Git。
 - 当前为本地有界工具编排，不是大模型自主推理；不支持任意脚本、远程插件安装或 AI 修改知识库。
@@ -206,6 +213,8 @@ Copy-Item .env.example env/.env
 OPENAI_API_KEY=
 OPENAI_BASE_URL=https://api.openai.com
 OPENAI_MODEL=gpt-4.1
+OPENAI_ANSWER_MODEL=
+OPENAI_MAX_TOKENS=2800
 
 EMBEDDING_API_KEY=
 EMBEDDING_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode
@@ -292,6 +301,11 @@ AUTH_DATABASE_PATH=./data/auth.sqlite3
 | `PUT` | `/api/admin/users/{user_id}/teacher-review` | 管理员审核教师账号 |
 | `GET` | `/api/anatomy` | 获取解剖教学数据 |
 | `GET` | `/api/anatomy/glossary` | 获取解剖术语表 |
+| `GET` | `/api/anatomy/evidence` | 检索逐页教材证据并可选生成教材优先讲解 |
+| `GET` | `/api/anatomy/textbook/page` | 获取指定教材页 PNG |
+| `GET` | `/api/anatomy/notes` | 获取当前账号的逐页笔记 |
+| `PUT` | `/api/anatomy/notes` | 新建或更新当前账号的逐页笔记 |
+| `DELETE` | `/api/anatomy/notes/{note_id}` | 删除当前账号的逐页笔记 |
 | `POST` | `/api/anatomy/submit` | 提交解剖训练结果 |
 | `GET` | `/api/exam/settings` | 获取考试配置 |
 | `PUT` | `/api/exam/settings` | 更新考试配置 |

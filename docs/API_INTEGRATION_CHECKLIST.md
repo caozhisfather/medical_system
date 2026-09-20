@@ -7,7 +7,7 @@
 | 能力 | 当前调用位置 | 需要配置 | 未接入时表现 | 建议优先级 |
 | --- | --- | --- | --- | --- |
 | SMTP 邮件 | 注册验证、重发验证、找回密码 | `MAIL_HOST`、`MAIL_PORT`、`MAIL_USERNAME`、`MAIL_PASSWORD`、`PUBLIC_FRONTEND_URL` | 演示账号可登录；新注册账号无法收到验证与重置邮件 | P0 |
-| 大语言模型（OpenAI 兼容） | 实时出题、虚拟病人对话 | `OPENAI_API_KEY`、`OPENAI_BASE_URL`、`OPENAI_MODEL` | 解剖测验使用本地题库；虚拟病人使用规则兜底 | P0 |
+| 大语言模型（OpenAI 兼容） | 实时出题、虚拟病人对话、教材证据组织讲解 | `OPENAI_API_KEY`、`OPENAI_BASE_URL`、`OPENAI_MODEL`、`OPENAI_ANSWER_MODEL`、`OPENAI_MAX_TOKENS` | 解剖测验使用本地题库；虚拟病人使用规则兜底；教材证据仍会展示，但不生成模型补充段 | P0 |
 | Embedding 向量化 | 教材检索、教学知识入库、RAG 召回 | `EMBEDDING_API_KEY`、`EMBEDDING_BASE_URL`、`EMBEDDING_MODEL` | 使用已有本地索引；新增资料无法获得线上向量 | P0 |
 | 解剖 Agent 的可选 LLM 增强 | `POST /api/agent/chat` 的 `anatomy_lab` 分支，由 `AnatomyTutor` 处理 | 当前无需 LLM API；后续生成式讲解或工具选择需新增受控适配器，可复用 OpenAI 兼容配置 | 当前为本地有界 Skill 编排，最多调用三个管理员批准的只读工具，返回教材依据和实际调用状态 | P2 |
 | TTS 语音合成 | 数字人和讲解语音 | 需要实现具体供应商适配器，再配置 `TTS_PROVIDER`、供应商密钥和 `TTS_VOICE` | `/api/tts/speak` 仅返回模拟状态，不返回音频 | P1 |
@@ -40,6 +40,7 @@
 
 - BodyParts3D 三维模型作为本地静态资源加载，不需要远程 API。
 - 本地《系统解剖学》索引和术语表不需要远程 API。
+- 逐页教材证据、原始页图渲染和按“文档 + 页码”保存的学生笔记使用本地 OCR/PDF 与用户数据，不需要额外第三方 API；检索结果可通过 `GET /api/anatomy/evidence`、`GET /api/anatomy/textbook/page` 和 `/api/anatomy/notes` 验证。
 - `anatomy_search`、`textbook_search`、`graph_query` 是本地预置 Skill，首次启动默认关闭，由管理员在 `/admin/skills` 启用并授权；不依赖外部 LLM 工具选择，教材语义检索可能沿用现有 Embedding 服务。详见 [Skill 与解剖导师](SKILL_AGENT_SETUP.md)。
 - Wikimedia/OpenStax/B 站资源目前使用公开链接，不需要 API Key，但正式发布前必须继续做版权、可用性和内容审核。
 
@@ -55,6 +56,8 @@ PUBLIC_FRONTEND_URL=http://127.0.0.1:5173
 OPENAI_API_KEY=
 OPENAI_BASE_URL=https://api.openai.com
 OPENAI_MODEL=gpt-4.1
+OPENAI_ANSWER_MODEL=
+OPENAI_MAX_TOKENS=2800
 
 EMBEDDING_API_KEY=
 EMBEDDING_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode
@@ -65,4 +68,4 @@ DIGITAL_HUMAN_MODE=mock
 RAG_PROVIDER=local
 ```
 
-接入后先访问 `GET /api/health` 检查配置状态，再分别验证实时出题、AnatomyAgent、教材检索和数字人链路。
+接入后先访问 `GET /api/health` 检查配置状态，再分别验证实时出题、AnatomyAgent、`GET /api/anatomy/evidence`、`GET /api/anatomy/textbook/page`、逐页笔记和数字人链路。

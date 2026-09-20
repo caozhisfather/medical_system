@@ -5,6 +5,7 @@ from uuid import uuid4
 
 from ..models import AgentAction, AgentChatRequest, AgentChatResponse, AuthUser, SkillQuery, WorkflowStep
 from .skill_registry import CATALOG, SkillRegistry
+from .document_evidence_service import document_evidence_service
 
 
 class AnatomyTutor:
@@ -59,6 +60,12 @@ class AnatomyTutor:
             actions.append(AgentAction(type='open_textbook', target=structures[0]['name'] if structures else args.query, label='教材详解'))
         else:
             paragraphs.append(textbook_result.message + '。不使用模型常识补写未核实的教材结论。')
+        evidence = document_evidence_service.search(args.query, limit=3)
+        if evidence:
+            paragraphs.append('上传资料中的最高相似证据定位：\n' + '\n'.join(f"{item['document_title']} · 第{item['page']}页 · 第{item['line_start']}-{item['line_end']}行 · 相似度{item['score']:.0%}" for item in evidence))
+            generated = document_evidence_service.answer(args.query, evidence)
+            if generated:
+                paragraphs.append('垂类模型组织回答（教材未覆盖部分会单独标注）：\n' + generated['answer'])
         graph_result = next((result for result in results if result.skill_id == 'graph_query'), None)
         learning_path = []
         if graph_result:

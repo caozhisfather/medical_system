@@ -378,6 +378,15 @@ class AnatomySubmitResponse(BaseModel):
     clinical_link: str
 
 
+class AnatomyNoteRequest(BaseModel):
+    note_id: str | None = None
+    document_id: str
+    page: int = Field(..., ge=1)
+    line_start: int | None = Field(default=None, ge=1)
+    line_end: int | None = Field(default=None, ge=1)
+    content: str = Field(default="", max_length=5000)
+
+
 class TTSRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=800)
     voice: str = "clinical_tutor"

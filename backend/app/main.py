@@ -5,6 +5,7 @@ import re
 import smtplib
 import subprocess
 import sys
+import io
 from pathlib import Path
 from datetime import datetime, timezone
 from threading import Lock
@@ -13,6 +14,7 @@ from uuid import uuid4
 
 import uvicorn
 from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.wsgi import WSGIMiddleware
 
@@ -34,6 +36,7 @@ from .models import (
     CaseLibraryEntryCreateRequest, CaseLibraryEntryUpdateRequest, CaseLibraryDeidentifyRequest, CaseLibraryImportRequest,
     CaseLibraryCompileRequest, TeachingKnowledgeCreateRequest, TeachingKnowledgeUpdateRequest,
     SkillPolicyUpdate, SkillQuery, SkillResult,
+    AnatomyNoteRequest,
 )
 from .services.case_generation_service import CaseGenerationService
 from .services.case_citation_service import CaseCitationService
@@ -56,6 +59,7 @@ from .services.mail_service import MailService
 from .services.anatomy_skills import AnatomySkills
 from .services.skill_registry import SkillRegistry
 from .services.anatomy_tutor import AnatomyTutor
+from .services.document_evidence_service import document_evidence_service
 from .rag import RagPipeline
 from .workflow import build_trace, load_workflow
 
@@ -1396,6 +1400,68 @@ def anatomy_textbook(q: str = "") -> dict[str, Any]:
     if result is None:
         return {"found": False, "query": q, "hint": "教材索引中暂未找到该结构的详细讲解"}
     return {"found": True, "query": q, **result}
+
+
+@app.get("/api/anatomy/evidence")
+def anatomy_evidence(q: str = "", limit: int = 5, with_answer: bool = True) -> dict[str, Any]:
+    evidence = document_evidence_service.search(q, limit)
+    for item in evidence:
+        item["page_image_url"] = f"/api/anatomy/textbook/page?document_id={item['document_id']}&page={item['page']}"
+    generated = document_evidence_service.answer(q, evidence) if with_answer else None
+    return {"found": bool(evidence), "query": q, "evidence": evidence, "answer": generated["answer"] if generated else "", "answer_model": generated["model"] if generated else "", "answer_source": "教材证据 + 垂类模型" if generated else "教材证据", "hint": "资料尚未完成 OCR 或向量索引，请管理员处理资料" if not evidence else ""}
+
+
+@app.get("/api/anatomy/textbook/page")
+def anatomy_textbook_page(document_id: str, page: int = 1) -> StreamingResponse:
+    try:
+        source = document_evidence_service.page_path(document_id, page)
+        import fitz
+        with fitz.open(source) as pdf:
+            pixmap = pdf[page - 1].get_pixmap(matrix=fitz.Matrix(1.35, 1.35), alpha=False)
+            return StreamingResponse(io.BytesIO(pixmap.tobytes("png")), media_type="image/png", headers={"Cache-Control": "public, max-age=3600"})
+    except (FileNotFoundError, ValueError, OSError, ImportError, RuntimeError) as exc:
+        raise HTTPException(status_code=404, detail=f"教材页无法读取：{exc}") from exc
+
+
+@app.get("/api/anatomy/notes")
+def anatomy_notes(document_id: str = "", page: int = 0, authorization: str | None = Header(default=None)) -> list[dict[str, Any]]:
+    user = require_role(authorization, {"student", "teacher", "admin", "super_admin"})
+    path = Path(settings.knowledge_notes_path)
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+    except (OSError, json.JSONDecodeError):
+        payload = []
+    return [item for item in payload if item.get("account") == user.account and (not document_id or item.get("document_id") == document_id) and (not page or item.get("page") == page)]
+
+
+@app.put("/api/anatomy/notes")
+def anatomy_notes_put(payload: AnatomyNoteRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user = require_role(authorization, {"student", "teacher", "admin", "super_admin"})
+    path = Path(settings.knowledge_notes_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        notes = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+    except (OSError, json.JSONDecodeError):
+        notes = []
+    note_id = payload.note_id or uuid4().hex
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    note = {"id": note_id, "account": user.account, **payload.model_dump(exclude={"note_id"}), "updated_at": now}
+    notes = [item for item in notes if not (item.get("id") == note_id and item.get("account") == user.account)]
+    notes.append(note)
+    path.write_text(json.dumps(notes, ensure_ascii=False, indent=2), encoding="utf-8")
+    return note
+
+
+@app.delete("/api/anatomy/notes/{note_id}")
+def anatomy_notes_delete(note_id: str, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user = require_role(authorization, {"student", "teacher", "admin", "super_admin"})
+    path = Path(settings.knowledge_notes_path)
+    try:
+        notes = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+    except (OSError, json.JSONDecodeError):
+        notes = []
+    path.write_text(json.dumps([item for item in notes if not (item.get("id") == note_id and item.get("account") == user.account)], ensure_ascii=False, indent=2), encoding="utf-8")
+    return {"status": "deleted", "id": note_id}
 
 
 @app.get("/api/anatomy/glossary")

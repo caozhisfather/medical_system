@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Activity, ArrowLeft, ArrowRight, BookOpenCheck, Brain, Check, ChevronDown, ChevronRight, CircleAlert, Crosshair, ExternalLink, Eye, EyeOff, Layers3, LoaderCircle, LocateFixed, Maximize2, Minimize2, MousePointer2, PanelLeftClose, PanelLeftOpen, RotateCcw, ScanLine, Sparkles, Target, Video, X, ZoomIn } from '@lucide/vue';
-import { getAnatomyExercises, getAnatomyGlossary, getAnatomyTextbook, sendAgentMessage, submitAnatomy } from '../api';
+import { getAnatomyExercises, getAnatomyGlossary, getAnatomyEvidence, getAnatomyNotes, getAnatomyTextbook, saveAnatomyNote, sendAgentMessage, submitAnatomy } from '../api';
 import anatomyImage from '../assets/medical/anatomy-organs.png';
 import AnatomyViewer3D from '../components/anatomy/AnatomyViewer3D.vue';
 import AnatomyQuizPanel from '../components/anatomy/AnatomyQuizPanel.vue';
@@ -11,10 +11,11 @@ import { mockAnatomyExercises } from '../data/anatomy';
 import { anatomyAtlasNodes, anatomyAtlasSystems, type AnatomyAtlasHotspot } from '../data/anatomyAtlas';
 import { anatomyImageSources, anatomyVideos } from '../data/anatomyResources';
 import { ANATOMY_SYSTEMS_3D, ANATOMY_SYSTEM_3D_BY_ID, ATLAS_3D_URL, ATLAS_ORGAN_URL, system3DColor, system3DName, type AnatomyOrgan, type AnatomyOrganPayload } from '../data/anatomy3d';
-import type { AgentAction, AgentResponse, AnatomyExercise, AnatomyResult, AnatomyTextbookResult } from '../types';
+import type { AgentAction, AgentResponse, AnatomyEvidenceItem, AnatomyEvidenceResponse, AnatomyExercise, AnatomyResult, AnatomyTextbookResult } from '../types';
 
 interface Point { x: number; y: number }
 interface Zone extends Point { width: number; height: number; shape?: 'ellipse' | 'rect'; covered?: boolean }
+interface TextbookNoteEditor { id: string; content: string; saving: boolean }
 
 const route = useRoute();
 const router = useRouter();
@@ -26,12 +27,16 @@ const activeId = ref(exercises.value[0].id);
 const point = ref<Point | null>(null);
 const selectedZone = ref('');
 const result = ref<AnatomyResult | null>(null);
+const practiceEvidence = ref<AnatomyEvidenceResponse | null>(null);
+const practiceImageAspect = ref('1086 / 1448');
+const practiceEvidenceLoading = ref(false);
 const loading = ref(false);
 const message = ref('');
 const completed = ref(0);
 const selectedStructure = ref('');
 const atlasNodeId = ref('heart_overview');
 const atlasStructureId = ref('');
+const atlasImageAspect = ref('');
 const atlasResourceMode = ref<'videos' | 'images'>('videos');
 const atlasNavCollapsed = ref(false);
 const atlasResourcesExpanded = ref(false);
@@ -43,6 +48,10 @@ const imageMoved = ref(false);
 const textbook = ref<AnatomyTextbookResult | null>(null);
 const textbookLoading = ref(false);
 const showTextbook = ref(false);
+const textbookEvidence = ref<AnatomyEvidenceResponse | null>(null);
+const textbookNotes = reactive<Record<string, TextbookNoteEditor>>({});
+const textbookNoteTimers = new Map<string, ReturnType<typeof setTimeout>>();
+let textbookRequestId = 0;
 const agentLoading = ref(false);
 const agentReply = ref('');
 const agentResponse = ref<AgentResponse | null>(null);
@@ -51,6 +60,8 @@ const agentPrompt = ref('');
 const bodyViewer = ref<InstanceType<typeof AnatomyViewer3D> | null>(null);
 const bodySelection = ref<{ id: string; name: string; system: string; systemName: string } | null>(null);
 const hiddenSystems = ref<string[]>([]);
+const hiddenOrganIds = ref<string[]>([]);
+const hiddenPartIds = ref<string[]>([]);
 const bodyAutoRotate = ref(true);
 const bodyStats = ref({ parts: 0, triangles: 0 });
 const quizTarget = ref<{ en: string; cn: string; system: string } | null>(null);
@@ -70,6 +81,7 @@ const bodyDisplayName = computed(() => {
 const hiddenDataSystems = computed(() =>
   hiddenSystems.value.flatMap((id) => ANATOMY_SYSTEM_3D_BY_ID[id]?.members ?? [])
 );
+const hiddenDataParts = computed(() => hiddenPartIds.value);
 const focusedMembers = computed(() =>
   focusedSystem.value ? (ANATOMY_SYSTEM_3D_BY_ID[focusedSystem.value]?.members ?? []) : []
 );
@@ -117,7 +129,8 @@ const filtered = computed(() => activeSystem.value === '全部' ? exercises.valu
 const active = computed(() => exercises.value.find((item) => item.id === activeId.value) ?? exercises.value[0]);
 const activeZone = computed(() => zones[active.value.answer_zone]);
 const activeStructure = computed(() => active.value.substructures?.find((item) => item.name === selectedStructure.value) ?? active.value.substructures?.[0]);
-const covered = computed(() => activeZone.value?.covered !== false);
+const covered = computed(() => Boolean(activeZone.value));
+const practiceImageUrl = computed(() => practiceEvidence.value?.evidence?.[0]?.page_image_url || anatomyImage);
 const score = computed(() => result.value ? Math.round(result.value.score_items.reduce((sum, item) => sum + item.score, 0) / result.value.score_items.length) : null);
 const markerStyle = computed(() => point.value ? { left: point.value.x + '%', top: point.value.y + '%' } : {});
 const zoneStyle = computed(() => activeZone.value ? {
@@ -141,12 +154,19 @@ const atlasLevelLabel = (level: 'system' | 'organ' | 'detail') => level === 'sys
 const atlasLevelStatus = (level: 'system' | 'organ' | 'detail') => level === 'system' ? '第 1 层 · 系统总览' : level === 'organ' ? '第 2 层 · 器官精细图' : '第 3 层 · 精细结构图';
 
 function hotspotStyle(hotspot: AnatomyAtlasHotspot) {
+  const left = Math.max(0, Math.min(100 - hotspot.width, hotspot.x - hotspot.width / 2));
+  const top = Math.max(0, Math.min(100 - hotspot.height, hotspot.y - hotspot.height / 2));
   return {
-    left: (hotspot.x - hotspot.width / 2) + '%',
-    top: (hotspot.y - hotspot.height / 2) + '%',
+    left: left + '%',
+    top: top + '%',
     width: hotspot.width + '%',
     height: hotspot.height + '%'
   };
+}
+
+function syncAtlasImageAspect(event: Event) {
+  const image = event.target as HTMLImageElement;
+  if (image.naturalWidth && image.naturalHeight) atlasImageAspect.value = `${image.naturalWidth} / ${image.naturalHeight}`;
 }
 
 function switchMode(mode: 'body' | 'atlas' | 'practice') {
@@ -179,7 +199,39 @@ function focusOnSystem(systemId: string) {
   agentPrompt.value = '';
 }
 
+function toggleOrgan(organ: AnatomyOrgan) {
+  const hidden = hiddenOrganIds.value.includes(organ.id);
+  hiddenOrganIds.value = hidden
+    ? hiddenOrganIds.value.filter((id) => id !== organ.id)
+    : [...hiddenOrganIds.value, organ.id];
+  if (hidden) hiddenPartIds.value = hiddenPartIds.value.filter((id) => !organ.partIds.includes(id));
+  else hiddenPartIds.value = [...new Set([...hiddenPartIds.value, ...organ.partIds])];
+}
+
+function toggleFineStructure(partId: string) {
+  hiddenPartIds.value = hiddenPartIds.value.includes(partId)
+    ? hiddenPartIds.value.filter((id) => id !== partId)
+    : [...hiddenPartIds.value, partId];
+  const organ = systemOrgans.value.find((item) => item.partIds.includes(partId));
+  if (organ && organ.partIds.every((id) => hiddenPartIds.value.includes(id))) {
+    if (!hiddenOrganIds.value.includes(organ.id)) hiddenOrganIds.value = [...hiddenOrganIds.value, organ.id];
+  } else if (organ) {
+    hiddenOrganIds.value = hiddenOrganIds.value.filter((id) => id !== organ.id);
+  }
+}
+
+function revealPart(partId: string) {
+  hiddenPartIds.value = hiddenPartIds.value.filter((id) => id !== partId);
+  const organ = systemOrgans.value.find((item) => item.partIds.includes(partId));
+  if (organ) hiddenOrganIds.value = hiddenOrganIds.value.filter((id) => id !== organ.id);
+}
+
 function focusOrgan(organId: string) {
+  const organ = systemOrgans.value.find((item) => item.id === organId);
+  if (organ) {
+    hiddenOrganIds.value = hiddenOrganIds.value.filter((id) => id !== organ.id);
+    hiddenPartIds.value = hiddenPartIds.value.filter((id) => !organ.partIds.includes(id));
+  }
   focusedOrganId.value = focusedOrganId.value === organId ? '' : organId;
   bodySelection.value = null;
   agentReply.value = '';
@@ -187,6 +239,7 @@ function focusOrgan(organId: string) {
 }
 
 function selectOrganPart(partId: string) {
+  revealPart(partId);
   const info = partInfo.value.get(partId);
   if (!info) return;
   onBodySelect({ id: partId, name: info.name, system: info.system, systemName: system3DName(info.system) });
@@ -270,6 +323,7 @@ async function askBodyAgent(prompt: string) {
 function chooseAtlasNode(id: string, structureId = '') {
   atlasNodeId.value = id;
   atlasStructureId.value = structureId;
+  atlasImageAspect.value = '';
   agentReply.value = '';
   agentPrompt.value = '';
 }
@@ -311,7 +365,8 @@ async function executeAgentAction(action: AgentAction) {
     if (group && organ) {
       focusedSystem.value = group.system;
       focusedOrganId.value = organ.id;
-      hiddenSystems.value = hiddenSystems.value.filter(id => id !== group.system);
+    hiddenSystems.value = hiddenSystems.value.filter(id => id !== group.system);
+    revealPart(action.target);
     } else {
       focusedSystem.value = '';
       focusedOrganId.value = '';
@@ -325,16 +380,70 @@ async function executeAgentAction(action: AgentAction) {
 }
 
 async function openTextbook(name: string) {
+  const requestId = ++textbookRequestId;
   showTextbook.value = true;
   textbookLoading.value = true;
   textbook.value = null;
+  textbookEvidence.value = null;
+  for (const key of Object.keys(textbookNotes)) delete textbookNotes[key];
   try {
-    textbook.value = await getAnatomyTextbook(name);
+    const [legacy, evidence] = await Promise.allSettled([getAnatomyTextbook(name), getAnatomyEvidence(name)]);
+    if (requestId !== textbookRequestId) return;
+    if (legacy.status === 'fulfilled') textbook.value = legacy.value;
+    if (evidence.status === 'fulfilled') {
+      textbookEvidence.value = evidence.value;
+      await loadTextbookNotes(evidence.value.evidence, requestId);
+    }
+    if (legacy.status === 'rejected' && evidence.status === 'rejected') {
+      textbook.value = { found: false, query: name, hint: '教材检索服务暂不可用' };
+    }
   } catch {
     textbook.value = { found: false, query: name, hint: '教材检索服务暂不可用' };
   } finally {
-    textbookLoading.value = false;
+    if (requestId === textbookRequestId) textbookLoading.value = false;
   }
+}
+
+function textbookNoteKey(item: AnatomyEvidenceItem) {
+  return `${item.document_id}:${item.page}`;
+}
+
+function textbookNoteFor(item: AnatomyEvidenceItem) {
+  const key = textbookNoteKey(item);
+  if (!textbookNotes[key]) textbookNotes[key] = { id: '', content: '', saving: false };
+  return textbookNotes[key];
+}
+
+async function loadTextbookNotes(items: AnatomyEvidenceItem[], requestId: number) {
+  await Promise.all(items.slice(0, 5).map(async (item) => {
+    const editor = textbookNoteFor(item);
+    try {
+      const notes = await getAnatomyNotes(item.document_id, item.page);
+      if (requestId !== textbookRequestId) return;
+      editor.content = notes[0]?.content ?? '';
+      editor.id = notes[0]?.id ?? '';
+    } catch {
+      // Notes require a signed-in account; the editor still works after login.
+    }
+  }));
+}
+
+function saveTextbookNote(item: AnatomyEvidenceItem) {
+  const key = textbookNoteKey(item);
+  const editor = textbookNoteFor(item);
+  const previousTimer = textbookNoteTimers.get(key);
+  if (previousTimer) clearTimeout(previousTimer);
+  textbookNoteTimers.set(key, setTimeout(async () => {
+    editor.saving = true;
+    try {
+      const saved = await saveAnatomyNote({ note_id: editor.id || undefined, document_id: item.document_id, page: item.page, line_start: item.line_start, line_end: item.line_end, content: editor.content });
+      editor.id = saved.id;
+    } catch { /* unauthenticated demo mode keeps the text in the open editor */ }
+    finally {
+      editor.saving = false;
+      textbookNoteTimers.delete(key);
+    }
+  }, 650));
 }
 
 watch(atlasStructureId, (structureId) => {
@@ -349,6 +458,16 @@ function choose(id: string) {
   result.value = null;
   message.value = '';
   selectedStructure.value = '';
+  void loadPracticeEvidence();
+}
+
+async function loadPracticeEvidence() {
+  const query = active.value?.target;
+  if (!query) return;
+  practiceEvidenceLoading.value = true;
+  try { practiceEvidence.value = await getAnatomyEvidence(query, false); }
+  catch { practiceEvidence.value = null; }
+  finally { practiceEvidenceLoading.value = false; }
 }
 
 function changeSystem(system: string) {
@@ -456,10 +575,14 @@ onMounted(async () => {
     viewMode.value = 'body';
     focusOnSystem(requestedSystem);
   }
+  void loadPracticeEvidence();
   document.addEventListener('fullscreenchange', syncFullscreenState);
 });
 
 onBeforeUnmount(() => {
+  textbookRequestId += 1;
+  for (const timer of textbookNoteTimers.values()) clearTimeout(timer);
+  textbookNoteTimers.clear();
   document.removeEventListener('fullscreenchange', syncFullscreenState);
   if (document.fullscreenElement) void document.exitFullscreen();
 });
@@ -516,10 +639,10 @@ onBeforeUnmount(() => {
         <div v-if="focusedSystem && systemOrgans.length" class="body-organ-list">
           <header><span><Layers3 :size="16" /><b>{{ focusedSystemName }} · 器官</b></span><small>{{ systemOrgans.length }} 个</small></header>
           <div>
-            <button v-for="organ in systemOrgans" :key="organ.id" type="button" :class="{ active: focusedOrganId === organ.id }" @click="focusOrgan(organ.id)">
+            <div v-for="organ in systemOrgans" :key="organ.id" class="body-organ-row" :class="{ active: focusedOrganId === organ.id, muted: hiddenOrganIds.includes(organ.id) }" role="button" tabindex="0" @click="focusOrgan(organ.id)" @keydown.enter="focusOrgan(organ.id)">
               <span><strong>{{ organ.name }}</strong><small>{{ organ.partIds.length }} 个精细结构</small></span>
-              <ChevronRight :size="15" />
-            </button>
+              <span class="body-organ-actions"><button type="button" class="body-structure-eye" :title="hiddenOrganIds.includes(organ.id) ? '显示器官' : '隐藏器官'" :aria-label="hiddenOrganIds.includes(organ.id) ? '显示器官' : '隐藏器官'" @click.stop="toggleOrgan(organ)"><EyeOff v-if="hiddenOrganIds.includes(organ.id)" :size="14" /><Eye v-else :size="14" /></button><ChevronRight :size="15" /></span>
+            </div>
           </div>
         </div>
         <div class="body-viewer-tools">
@@ -540,6 +663,7 @@ onBeforeUnmount(() => {
         <AnatomyViewer3D
           ref="bodyViewer"
           :hidden-systems="hiddenDataSystems"
+          :hidden-parts="hiddenDataParts"
           :focus-systems="focusedMembers"
           :focus-parts="focusParts"
           :selected-id="bodySelection?.id ?? ''"
@@ -566,10 +690,10 @@ onBeforeUnmount(() => {
           <header><span>{{ focusedSystemName }}</span><h3>{{ focusedOrgan.name }}</h3><small>{{ focusedOrgan.nameEn }}</small></header>
           <strong><Layers3 :size="15" />精细结构 · {{ organFineStructures.length }} 项</strong>
           <div class="organ-structure-list">
-            <button v-for="item in organFineStructures" :key="item.id" type="button" :class="{ active: bodySelection?.id === item.id }" @click="selectOrganPart(item.id)">
+            <div v-for="item in organFineStructures" :key="item.id" class="body-organ-row fine" :class="{ active: bodySelection?.id === item.id, muted: hiddenPartIds.includes(item.id) }" role="button" tabindex="0" @click="selectOrganPart(item.id)" @keydown.enter="selectOrganPart(item.id)">
               <span><b>{{ item.label }}</b><small v-if="item.label !== item.english">{{ item.english }}</small></span>
-              <ChevronRight :size="14" />
-            </button>
+              <span class="body-organ-actions"><button type="button" class="body-structure-eye" :title="hiddenPartIds.includes(item.id) ? '显示精细结构' : '隐藏精细结构'" :aria-label="hiddenPartIds.includes(item.id) ? '显示精细结构' : '隐藏精细结构'" @click.stop="toggleFineStructure(item.id)"><EyeOff v-if="hiddenPartIds.includes(item.id)" :size="13" /><Eye v-else :size="13" /></button><ChevronRight :size="14" /></span>
+            </div>
           </div>
         </section>
         <template v-if="bodySelection">
@@ -624,8 +748,8 @@ onBeforeUnmount(() => {
           <span><Eye :size="15" />{{ atlasNode.instruction }}</span>
         </header>
         <div class="atlas-image-canvas">
-          <div class="atlas-image-stage" :style="{ aspectRatio: atlasNode.image_aspect }">
-            <img :src="atlasNode.image" :alt="atlasNode.title" />
+          <div class="atlas-image-stage" :style="{ aspectRatio: atlasImageAspect || atlasNode.image_aspect }">
+            <img :src="atlasNode.image" :alt="atlasNode.title" @load="syncAtlasImageAspect" />
             <button v-for="(hotspot, index) in atlasNode.hotspots" :key="hotspot.id" type="button" class="atlas-hotspot" :class="{ selected: hotspot.structure_id === atlasStructureId, 'is-full-image': hotspot.width === 100 && hotspot.height === 100 }" :style="hotspotStyle(hotspot)" :aria-label="`查看${hotspot.label}`" @click="openAtlasHotspot(hotspot)"><span>{{ index + 1 }}<b>{{ hotspot.label }}</b></span></button>
           </div>
         </div>
@@ -644,7 +768,7 @@ onBeforeUnmount(() => {
           <div><button v-for="structure in atlasNode.structures" :key="structure.id" type="button" :class="{ active: structure.id === atlasStructureId }" @click="atlasStructureId = structure.id">{{ structure.name }}</button></div>
         </section>
         <article v-if="atlasStructure" class="atlas-structure-detail">
-          <span>{{ atlasStructure.category }}</span><h3>{{ atlasStructure.name }}</h3><p>{{ atlasStructure.description }}</p><div><Activity :size="16" /><small>临床关联</small><strong>{{ atlasStructure.clinical_note }}</strong></div>
+          <span>{{ atlasStructure.category }}</span><h3>{{ atlasStructure.name }}</h3><p>{{ atlasStructure.description }}</p><div class="atlas-clinical-note"><Activity :size="16" /><small>临床关联</small><strong>{{ atlasStructure.clinical_note }}</strong></div>
           <div class="atlas-structure-actions">
             <button class="button-primary" type="button" @click="askAnatomyAgent('它的主要功能和结构特点是什么？')"><Brain :size="16" />AI讲解</button>
             <button class="button-secondary textbook-reopen" type="button" @click="openTextbook(atlasStructure.name)"><BookOpenCheck :size="16" />教材详解</button>
@@ -705,14 +829,14 @@ onBeforeUnmount(() => {
           <span class="orientation-mark"><b>R</b> 患者右侧 · 患者左侧 <b>L</b></span>
         </header>
         <div ref="imageFrame" class="anatomy-image-frame" :class="{ 'is-dragging': isDraggingImage }" @pointerdown="startImageDrag" @pointermove="dragImage" @pointerup="stopImageDrag" @pointercancel="stopImageDrag" @pointerleave="stopImageDrag">
-          <button class="anatomy-image-stage" type="button" :disabled="!covered" :aria-label="covered ? '在人体图上定位' + active.target : '当前图谱未覆盖该结构'" @click="locate">
-            <img :src="anatomyImage" alt="虚拟教学用人体躯干器官解剖图" />
+          <button class="anatomy-image-stage" :style="{ aspectRatio: practiceImageAspect }" type="button" :disabled="!covered" :aria-label="covered ? '在教材页上定位' + active.target : '当前任务没有可用靶区'" @click="locate">
+            <img :src="practiceImageUrl" alt="教材解剖页二维定位训练图" @load="(event) => { const image = event.target as HTMLImageElement; if (image.naturalWidth && image.naturalHeight) practiceImageAspect = image.naturalWidth + ' / ' + image.naturalHeight; }" />
             <span v-if="point" class="student-marker" :class="{ correct: result?.correct, wrong: result && !result.correct }" :style="markerStyle"><Crosshair :size="24" /></span>
             <span v-if="result && covered" class="standard-zone" :style="zoneStyle"><span>标准区域</span></span>
           </button>
-          <div v-if="!covered" class="anatomy-unavailable-state"><Brain :size="34" /><strong>当前图谱未覆盖该结构</strong><p>现有图片为躯干前面观，请先选择循环、呼吸、消化或泌尿系统练习。</p></div>
+          <div v-if="practiceEvidenceLoading" class="anatomy-unavailable-state"><LoaderCircle class="spin" :size="30" /><strong>正在加载最相似教材页</strong><p>定位任务使用知识库中的逐页教材证据。</p></div>
         </div>
-        <footer class="anatomy-stage-note"><span><Target :size="16" />学生点击点</span><span><LocateFixed :size="16" />提交后显示标准区域</span><small>虚拟教学图像，不含真实患者信息</small></footer>
+        <footer class="anatomy-stage-note"><span><Target :size="16" />点击教材页完成定位</span><span><LocateFixed :size="16" />提交后显示标准靶区</span><small>{{ practiceEvidence?.evidence?.[0] ? practiceEvidence.evidence[0].document_title + ' · 第' + practiceEvidence.evidence[0].page + '页' : '暂未匹配到教材页，使用本地训练图' }}</small></footer>
       </main>
 
       <aside class="anatomy-task-panel">
@@ -763,6 +887,21 @@ onBeforeUnmount(() => {
           <button class="icon-button" type="button" title="关闭" aria-label="关闭教材详解" @click="showTextbook = false"><X :size="18" /></button>
         </header>
         <div class="textbook-modal-body">
+          <template v-if="!textbookLoading && textbookEvidence?.found">
+            <div v-if="textbookEvidence.answer" class="textbook-evidence-answer">
+              <strong>教材优先讲解</strong>
+              <p class="textbook-content">{{ textbookEvidence.answer }}</p>
+              <small>回答来源：{{ textbookEvidence.answer_source }}<template v-if="textbookEvidence.answer_model"> · {{ textbookEvidence.answer_model }}</template></small>
+            </div>
+            <article v-for="item in textbookEvidence.evidence" :key="`${item.document_id}-${item.page}`" class="textbook-evidence-item">
+              <header><strong>{{ item.document_title }}</strong><span>第 {{ item.page }} 页 · 第 {{ item.line_start }}-{{ item.line_end }} 行 · 相似度 {{ Math.round(item.score * 100) }}%</span></header>
+              <div class="textbook-evidence-grid">
+                <img :src="item.page_image_url" :alt="`${item.document_title} 第 ${item.page } 页`" loading="lazy" />
+                <div class="textbook-evidence-lines"><p v-for="line in item.lines" :key="line.line" :class="{ matched: line.matched }"><b>{{ line.line }}</b><mark v-if="line.matched">{{ line.text }}</mark><template v-else>{{ line.text }}</template></p></div>
+              </div>
+              <label class="textbook-note-editor"><span>我的笔记</span><textarea v-model="textbookNoteFor(item).content" rows="3" placeholder="记录这页教材的理解、疑问或老师补充" @input="saveTextbookNote(item)" /><small>{{ textbookNoteFor(item).saving ? '正在保存...' : '自动保存到当前账号' }}</small></label>
+            </article>
+          </template>
           <div v-if="textbookLoading" class="textbook-state"><LoaderCircle class="spin" :size="24" />正在检索教材</div>
           <template v-else-if="textbook?.found">
             <p class="textbook-citation">{{ textbook.citation }}</p>

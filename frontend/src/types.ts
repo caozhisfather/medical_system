@@ -309,6 +309,29 @@ export interface AnatomyTextbookResult {
   hint?: string;
 }
 
+export interface AnatomyEvidenceLine { line: number; text: string; matched: boolean; }
+export interface AnatomyEvidenceItem {
+  document_id: string;
+  document_title: string;
+  page: number;
+  line_start: number;
+  line_end: number;
+  lines: AnatomyEvidenceLine[];
+  content: string;
+  score: number;
+  page_image_url: string;
+}
+export interface AnatomyEvidenceResponse {
+  found: boolean;
+  query: string;
+  evidence: AnatomyEvidenceItem[];
+  answer: string;
+  answer_model: string;
+  answer_source: string;
+  hint?: string;
+}
+export interface AnatomyNote { id: string; account?: string; document_id: string; page: number; line_start?: number; line_end?: number; content: string; updated_at: string; }
+
 export interface HistoryTakingTemplate {
   found: boolean;
   query: string;

@@ -13,12 +13,14 @@ import {
 
 const props = withDefaults(defineProps<{
   hiddenSystems?: string[];
+  hiddenParts?: string[];
   focusSystems?: string[];
   focusParts?: string[];
   selectedId?: string;
   autoRotate?: boolean;
 }>(), {
   hiddenSystems: () => [],
+  hiddenParts: () => [],
   focusSystems: () => [],
   focusParts: () => [],
   selectedId: '',
@@ -62,6 +64,7 @@ interface SystemLayer {
   mesh: THREE.Mesh;
   geometry: THREE.BufferGeometry;
   material: THREE.MeshStandardMaterial;
+  hiddenMaterial: THREE.MeshBasicMaterial;
   colorAttribute: THREE.BufferAttribute;
   ranges: PartRange[];
   faceStarts: number[];
@@ -169,8 +172,10 @@ function buildMerged(
     roughness: 0.74,
     metalness: 0.04
   });
+  const hiddenMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
+  ranges.forEach((range) => geometry.addGroup(range.faceStart * 3, range.faceCount * 3, 0));
 
-  const mesh = new THREE.Mesh(geometry, material);
+  const mesh = new THREE.Mesh(geometry, [material, hiddenMaterial]);
   mesh.name = id;
   mesh.userData.group = id;
   mesh.renderOrder = renderOrder;
@@ -180,6 +185,7 @@ function buildMerged(
     mesh,
     geometry,
     material,
+    hiddenMaterial,
     colorAttribute: geometry.getAttribute('color') as THREE.BufferAttribute,
     ranges,
     faceStarts: ranges.map((range) => range.faceStart),
@@ -298,6 +304,20 @@ function applyVisibility() {
         : !hidden.has(layer.id);
   }
   for (const organ of organMeshes.values()) organ.mesh.visible = organ === activeOrgan;
+  applyPartVisibility();
+  markDirty();
+}
+
+function applyPartVisibility() {
+  const hidden = new Set(props.hiddenParts);
+  const update = (layer: SystemLayer) => {
+    layer.ranges.forEach((range, index) => {
+      const group = layer.geometry.groups[index];
+      if (group) group.materialIndex = hidden.has(range.id) ? 1 : 0;
+    });
+  };
+  layers.value.forEach(update);
+  organMeshes.forEach(update);
   markDirty();
 }
 
@@ -399,23 +419,21 @@ function pick(event: PointerEvent) {
   raycaster.setFromCamera(pointer, currentCamera);
 
   const hits = raycaster.intersectObjects(candidates.map((layer) => layer.mesh), false);
-  if (!hits.length) {
-    emit('clear');
+  for (const hit of hits) {
+    const layer = candidates.find((item) => item.mesh === hit.object);
+    if (!layer) continue;
+    const range = rangeAt(layer, hit.faceIndex ?? 0);
+    if (!range || props.hiddenParts.includes(range.id)) continue;
+
+    emit('select', {
+      id: range.id,
+      name: range.name,
+      system: range.system,
+      systemName: system3DName(range.system)
+    });
     return;
   }
-
-  const hit = hits[0];
-  const layer = candidates.find((item) => item.mesh === hit.object);
-  if (!layer) return;
-  const range = rangeAt(layer, hit.faceIndex ?? 0);
-  if (!range) return;
-
-  emit('select', {
-    id: range.id,
-    name: range.name,
-    system: range.system,
-    systemName: system3DName(range.system)
-  });
+  emit('clear');
 }
 
 function onPointerDown(event: PointerEvent) {
@@ -569,10 +587,12 @@ onBeforeUnmount(() => {
   for (const layer of layers.value) {
     layer.geometry.dispose();
     layer.material.dispose();
+    layer.hiddenMaterial.dispose();
   }
   for (const organ of organMeshes.values()) {
     organ.geometry.dispose();
     organ.material.dispose();
+    organ.hiddenMaterial.dispose();
   }
   organMeshes.clear();
   activeOrgan = null;
@@ -592,6 +612,7 @@ watch(() => props.selectedId, (value) => repaintSelection(value));
 watch(() => props.hiddenSystems, () => {
   void ensureSystems(neededSystems()).then(applyVisibility);
 }, { deep: true });
+watch(() => props.hiddenParts, () => applyPartVisibility(), { deep: true });
 watch(() => props.focusSystems, () => {
   void ensureSystems(neededSystems()).then(() => {
     applyVisibility();
