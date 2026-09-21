@@ -511,14 +511,16 @@ function startImageDrag(event: PointerEvent) {
   imageMoved.value = false;
   imageDragStartX.value = event.clientX;
   imageScrollStart.value = imageFrame.value.scrollLeft;
-  imageFrame.value.setPointerCapture?.(event.pointerId);
 }
 
 function dragImage(event: PointerEvent) {
   if (!isDraggingImage.value || !imageFrame.value) return;
   const delta = event.clientX - imageDragStartX.value;
-  if (Math.abs(delta) > 4) imageMoved.value = true;
-  imageFrame.value.scrollLeft = imageScrollStart.value - delta;
+  if (Math.abs(delta) > 4) {
+    imageMoved.value = true;
+    imageFrame.value.setPointerCapture?.(event.pointerId);
+    imageFrame.value.scrollLeft = imageScrollStart.value - delta;
+  }
 }
 
 function stopImageDrag(event?: PointerEvent) {

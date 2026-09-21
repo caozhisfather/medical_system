@@ -2853,3 +2853,6 @@ p { color: var(--muted); line-height: 1.68; }
 .textbook-note-editor { display: grid; gap: 5px; margin-top: 12px; }
 .textbook-note-editor textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 72px; padding: 8px; border: 1px solid #cbdcda; border-radius: 4px; font: inherit; }
 @media (max-width: 760px) { .textbook-evidence-grid { grid-template-columns: 1fr; } }
+
+/* Onboarding remains visible without intercepting interaction with the page underneath. */
+.tour-scrim { pointer-events: none; }
