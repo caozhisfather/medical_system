@@ -122,7 +122,49 @@ export interface KnowledgeItem { id: string; title: string; title_zh?: string; t
 export interface AnatomySubstructure { name: string; category: string; description: string; clinical_note?: string; }
 export interface AnatomyVideoResource { title: string; url: string; platform: 'bilibili'; status: '待收集' | '待审核' | '已审核'; contributor?: string; reviewed_at?: string; }
 export interface AnatomyExercise { id: string; title: string; system?: string; organ?: string; target: string; prompt: string; answer_zone: string; standard_region?: string; explanation: string; clinical_link: string; graph_node_ids?: string[]; substructures?: readonly AnatomySubstructure[]; video_resources?: readonly AnatomyVideoResource[]; }
-export interface AnatomyResult { correct: boolean; score_items: ScoreItem[]; feedback: string; explanation: string; clinical_link: string; }
+export interface AnatomyResult { correct: boolean; score_items: ScoreItem[]; feedback: string; explanation: string; clinical_link: string; record_id?: string | null; score?: number; }
+export interface AnatomyAttempt {
+  id: string;
+  exercise_id: string;
+  title: string;
+  system: string;
+  organ: string;
+  target: string;
+  selected_zone: string;
+  correct: boolean;
+  score: number;
+  feedback: string;
+  explanation: string;
+  clinical_link: string;
+  image_node_id: string;
+  target_structure_id: string;
+  click_x?: number | null;
+  click_y?: number | null;
+  created_at: string;
+}
+export interface AnatomyLearningSummary {
+  total: number;
+  correct: number;
+  accuracy: number;
+  average_score: number;
+}
+export interface AnatomyLearningRecordsResponse {
+  items: AnatomyAttempt[];
+  summary: AnatomyLearningSummary;
+}
+export interface AnatomyMistake {
+  exercise_id: string;
+  title: string;
+  system: string;
+  organ: string;
+  target: string;
+  attempt_count: number;
+  best_score: number;
+  worst_score: number;
+  latest_at: string;
+  explanation: string;
+  clinical_link: string;
+}
 export interface AgentResultCard { kind: string; title: string; summary: string; target: string; }
 export type SkillRole = 'student' | 'teacher' | 'admin';
 export interface SkillQuery { query: string; part_id?: string; }

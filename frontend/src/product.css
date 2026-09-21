@@ -1054,7 +1054,7 @@ p { color: var(--muted); line-height: 1.68; }
 .atlas-graph-link { margin-top: auto; padding-top: 14px; }
 
 /* Virtual anatomy lab: interactive 3D body */
-.anatomy-body-workbench { display: grid; grid-template-columns: 250px minmax(420px,1fr) 350px; grid-template-rows: minmax(0,1fr); height: clamp(640px,calc(100vh - 300px),820px); min-height: 0; overflow: hidden; border-radius: 8px; background: #f9fcfb; box-shadow: 0 20px 60px rgba(22,59,68,.11); }
+.anatomy-body-workbench { display: grid; grid-template-columns: 238px minmax(420px,1fr) 392px; grid-template-rows: minmax(0,1fr); height: clamp(640px,calc(100vh - 300px),820px); min-height: 0; overflow: hidden; border-radius: 8px; background: #f9fcfb; box-shadow: 0 20px 60px rgba(22,59,68,.11); }
 .body-system-rail { display: flex; min-width: 0; min-height: 0; overflow: hidden; flex-direction: column; border-right: 1px solid var(--line); background: #f2f7f6; }
 .body-system-rail > header { display: flex; min-height: 52px; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid var(--line); }
 .body-system-rail > header span { display: inline-flex; align-items: center; gap: 7px; color: #2b5b62; font-size: 13px; }
@@ -1087,8 +1087,8 @@ p { color: var(--muted); line-height: 1.68; }
   box-shadow: none;
   background: #f9fcfb;
 }
-.anatomy-body-workbench:fullscreen { grid-template-columns: 264px minmax(0,1fr) 380px; }
-.anatomy-body-workbench:-webkit-full-screen { grid-template-columns: 264px minmax(0,1fr) 380px; }
+.anatomy-body-workbench:fullscreen { grid-template-columns: 264px minmax(0,1fr) 440px; }
+.anatomy-body-workbench:-webkit-full-screen { grid-template-columns: 264px minmax(0,1fr) 440px; }
 .body-viewer-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 0 8px 8px; }
 .body-viewer-meta span { display: grid; gap: 1px; padding: 7px 9px; border-radius: 6px; background: #e7f0ef; }
 .body-viewer-meta strong { color: var(--teal-dark); font-size: 15px; }
@@ -1140,14 +1140,19 @@ p { color: var(--muted); line-height: 1.68; }
 .body-stage-note { display: flex; min-height: 40px; align-items: center; gap: 14px; padding: 0 14px; border-top: 1px solid var(--line); background: #f2f7f6; }
 .body-stage-note span { display: inline-flex; align-items: center; gap: 5px; color: #5d757a; font-size: 11px; }
 .body-stage-note small { margin-left: auto; color: var(--teal-dark); font-size: 11px; font-weight: 700; }
-.body-detail-panel { display: flex; min-width: 0; min-height: 0; overflow-y: auto; flex-direction: column; gap: 12px; padding: 16px; border-left: 1px solid var(--line); background: #fff; }
+.body-detail-panel { display: flex; min-width: 0; min-height: 0; overflow-y: auto; flex-direction: column; gap: 14px; padding: 18px; border-left: 1px solid var(--line); background: #fff; }
 .body-selection-head { display: grid; grid-template-columns: 10px minmax(0,1fr); gap: 10px; align-items: start; }
 .body-selection-head > i { width: 10px; height: 100%; min-height: 38px; border-radius: 3px; }
 .body-selection-head span { color: var(--teal); font-size: 10px; font-weight: 900; }
 .body-selection-head h2 { margin: 3px 0 0; color: #214b51; font-size: 17px; line-height: 1.35; }
 .body-selection-head small { display: block; margin-top: 2px; color: #83a0a4; font-size: 10px; letter-spacing: 0; }
-.body-agent-block { display: grid; gap: 8px; padding: 12px; border-radius: 7px; background: #f3f8f7; }
-.body-agent-block > strong { display: inline-flex; align-items: center; gap: 6px; color: #2b5b62; font-size: 12px; }
+.body-agent-block { display: grid; gap: 10px; padding: 14px; border: 1px solid rgba(15,118,110,.16); border-radius: 8px; background: #f3f8f7; }
+.body-agent-block > strong { display: inline-flex; align-items: center; gap: 7px; color: #205b55; font-size: 13px; }
+.body-agent-block .atlas-agent-prompts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; margin-top: 0; }
+.body-agent-block .atlas-agent-prompts button { min-height: 34px; padding: 6px 9px; font-size: 12px; font-weight: 700; }
+.body-agent-block .atlas-agent-answer { max-height: 320px; overflow-y: auto; margin-top: 0; padding: 12px; border-radius: 7px; background: #fff; }
+.body-agent-block .atlas-agent-answer strong { color: #176b5d; font-size: 11px; }
+.body-agent-block .atlas-agent-answer p { margin-top: 7px; font-size: 12px; line-height: 1.75; }
 .body-detail-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .body-empty-detail { display: grid; justify-items: center; gap: 7px; margin: auto 0; padding: 24px 12px; color: #6d8489; text-align: center; }
 .body-empty-detail strong { color: #2b5b62; font-size: 14px; }
@@ -1166,7 +1171,7 @@ p { color: var(--muted); line-height: 1.68; }
 .anatomy-3d-legend i { width: 8px; height: 8px; border-radius: 2px; }
 
 @media (max-width: 1280px) {
-  .anatomy-body-workbench { grid-template-columns: 224px minmax(360px,1fr) 320px; }
+  .anatomy-body-workbench { grid-template-columns: 216px minmax(360px,1fr) 350px; }
 }
 .anatomy-workbench { display: grid; grid-template-columns: 230px minmax(440px,1fr) 350px; grid-template-rows: minmax(0,1fr); height: clamp(680px, calc(100vh - 240px), 820px); min-height: 0; overflow: hidden; border-radius: 8px; background: #f9fcfb; box-shadow: 0 20px 60px rgba(22,59,68,.11); }
 .anatomy-exercise-rail { display: flex; min-width: 0; min-height: 0; overflow: hidden; flex-direction: column; border-right: 1px solid var(--line); background: #f2f7f6; }

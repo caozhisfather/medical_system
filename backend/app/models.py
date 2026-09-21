@@ -368,6 +368,10 @@ class AgentChatResponse(BaseModel):
 class AnatomySubmitRequest(BaseModel):
     exercise_id: str
     selected_zone: str
+    node_id: str = ""
+    structure_id: str = ""
+    click_x: float | None = Field(default=None, ge=0, le=100)
+    click_y: float | None = Field(default=None, ge=0, le=100)
 
 
 class AnatomySubmitResponse(BaseModel):
@@ -376,6 +380,8 @@ class AnatomySubmitResponse(BaseModel):
     feedback: str
     explanation: str
     clinical_link: str
+    record_id: str | None = None
+    score: int = 0
 
 
 class AnatomyNoteRequest(BaseModel):

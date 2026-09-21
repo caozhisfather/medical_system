@@ -30,6 +30,7 @@
 | --- | --- | --- |
 | 登录与用户 | SQLite、PBKDF2 密码哈希、一次性邮件令牌、服务端会话 | 学校统一认证或正式用户服务、共享会话存储、集中限流、备份与审计 |
 | 学习记录 | 本地 JSON 文件 | 数据库、用户隔离、备份与审计 |
+| 解剖定位测验记录 | 本地 SQLite `data/anatomy_learning.sqlite3`，按账号保存得分、目标结构、坐标和错题聚合 | 共享生产数据库、并发写入策略、备份、留存与访问控制 |
 | 教师知识库 | 本地 JSON 和本地处理任务 | 对象存储、任务队列、数据库、文档权限 |
 | 解剖图谱维护 | 启动时由 `atlas.json`、`organs.json` 和术语表构建 | 图谱数据库或后台编辑 API、版本管理、教师审核 |
 | 考试题库 | 本地运行时缓存 | 持久化题库、考试发布、作答记录、防重复提交 |
@@ -66,6 +67,7 @@ EMBEDDING_MODEL=text-embedding-v3
 TTS_PROVIDER=placeholder
 DIGITAL_HUMAN_MODE=mock
 RAG_PROVIDER=local
+ANATOMY_LEARNING_DATABASE_PATH=./data/anatomy_learning.sqlite3
 ```
 
 接入后先访问 `GET /api/health` 检查配置状态，再分别验证实时出题、AnatomyAgent、`GET /api/anatomy/evidence`、`GET /api/anatomy/textbook/page`、逐页笔记和数字人链路。

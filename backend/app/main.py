@@ -60,6 +60,7 @@ from .services.anatomy_skills import AnatomySkills
 from .services.skill_registry import SkillRegistry
 from .services.anatomy_tutor import AnatomyTutor
 from .services.document_evidence_service import document_evidence_service
+from .services.anatomy_learning_service import AnatomyLearningService
 from .rag import RagPipeline
 from .workflow import build_trace, load_workflow
 
@@ -77,6 +78,7 @@ anatomy_graph_service = AnatomyKnowledgeGraphService()
 anatomy_skills = AnatomySkills(ROOT_DIR, anatomy_term_service, anatomy_textbook_service, anatomy_graph_service)
 skill_registry = SkillRegistry(Path(settings.skill_database_path), anatomy_skills.handlers)
 anatomy_tutor = AnatomyTutor(skill_registry)
+anatomy_learning_service = AnatomyLearningService(Path(settings.anatomy_learning_database_path))
 obsidian_service = ObsidianGraphExportService()
 case_repository = CaseRepository()
 case_citation_service = CaseCitationService(
@@ -138,6 +140,16 @@ def require_role(authorization: str | None, allowed_roles: set[str]) -> AuthUser
     if user.role not in allowed_roles:
         raise HTTPException(status_code=403, detail="没有权限访问该接口")
     return user
+
+
+def optional_user(authorization: str | None) -> AuthUser | None:
+    if not authorization or not authorization.lower().startswith("bearer "):
+        return None
+    item = auth_service.authenticated_user(authorization[7:].strip())
+    if not item:
+        return None
+    user = AuthUser(**item)
+    return user if user.status == "active" else None
 
 
 def write_audit_log(user: AuthUser, action: str, target: str, detail: str = "") -> None:
@@ -428,6 +440,7 @@ def health() -> dict:
             "training_sessions": TRAINING_SESSION_FILE.exists(),
             "teacher_workbench": TEACHER_CASE_STATE_FILE.exists(),
             "audit_log": AUDIT_LOG_FILE.exists(),
+            "anatomy_learning": anatomy_learning_service.database_path.exists(),
         },
         "data": data_status,
         "auth": {"database": True, "mail_configured": mail_service.configured},
@@ -1516,14 +1529,60 @@ def exam_quiz_status(authorization: str | None = Header(default=None)) -> dict[s
 
 
 @app.post("/api/anatomy/submit", response_model=AnatomySubmitResponse)
-def anatomy_submit(payload: AnatomySubmitRequest) -> AnatomySubmitResponse:
+def anatomy_submit(payload: AnatomySubmitRequest, authorization: str | None = Header(default=None)) -> AnatomySubmitResponse:
     exercise = next((item for item in read_json("anatomy.json") if item["id"] == payload.exercise_id), read_json("anatomy.json")[0])
     correct = payload.selected_zone == exercise["answer_zone"]
     score = 94 if correct else 56
     feedback = "定位正确，能把解剖结构和临床场景联系起来。" if correct else f"你选择的位置不在{exercise['target']}标准区域。{exercise['explanation']}"
     if not correct and exercise["target"] == "胃":
         feedback = "你的位置偏右，胃主要位于左上腹，毗邻肝左叶、脾脏和胰腺。"
-    return AnatomySubmitResponse(correct=correct, score_items=[ScoreItem(name="定位准确性", score=score, feedback=feedback), ScoreItem(name="解剖名称掌握", score=86 if correct else 62, feedback="请继续巩固结构名称和分区。"), ScoreItem(name="临床关联理解", score=88 if correct else 60, feedback=exercise["clinical_link"]), ScoreItem(name="错误原因分析", score=90 if correct else 68, feedback="已给出复习建议。")], feedback=feedback, explanation=exercise["explanation"], clinical_link=exercise["clinical_link"])
+    score_items = [
+        ScoreItem(name="定位准确性", score=score, feedback=feedback),
+        ScoreItem(name="解剖名称掌握", score=86 if correct else 62, feedback="请继续巩固结构名称和分区。"),
+        ScoreItem(name="临床关联理解", score=88 if correct else 60, feedback=exercise["clinical_link"]),
+        ScoreItem(name="错误原因分析", score=90 if correct else 68, feedback="已给出复习建议。"),
+    ]
+    overall_score = round(sum(item.score for item in score_items) / len(score_items))
+    user = optional_user(authorization)
+    record_id = None
+    if user:
+        attempt = anatomy_learning_service.record(
+            account=user.account,
+            user_id=user.id,
+            exercise=exercise,
+            selected_zone=payload.selected_zone,
+            correct=correct,
+            score=overall_score,
+            feedback=feedback,
+            explanation=exercise["explanation"],
+            clinical_link=exercise["clinical_link"],
+            image_node_id=payload.node_id,
+            target_structure_id=payload.structure_id,
+            click_x=payload.click_x,
+            click_y=payload.click_y,
+        )
+        record_id = attempt["id"]
+    return AnatomySubmitResponse(
+        correct=correct,
+        score_items=score_items,
+        feedback=feedback,
+        explanation=exercise["explanation"],
+        clinical_link=exercise["clinical_link"],
+        record_id=record_id,
+        score=overall_score,
+    )
+
+
+@app.get("/api/anatomy/records")
+def anatomy_records(limit: int = 80, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user = require_role(authorization, {"student", "teacher", "admin", "super_admin"})
+    return anatomy_learning_service.records(user.account, limit)
+
+
+@app.get("/api/anatomy/mistakes")
+def anatomy_mistakes(limit: int = 80, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user = require_role(authorization, {"student", "teacher", "admin", "super_admin"})
+    return anatomy_learning_service.mistakes(user.account, limit)
 
 
 @app.post("/api/tts/speak", response_model=TTSResponse)

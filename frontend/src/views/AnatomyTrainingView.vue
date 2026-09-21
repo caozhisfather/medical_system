@@ -9,6 +9,7 @@ import AnatomyQuizPanel from '../components/anatomy/AnatomyQuizPanel.vue';
 import AgentEvidence from '../components/anatomy/AgentEvidence.vue';
 import { mockAnatomyExercises } from '../data/anatomy';
 import { anatomyAtlasNodes, anatomyAtlasSystems, type AnatomyAtlasHotspot } from '../data/anatomyAtlas';
+import { resolveAnatomyPracticeTarget } from '../data/anatomyPractice';
 import { anatomyImageSources, anatomyVideos } from '../data/anatomyResources';
 import { ANATOMY_SYSTEMS_3D, ANATOMY_SYSTEM_3D_BY_ID, ATLAS_3D_URL, ATLAS_ORGAN_URL, system3DColor, system3DName, type AnatomyOrgan, type AnatomyOrganPayload } from '../data/anatomy3d';
 import type { AgentAction, AgentResponse, AnatomyEvidenceItem, AnatomyEvidenceResponse, AnatomyExercise, AnatomyResult, AnatomyTextbookResult } from '../types';
@@ -27,9 +28,6 @@ const activeId = ref(exercises.value[0].id);
 const point = ref<Point | null>(null);
 const selectedZone = ref('');
 const result = ref<AnatomyResult | null>(null);
-const practiceEvidence = ref<AnatomyEvidenceResponse | null>(null);
-const practiceImageAspect = ref('1086 / 1448');
-const practiceEvidenceLoading = ref(false);
 const loading = ref(false);
 const message = ref('');
 const completed = ref(0);
@@ -129,16 +127,35 @@ const filtered = computed(() => activeSystem.value === '全部' ? exercises.valu
 const active = computed(() => exercises.value.find((item) => item.id === activeId.value) ?? exercises.value[0]);
 const activeZone = computed(() => zones[active.value.answer_zone]);
 const activeStructure = computed(() => active.value.substructures?.find((item) => item.name === selectedStructure.value) ?? active.value.substructures?.[0]);
-const covered = computed(() => Boolean(activeZone.value));
-const practiceImageUrl = computed(() => practiceEvidence.value?.evidence?.[0]?.page_image_url || anatomyImage);
+const practiceTarget = computed(() => resolveAnatomyPracticeTarget(active.value.id, activeStructure.value?.name ?? ''));
+const practiceZone = computed<Zone | undefined>(() => {
+  const target = practiceTarget.value?.hotspot;
+  if (!target) return activeZone.value;
+  return {
+    x: target.x,
+    y: target.y,
+    width: target.width,
+    height: target.height,
+    shape: 'ellipse'
+  };
+});
+const covered = computed(() => Boolean(practiceZone.value));
+const practiceImageUrl = computed(() => practiceTarget.value?.node.image || anatomyImage);
+const practiceImageAspect = computed(() => practiceTarget.value?.node.image_aspect || '1086 / 1448');
+const practicePrompt = computed(() => practiceTarget.value
+  ? `请在《${practiceTarget.value.node.title}》中点击：${practiceTarget.value.label}`
+  : active.value.prompt);
+const practiceCitation = computed(() => practiceTarget.value
+  ? `${practiceTarget.value.node.title} · ${practiceTarget.value.node.source_label}`
+  : '本地二维训练图');
 const score = computed(() => result.value ? Math.round(result.value.score_items.reduce((sum, item) => sum + item.score, 0) / result.value.score_items.length) : null);
 const markerStyle = computed(() => point.value ? { left: point.value.x + '%', top: point.value.y + '%' } : {});
-const zoneStyle = computed(() => activeZone.value ? {
-  left: (activeZone.value.x - activeZone.value.width / 2) + '%',
-  top: (activeZone.value.y - activeZone.value.height / 2) + '%',
-  width: activeZone.value.width + '%',
-  height: activeZone.value.height + '%',
-  borderRadius: activeZone.value.shape === 'rect' ? '8px' : '50%'
+const zoneStyle = computed(() => practiceZone.value ? {
+  left: (practiceZone.value.x - practiceZone.value.width / 2) + '%',
+  top: (practiceZone.value.y - practiceZone.value.height / 2) + '%',
+  width: practiceZone.value.width + '%',
+  height: practiceZone.value.height + '%',
+  borderRadius: practiceZone.value.shape === 'rect' ? '8px' : '50%'
 } : {});
 const visibleSystems = computed(() => viewMode.value === 'atlas' ? [...anatomyAtlasSystems] : systems);
 const atlasNode = computed(() => anatomyAtlasNodes.find((item) => item.id === atlasNodeId.value) ?? anatomyAtlasNodes[0]);
@@ -458,16 +475,6 @@ function choose(id: string) {
   result.value = null;
   message.value = '';
   selectedStructure.value = '';
-  void loadPracticeEvidence();
-}
-
-async function loadPracticeEvidence() {
-  const query = active.value?.target;
-  if (!query) return;
-  practiceEvidenceLoading.value = true;
-  try { practiceEvidence.value = await getAnatomyEvidence(query, false); }
-  catch { practiceEvidence.value = null; }
-  finally { practiceEvidenceLoading.value = false; }
 }
 
 function changeSystem(system: string) {
@@ -488,10 +495,11 @@ function contains(zone: Zone, value: Point) {
 }
 
 function locate(event: MouseEvent) {
-  if (!covered.value || loading.value || imageMoved.value) { imageMoved.value = false; return; }
+  const zone = practiceZone.value;
+  if (!zone || loading.value || imageMoved.value) { imageMoved.value = false; return; }
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
   point.value = { x: ((event.clientX - rect.left) / rect.width) * 100, y: ((event.clientY - rect.top) / rect.height) * 100 };
-  selectedZone.value = contains(activeZone.value, point.value) ? active.value.answer_zone : 'outside';
+  selectedZone.value = contains(zone, point.value) ? active.value.answer_zone : 'outside';
   result.value = null;
   message.value = '定位点已记录，提交后显示标准区域。';
 }
@@ -535,7 +543,16 @@ function fallback(correct: boolean): AnatomyResult {
 async function submit() {
   if (!point.value) { message.value = '请先在器官图上点击你判断的位置。'; return; }
   loading.value = true;
-  try { result.value = await submitAnatomy(active.value.id, selectedZone.value); }
+  try {
+    result.value = await submitAnatomy({
+      exercise_id: active.value.id,
+      selected_zone: selectedZone.value,
+      node_id: practiceTarget.value?.node.id ?? '',
+      structure_id: practiceTarget.value?.targetId ?? '',
+      click_x: point.value.x,
+      click_y: point.value.y
+    });
+  }
   catch { result.value = fallback(selectedZone.value === active.value.answer_zone); }
   finally { loading.value = false; completed.value += 1; message.value = ''; }
 }
@@ -575,7 +592,6 @@ onMounted(async () => {
     viewMode.value = 'body';
     focusOnSystem(requestedSystem);
   }
-  void loadPracticeEvidence();
   document.addEventListener('fullscreenchange', syncFullscreenState);
 });
 
@@ -608,7 +624,7 @@ onBeforeUnmount(() => {
       <button type="button" role="tab" :aria-selected="viewMode === 'atlas'" :class="{ active: viewMode === 'atlas' }" @click="switchMode('atlas')"><Layers3 :size="18" /><span><strong>图谱分层浏览</strong><small>系统 → 器官 → 精细结构</small></span></button>
       <button type="button" role="tab" :aria-selected="viewMode === 'practice'" :class="{ active: viewMode === 'practice' }" @click="switchMode('practice')"><Crosshair :size="18" /><span><strong>空间定位测验</strong><small>点击结构并获得即时反馈</small></span></button>
     </div>
-    <p class="anatomy-flow-note"><MousePointer2 :size="15" /><template v-if="viewMode === 'body'">拖动旋转三维人体，滚轮缩放，点击任意结构进入 AI 讲解与教材溯源。</template><template v-else-if="viewMode === 'atlas'">建议先点击图中热点完成结构探索，再切换到"空间定位测验"检验学习结果。</template><template v-else>在人体图上点击你判断的位置，提交后显示标准区域与评分。</template></p>
+    <p class="anatomy-flow-note"><MousePointer2 :size="15" /><template v-if="viewMode === 'body'">拖动旋转三维人体，滚轮缩放，点击任意结构进入 AI 讲解与教材溯源。</template><template v-else-if="viewMode === 'atlas'">建议先点击图中热点完成结构探索，再切换到"空间定位测验"检验学习结果。</template><template v-else>在二维器官或精细结构图中点击目标区域，提交后显示标准结构区与评分。</template></p>
 
     <div v-if="viewMode !== 'body'" class="anatomy-system-tabs" role="tablist" aria-label="选择人体系统">
       <button v-for="system in visibleSystems" :key="system" type="button" role="tab" :aria-selected="activeSystem === system" :class="{ active: activeSystem === system }" @click="changeSystem(system)">
@@ -825,23 +841,22 @@ onBeforeUnmount(() => {
 
       <main class="anatomy-visual-lab">
         <header class="anatomy-lab-toolbar">
-          <div><LocateFixed :size="18" /><span><strong>躯干前面观</strong><small>点击图像完成定位</small></span></div>
-          <span class="orientation-mark"><b>R</b> 患者右侧 · 患者左侧 <b>L</b></span>
+          <div><LocateFixed :size="18" /><span><strong>{{ practiceTarget?.node.title || '二维解剖定位' }}</strong><small>点击二维器官或精细结构图完成定位</small></span></div>
+          <span class="orientation-mark">{{ practiceTarget?.node.instruction || '点击图中目标结构' }}</span>
         </header>
         <div ref="imageFrame" class="anatomy-image-frame" :class="{ 'is-dragging': isDraggingImage }" @pointerdown="startImageDrag" @pointermove="dragImage" @pointerup="stopImageDrag" @pointercancel="stopImageDrag" @pointerleave="stopImageDrag">
-          <button class="anatomy-image-stage" :style="{ aspectRatio: practiceImageAspect }" type="button" :disabled="!covered" :aria-label="covered ? '在教材页上定位' + active.target : '当前任务没有可用靶区'" @click="locate">
-            <img :src="practiceImageUrl" alt="教材解剖页二维定位训练图" @load="(event) => { const image = event.target as HTMLImageElement; if (image.naturalWidth && image.naturalHeight) practiceImageAspect = image.naturalWidth + ' / ' + image.naturalHeight; }" />
+          <button class="anatomy-image-stage" :style="{ aspectRatio: practiceImageAspect }" type="button" :disabled="!covered" :aria-label="covered ? '在二维解剖图中定位' + practiceTarget?.label : '当前任务没有可用靶区'" @click="locate">
+            <img :src="practiceImageUrl" alt="二维器官与精细结构定位训练图" />
             <span v-if="point" class="student-marker" :class="{ correct: result?.correct, wrong: result && !result.correct }" :style="markerStyle"><Crosshair :size="24" /></span>
             <span v-if="result && covered" class="standard-zone" :style="zoneStyle"><span>标准区域</span></span>
           </button>
-          <div v-if="practiceEvidenceLoading" class="anatomy-unavailable-state"><LoaderCircle class="spin" :size="30" /><strong>正在加载最相似教材页</strong><p>定位任务使用知识库中的逐页教材证据。</p></div>
         </div>
-        <footer class="anatomy-stage-note"><span><Target :size="16" />点击教材页完成定位</span><span><LocateFixed :size="16" />提交后显示标准靶区</span><small>{{ practiceEvidence?.evidence?.[0] ? practiceEvidence.evidence[0].document_title + ' · 第' + practiceEvidence.evidence[0].page + '页' : '暂未匹配到教材页，使用本地训练图' }}</small></footer>
+        <footer class="anatomy-stage-note"><span><Target :size="16" />目标：{{ practiceTarget?.label || active.target }}</span><span><LocateFixed :size="16" />提交后显示标准结构区</span><small>{{ practiceCitation }}</small></footer>
       </main>
 
       <aside class="anatomy-task-panel">
         <div class="anatomy-task-status"><span>{{ active.system }}</span><b>{{ result ? '已评判' : '待定位' }}</b></div>
-        <span class="section-kicker">当前任务</span><h2>{{ active.title }}</h2><p class="anatomy-prompt">{{ active.prompt }}</p>
+        <span class="section-kicker">当前任务</span><h2>{{ practiceTarget?.node.title || active.title }}</h2><p class="anatomy-prompt">{{ practicePrompt }}</p>
         <section v-if="active.substructures?.length" class="anatomy-structure-panel">
           <header><strong><Layers3 :size="17" />{{ active.organ || active.target }}精细结构</strong><small>{{ active.substructures.length }} 项</small></header>
           <div class="anatomy-structure-tabs">

@@ -62,6 +62,7 @@ class Settings:
     auth_database_path: str = env_value("AUTH_DATABASE_PATH", str(ROOT_DIR / "data" / "auth.sqlite3"))
     skill_database_path: str = env_value("SKILL_DATABASE_PATH", str(ROOT_DIR / "data" / "skills.sqlite3"))
     knowledge_notes_path: str = env_value("KNOWLEDGE_NOTES_PATH", str(ROOT_DIR / "data" / "student_notes.json"))
+    anatomy_learning_database_path: str = env_value("ANATOMY_LEARNING_DATABASE_PATH", str(ROOT_DIR / "data" / "anatomy_learning.sqlite3"))
     anatomy_textbook_pdf_path: str = env_value("ANATOMY_TEXTBOOK_PDF_PATH", "")
     mail_host: str = env_value("MAIL_HOST", "smtp.163.com")
     mail_port: int = int(env_value("MAIL_PORT", "465"))

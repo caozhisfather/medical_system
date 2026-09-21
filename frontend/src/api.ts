@@ -1,4 +1,4 @@
-import type { AgentResponse, AnatomyEvidenceResponse, AnatomyExercise, AnatomyNote, AnatomyResult, AnatomyTextbookResult, AuthResponse, CaseLibraryDeidentifyResult, CaseLibraryEntry, CaseLibraryImportReport, CaseLibraryListResponse, CaseSummary, ChatMessage, DailyReview, DailyReviewClassSummary, DailyReviewPolicy, DataSourceItem, ExamSettings, GuidelineDoc, HistoryTakingTemplate, KnowledgeEdge, KnowledgeItem, KnowledgeNode, Overview, PatientChatResponse, QuizGrade, QuizSet, RagResponse, TeacherCaseDraft, TeacherCaseRecommendations, TeacherDashboard, TextbookStage, TrainingAssessment, TrainingReport, TtsResponse } from './types';
+import type { AgentResponse, AnatomyEvidenceResponse, AnatomyExercise, AnatomyLearningRecordsResponse, AnatomyMistake, AnatomyNote, AnatomyResult, AnatomyTextbookResult, AuthResponse, CaseLibraryDeidentifyResult, CaseLibraryEntry, CaseLibraryImportReport, CaseLibraryListResponse, CaseSummary, ChatMessage, DailyReview, DailyReviewClassSummary, DailyReviewPolicy, DataSourceItem, ExamSettings, GuidelineDoc, HistoryTakingTemplate, KnowledgeEdge, KnowledgeItem, KnowledgeNode, Overview, PatientChatResponse, QuizGrade, QuizSet, RagResponse, TeacherCaseDraft, TeacherCaseRecommendations, TeacherDashboard, TextbookStage, TrainingAssessment, TrainingReport, TtsResponse } from './types';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
 import type { SkillCall, SkillDefinition, SkillPolicy, SkillQuery, SkillResult } from './types';
@@ -139,7 +139,9 @@ export function getKnowledgeGraph(lang = 'zh', scope: 'anatomy' | 'clinical' = '
 export function getDataSources() { return readJson<DataSourceItem[]>('/api/data-sources'); }
 export function searchGraph(q: string, lang = 'zh', scope: 'anatomy' | 'clinical' = 'anatomy') { return readJson<{ query: string; nodes: KnowledgeNode[]; edges: KnowledgeEdge[]; learning_path: string[] }>(`/api/graph/search?q=${encodeURIComponent(q)}&lang=${encodeURIComponent(lang)}&scope=${scope}`); }
 export function getAnatomyExercises() { return readJson<AnatomyExercise[]>('/api/anatomy'); }
-export function submitAnatomy(exerciseId: string, selectedZone: string) { return postJson<AnatomyResult>('/api/anatomy/submit', { exercise_id: exerciseId, selected_zone: selectedZone }); }
+export function submitAnatomy(payload: { exercise_id: string; selected_zone: string; node_id?: string; structure_id?: string; click_x?: number; click_y?: number }) { return postJson<AnatomyResult>('/api/anatomy/submit', payload); }
+export function getAnatomyRecords(limit = 80) { return readJson<AnatomyLearningRecordsResponse>(`/api/anatomy/records?limit=${limit}`); }
+export function getAnatomyMistakes(limit = 80) { return readJson<{ items: AnatomyMistake[] }>(`/api/anatomy/mistakes?limit=${limit}`); }
 export function getAnatomyTextbook(q: string) { return readJson<AnatomyTextbookResult>(`/api/anatomy/textbook?q=${encodeURIComponent(q)}`); }
 export function getAnatomyEvidence(q: string, withAnswer = true) { return readJson<AnatomyEvidenceResponse>(`/api/anatomy/evidence?q=${encodeURIComponent(q)}&with_answer=${withAnswer}`); }
 export function getAnatomyNotes(documentId: string, page: number) { return readJson<AnatomyNote[]>(`/api/anatomy/notes?document_id=${encodeURIComponent(documentId)}&page=${page}`); }
