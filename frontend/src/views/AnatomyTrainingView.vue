@@ -339,9 +339,10 @@ async function askBodyAgent(prompt: string) {
 }
 
 function chooseAtlasNode(id: string, structureId = '') {
+  const nextNode = anatomyAtlasNodes.find((item) => item.id === id);
   atlasNodeId.value = id;
   atlasStructureId.value = structureId;
-  atlasImageAspect.value = '';
+  atlasImageAspect.value = nextNode?.image_aspect ?? '';
   agentReply.value = '';
   agentPrompt.value = '';
 }
@@ -463,11 +464,6 @@ function saveTextbookNote(item: AnatomyEvidenceItem) {
     }
   }, 650));
 }
-
-watch(atlasStructureId, (structureId) => {
-  if (!structureId || !atlasStructure.value) return;
-  openTextbook(atlasStructure.value.name);
-});
 
 function choose(id: string) {
   activeId.value = id;
