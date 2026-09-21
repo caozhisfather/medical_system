@@ -329,6 +329,8 @@ AUTH_DATABASE_PATH=./data/auth.sqlite3
 
 完整接口以 `backend/app/main.py` 和 FastAPI 自动文档为准：启动后访问 `http://127.0.0.1:8000/docs`。需要配置外部服务时，按 [`docs/API_INTEGRATION_CHECKLIST.md`](docs/API_INTEGRATION_CHECKLIST.md) 逐项检查。
 
+服务器部署、医学资料上传、OCR 和向量索引重建步骤见 [`docs/DEPLOYMENT_GUIDE.md`](docs/DEPLOYMENT_GUIDE.md)。
+
 ## 测验安全流程
 
 ```mermaid

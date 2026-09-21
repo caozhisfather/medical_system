@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>医学资料与知识库部署细则</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">@page {
+size: A4;
+margin: 18mm 16mm 20mm;
+}
+html {
+font-size: 11.5pt;
+}
+body {
+max-width: 170mm;
+margin: 0 auto;
+color: #1f2d31;
+font-family: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+line-height: 1.72;
+}
+h1 {
+margin: 0 0 18px;
+padding-bottom: 10px;
+border-bottom: 2px solid #0f766e;
+color: #123c3a;
+font-size: 24pt;
+line-height: 1.3;
+}
+h2 {
+margin: 24px 0 10px;
+color: #155e59;
+font-size: 17pt;
+line-height: 1.4;
+break-after: avoid;
+}
+h3 {
+margin: 18px 0 8px;
+color: #245b61;
+font-size: 14pt;
+break-after: avoid;
+}
+p,
+li {
+orphans: 3;
+widows: 3;
+}
+table {
+width: 100%;
+margin: 12px 0 16px;
+border-collapse: collapse;
+font-size: 10.5pt;
+}
+th,
+td {
+padding: 6px 8px;
+border: 1px solid #bfd2d0;
+text-align: left;
+vertical-align: top;
+}
+th {
+background: #e8f4f1;
+color: #174f4a;
+}
+code {
+padding: 1px 4px;
+border-radius: 3px;
+background: #eef3f3;
+font-family: Consolas, monospace;
+}
+pre {
+overflow-x: auto;
+padding: 10px 12px;
+border: 1px solid #d7e2e1;
+border-radius: 5px;
+background: #f6f9f9;
+white-space: pre-wrap;
+word-break: break-word;
+}
+blockquote {
+margin: 12px 0;
+padding: 8px 12px;
+border-left: 4px solid #4ca99c;
+background: #eef8f5;
+}
+hr {
+margin: 18px 0;
+border: 0;
+border-top: 1px solid #d8e4e3;
+}
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">医学资料与知识库部署细则</h1>
+</header>
+<h1 id="医学资料与知识库部署细则">医学资料与知识库部署细则</h1>
+<p>本文用于把当前项目部署到另一台服务器，并解决以下问题：</p>
+<ul>
+<li>项目代码已经部署，但本地教材、图谱和指南 PDF 没有上传。</li>
+<li><code>data/document_library.json</code>
+中保存的是开发电脑的绝对路径。</li>
+<li>服务器上的教材检索为空，或返回
+<code>source_unavailable</code>。</li>
+<li>OCR、向量索引和数据库文件没有一起迁移。</li>
+</ul>
+<h2 id="一先理解现有架构">一、先理解现有架构</h2>
+<h3 id="与资料相关的文件">1.1 与资料相关的文件</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>文件或目录</th>
+<th>作用</th>
+<th>是否提交 Git</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>storage/knowledge_uploads/</code></td>
+<td>管理员上传的原始资料</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>data/document_library.json</code></td>
+<td>文档登记表，保存标题、页数、路径和处理状态</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>storage/document_ocr/</code></td>
+<td>逐页 OCR 文本</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>data/document_embeddings.json</code></td>
+<td>向量索引元数据</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>data/document_embeddings.npz</code></td>
+<td>向量矩阵</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>data/auth.sqlite3</code></td>
+<td>用户和会话</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>data/skills.sqlite3</code></td>
+<td>Skill 权限和调用记录</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>data/anatomy_learning.sqlite3</code></td>
+<td>定位测验与错题记录</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>data/student_notes.json</code></td>
+<td>学生笔记和教材勾画</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>这些文件默认被 <code>.gitignore</code> 忽略，因此从 GitHub clone
+后不会自动出现。服务器必须单独上传并重建索引。</p>
+<h3 id="路径规则">1.2 路径规则</h3>
+<p><code>source_path</code> 是文档登记表中最重要的字段。</p>
+<ul>
+<li>开发电脑上可能是 <code>E:\...\教材.pdf</code>。</li>
+<li>Linux 服务器上不能继续使用这个 Windows 路径。</li>
+<li>服务器部署时，应使用 Linux 绝对路径或相对项目根目录的路径。</li>
+<li>只要服务器上找不到 <code>source_path</code> 指向的文件，OCR 会标记为
+<code>source_unavailable</code>，教材检索就没有结果。</li>
+</ul>
+<h2 id="二推荐目录规划">二、推荐目录规划</h2>
+<p>以 Ubuntu 服务器为例：</p>
+<pre class="text"><code>/opt/medical_system/
+├─ medical_system/                  # Git 仓库
+│  ├─ backend/
+│  ├─ frontend/
+│  ├─ data/
+│  ├─ storage/
+│  ├─ env/.env
+│  └─ competition_submission/
+└─ materials/                       # 原始资料，建议放在仓库外
+   ├─ textbooks/
+   ├─ atlases/
+   ├─ guidelines/
+   └─ other/</code></pre>
+<p>如果服务器是 Windows，也应使用类似结构，不要依赖 <code>E:\</code>
+开发盘符。</p>
+<h2 id="三上传项目代码">三、上传项目代码</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /opt/medical_system</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone <span class="op">&lt;</span>仓库地址<span class="op">&gt;</span> medical_system</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> medical_system</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> checkout 2026-9-17-12th</span></code></pre></div>
+<p>建议部署固定提交：</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> checkout cca9963</span></code></pre></div>
+<p>然后安装依赖：</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> activate pytorch_env</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pip install <span class="at">-r</span> backend/requirements.txt</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ex">corepack</span> enable</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ex">pnpm</span> <span class="at">--dir</span> frontend install</span></code></pre></div>
+<h2 id="四配置-env.env">四、配置 env/.env</h2>
+<p>项目只读取 <code>env/.env</code>，不是仓库根目录的
+<code>.env</code>。</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> env</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> .env.example env/.env</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">nano</span> env/.env</span></code></pre></div>
+<p>至少检查以下配置：</p>
+<pre class="dotenv"><code>FASTAPI_ENV=production
+DEMO_MODE=false
+BACKEND_HOST=127.0.0.1
+BACKEND_PORT=8000
+FRONTEND_ORIGIN=https://你的前端域名
+PUBLIC_FRONTEND_URL=https://你的前端域名
+
+OPENAI_API_KEY=你的模型密钥
+OPENAI_BASE_URL=你的 OpenAI 兼容接口
+OPENAI_MODEL=你的推理模型
+OPENAI_ANSWER_MODEL=你的教材讲解模型
+OPENAI_MAX_TOKENS=2800
+
+EMBEDDING_API_KEY=你的向量模型密钥
+EMBEDDING_BASE_URL=你的兼容接口
+EMBEDDING_MODEL=text-embedding-v3
+EMBEDDING_TIMEOUT=60
+
+QWEN_VISION_API_KEY=你的视觉 OCR 密钥
+QWEN_VISION_BASE_URL=你的视觉模型接口
+QWEN_VISION_MODEL=qwen-vl-max
+
+AUTH_DATABASE_PATH=./data/auth.sqlite3
+SKILL_DATABASE_PATH=./data/skills.sqlite3
+KNOWLEDGE_NOTES_PATH=./data/student_notes.json
+ANATOMY_LEARNING_DATABASE_PATH=./data/anatomy_learning.sqlite3</code></pre>
+<p>注意：</p>
+<ul>
+<li><code>OPENAI_ANSWER_MODEL</code> 不要填一个先消耗大量 reasoning
+token 的模型，否则可能返回空答案。</li>
+<li><code>QWEN_VISION_*</code> 只对扫描版 PDF 生效。</li>
+<li><code>env/.env</code> 绝对不能提交 Git。</li>
+</ul>
+<h2 id="五上传原始医学资料">五、上传原始医学资料</h2>
+<h3 id="从本地上传">5.1 从本地上传</h3>
+<p>Windows PowerShell 示例：</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>scp <span class="op">-</span>r <span class="st">&quot;E:\18_本科计算机专业课程笔记\07_竞赛\全球人工智能算法精英赛\教科书籍\书籍&quot;</span> user@server<span class="op">:/</span>opt<span class="op">/</span>medical_system<span class="op">/</span>materials<span class="op">/</span>textbooks</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>scp <span class="op">-</span>r <span class="st">&quot;E:\18_本科计算机专业课程笔记\07_竞赛\全球人工智能算法精英赛\奈特解剖图谱&quot;</span> user@server<span class="op">:/</span>opt<span class="op">/</span>medical_system<span class="op">/</span>materials<span class="op">/</span>atlases</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>scp <span class="op">-</span>r <span class="st">&quot;E:\18_本科计算机专业课程笔记\07_竞赛\全球人工智能算法精英赛\全科临床指南中文（中英文本）&quot;</span> user@server<span class="op">:/</span>opt<span class="op">/</span>medical_system<span class="op">/</span>materials<span class="op">/</span>guidelines</span></code></pre></div>
+<p>Linux rsync 示例：</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rsync</span> <span class="at">-av</span> <span class="at">--progress</span> /local/books/ user@server:/opt/medical_system/materials/textbooks/</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rsync</span> <span class="at">-av</span> <span class="at">--progress</span> /local/atlases/ user@server:/opt/medical_system/materials/atlases/</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">rsync</span> <span class="at">-av</span> <span class="at">--progress</span> /local/guidelines/ user@server:/opt/medical_system/materials/guidelines/</span></code></pre></div>
+<p>上传后检查：</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> /opt/medical_system/materials <span class="at">-type</span> f <span class="at">-name</span> <span class="st">&#39;*.pdf&#39;</span> <span class="kw">|</span> <span class="fu">wc</span> <span class="at">-l</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">du</span> <span class="at">-sh</span> /opt/medical_system/materials</span></code></pre></div>
+<h3 id="不要只复制-document_library.json">5.2 不要只复制
+document_library.json</h3>
+<p>只复制 <code>data/document_library.json</code>、但服务器没有原
+PDF，结果仍然是：</p>
+<pre class="text"><code>source_unavailable</code></pre>
+<p>因为登记表里保存的还是开发电脑的绝对路径。</p>
+<h2 id="六把资料登记到服务器数据库">六、把资料登记到服务器数据库</h2>
+<p>推荐使用管理员上传接口，因为服务器会自动保存成相对路径：</p>
+<pre class="text"><code>管理员登录
+-&gt; 教学知识库
+-&gt; 上传资料
+-&gt; 选择 textbook / evidence / case</code></pre>
+<p>如果资料数量很多，使用批量脚本。</p>
+<h3 id="批量脚本当前限制">6.1 批量脚本当前限制</h3>
+<p>当前脚本：</p>
+<pre class="text"><code>backend/scripts/import_medical_documents.py</code></pre>
+<p>顶部有 <code>SOURCES</code> 列表。开发版本包含 Windows
+绝对路径。Linux 部署前必须改成服务器资料目录。</p>
+<h3 id="linux-推荐改法">6.2 Linux 推荐改法</h3>
+<p>在服务器上修改：</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>SOURCES <span class="op">=</span> [</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    (Path(<span class="st">&quot;/opt/medical_system/materials/textbooks&quot;</span>), <span class="st">&quot;textbook&quot;</span>, <span class="st">&quot;教材&quot;</span>),</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    (Path(<span class="st">&quot;/opt/medical_system/materials/atlases&quot;</span>), <span class="st">&quot;textbook&quot;</span>, <span class="st">&quot;解剖图谱&quot;</span>),</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    (Path(<span class="st">&quot;/opt/medical_system/materials/guidelines&quot;</span>), <span class="st">&quot;evidence&quot;</span>, <span class="st">&quot;临床指南&quot;</span>),</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>]</span></code></pre></div>
+<p>如果服务器是 Windows：</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>SOURCES <span class="op">=</span> [</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    (Path(<span class="vs">r&quot;D:</span><span class="dv">\m</span><span class="vs">edical_materials</span><span class="ch">\t</span><span class="vs">extbooks&quot;</span>), <span class="st">&quot;textbook&quot;</span>, <span class="st">&quot;教材&quot;</span>),</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    (Path(<span class="vs">r&quot;D:</span><span class="dv">\m</span><span class="vs">edical_materials</span><span class="ch">\a</span><span class="vs">tlases&quot;</span>), <span class="st">&quot;textbook&quot;</span>, <span class="st">&quot;解剖图谱&quot;</span>),</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    (Path(<span class="vs">r&quot;D:</span><span class="dv">\m</span><span class="vs">edical_materials</span><span class="er">\</span><span class="vs">guidelines&quot;</span>), <span class="st">&quot;evidence&quot;</span>, <span class="st">&quot;临床指南&quot;</span>),</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>]</span></code></pre></div>
+<p>不要继续使用 <code>E:\18_本科计算机专业课程笔记...</code>
+这样的开发机路径。</p>
+<h3 id="重建登记表">6.3 重建登记表</h3>
+<p>先备份旧登记表：</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> data/document_library.json data/document_library.windows.json.bak</span></code></pre></div>
+<p>如果旧登记表全部是错误路径，删除或在服务器重建：</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> backend/scripts/import_medical_documents.py</span></code></pre></div>
+<p>检查结果：</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-</span> <span class="op">&lt;&lt;&#39;PY&#39;</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="st">import json</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="st">from pathlib import Path</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="st">data = json.loads(Path(&quot;data/document_library.json&quot;).read_text(&quot;utf-8&quot;))</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="st">print(&quot;documents=&quot;, len(data.get(&quot;documents&quot;, [])))</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="st">for item in data.get(&quot;documents&quot;, [])[:5]:</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="st">    print(item[&quot;title&quot;], &quot;|&quot;, item[&quot;source_path&quot;])</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="op">PY</span></span></code></pre></div>
+<p>每个 <code>source_path</code> 必须能在服务器上访问。</p>
+<h2 id="七执行-ocr">七、执行 OCR</h2>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> activate pytorch_env</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> backend/scripts/extract_document_text.py</span></code></pre></div>
+<p>输出目录：</p>
+<pre class="text"><code>storage/document_ocr/</code></pre>
+<p>状态说明：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>completed</code></td>
+<td>已提取文本，可以继续生成向量</td>
+</tr>
+<tr>
+<td><code>scanned_pdf</code></td>
+<td>PDF 没有文本层，需要视觉 OCR</td>
+</tr>
+<tr>
+<td><code>source_unavailable</code></td>
+<td><code>source_path</code> 不存在</td>
+</tr>
+<tr>
+<td><code>failed</code></td>
+<td>文件损坏或 OCR 异常</td>
+</tr>
+</tbody>
+</table>
+<p>扫描版资料要确认：</p>
+<pre class="dotenv"><code>QWEN_VISION_API_KEY=...
+QWEN_VISION_BASE_URL=...
+QWEN_VISION_MODEL=qwen-vl-max</code></pre>
+<p>如果 OCR 失败，先修复 <code>source_path</code>
+和视觉模型配置，不要继续生成向量。</p>
+<h2 id="八生成向量索引">八、生成向量索引</h2>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> backend/scripts/build_document_embeddings.py</span></code></pre></div>
+<p>可以先小批量验证：</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> backend/scripts/build_document_embeddings.py <span class="at">--limit</span> 2</span></code></pre></div>
+<p>成功后检查：</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-</span> <span class="op">&lt;&lt;&#39;PY&#39;</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="st">import json</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="st">from pathlib import Path</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="st">meta = json.loads(Path(&quot;data/document_embeddings.json&quot;).read_text(&quot;utf-8&quot;))</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="st">print(&quot;indexed_items=&quot;, len(meta.get(&quot;items&quot;, [])))</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="st">print(&quot;model=&quot;, meta.get(&quot;model&quot;))</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="op">PY</span></span></code></pre></div>
+<p><code>indexed_items</code> 必须大于 0。如果为
+0，说明没有生成成功；如果出现
+<code>403 quota exhausted</code>，需要更换或充值 Embedding 服务。</p>
+<h2 id="九迁移已有用户skill测验和笔记">九、迁移已有用户、Skill、测验和笔记</h2>
+<p>如果比赛部署需要保留本地用户和记录，需要单独复制：</p>
+<pre class="text"><code>data/auth.sqlite3
+data/skills.sqlite3
+data/anatomy_learning.sqlite3
+data/student_notes.json</code></pre>
+<p>复制前先停止服务，复制后检查文件权限。</p>
+<p>如果只是部署演示环境，可以不复制这些文件：</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> backend.app.main</span></code></pre></div>
+<p>后端会创建新的空数据库。</p>
+<h2 id="十启动服务">十、启动服务</h2>
+<p>后端：</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> activate pytorch_env</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> backend.app.main</span></code></pre></div>
+<p>前端开发验证：</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ex">corepack</span> pnpm <span class="at">--dir</span> frontend dev</span></code></pre></div>
+<p>生产构建：</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="ex">corepack</span> pnpm <span class="at">--dir</span> frontend build</span></code></pre></div>
+<p>生产环境建议：</p>
+<ul>
+<li>前端 <code>frontend/dist</code> 交给 Nginx。</li>
+<li><code>/api</code> 反向代理到 <code>127.0.0.1:8000</code>。</li>
+<li>SPA 路由回退到 <code>index.html</code>。</li>
+<li>使用 systemd 或 supervisor 守护后端。</li>
+</ul>
+<h2 id="十一验证清单">十一、验证清单</h2>
+<h3 id="后端健康">11.1 后端健康</h3>
+<div class="sourceCode" id="cb29"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://127.0.0.1:8000/api/health</span></code></pre></div>
+<p>检查：</p>
+<ul>
+<li><code>status=ok</code></li>
+<li><code>readiness=ready</code></li>
+<li><code>ai.llm_configured=true</code></li>
+<li><code>embedding</code> 能正常配置</li>
+</ul>
+<h3 id="资料登记">11.2 资料登记</h3>
+<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-</span> <span class="op">&lt;&lt;&#39;PY&#39;</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="st">import json</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="st">from pathlib import Path</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="st">data = json.loads(Path(&quot;data/document_library.json&quot;).read_text(&quot;utf-8&quot;))</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="st">for status in (&quot;completed&quot;, &quot;scanned_pdf&quot;, &quot;source_unavailable&quot;, &quot;failed&quot;):</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="st">    count = sum(1 for item in data[&quot;documents&quot;] if item.get(&quot;ocr_status&quot;) == status)</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="st">    print(status, count)</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="op">PY</span></span></code></pre></div>
+<h3 id="教材证据检索">11.3 教材证据检索</h3>
+<div class="sourceCode" id="cb31"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="st">&quot;http://127.0.0.1:8000/api/anatomy/evidence?q=心脏&amp;limit=3&amp;with_answer=false&quot;</span></span></code></pre></div>
+<p>至少应满足：</p>
+<ul>
+<li><code>found=true</code></li>
+<li><code>evidence</code> 不为空</li>
+<li>返回页码、行号、文档名称</li>
+</ul>
+<h3 id="教材页图片">11.4 教材页图片</h3>
+<div class="sourceCode" id="cb32"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-I</span> <span class="st">&quot;http://127.0.0.1:8000/api/anatomy/textbook/page?document_id=你的文档ID&amp;page=1&quot;</span></span></code></pre></div>
+<p>应返回 <code>200 image/png</code>。</p>
+<h3 id="管理员处理状态">11.5 管理员处理状态</h3>
+<p>管理员登录后访问：</p>
+<pre class="text"><code>GET /api/admin/teaching-knowledge/process
+GET /api/admin/teaching-knowledge/embeddings/process</code></pre>
+<p>或者直接使用管理员页面的知识库状态卡片。</p>
+<h2 id="十二常见问题">十二、常见问题</h2>
+<h3 id="检索为空">检索为空</h3>
+<p>按顺序检查：</p>
+<ol type="1">
+<li>服务器是否有原始 PDF。</li>
+<li><code>source_path</code> 是否能在服务器访问。</li>
+<li>OCR 是否完成。</li>
+<li><code>storage/document_ocr/</code> 是否有对应 JSON。</li>
+<li><code>document_embeddings.json</code> 的 <code>items</code> 是否大于
+0。</li>
+</ol>
+<h3 id="显示-source_unavailable">显示 source_unavailable</h3>
+<p>原因是 <code>document_library.json</code> 保存了本地绝对路径。不要在
+Windows
+上复制数据库后直接上传，应该重新登记服务器路径，或把服务器文件路径更新回登记表。</p>
+<h3 id="embedding-返回-403">Embedding 返回 403</h3>
+<p>说明向量服务没有额度或 Key 不可用。此时 OCR
+仍可做词法检索回退，但不能称为完整向量检索。</p>
+<h3 id="中文文件名乱码">中文文件名乱码</h3>
+<p>确保：</p>
+<ul>
+<li>上传工具使用 UTF-8。</li>
+<li>Linux locale 支持 UTF-8。</li>
+<li>不要通过会转换编码的旧脚本批量重命名。</li>
+</ul>
+<h3 id="页面能打开但没有教材页">页面能打开但没有教材页</h3>
+<p>检查：</p>
+<ul>
+<li><code>document_id</code> 是否存在。</li>
+<li><code>page</code> 是否超过 <code>page_count</code>。</li>
+<li>原始 PDF 是否在服务器上。</li>
+<li>后端进程对 PDF 文件是否有读取权限。</li>
+</ul>
+<h2 id="十三部署完成后的交接">十三、部署完成后的交接</h2>
+<p>请部署同学最后提供：</p>
+<ul class="task-list">
+<li><label><input type="checkbox"></input>服务器代码版本或 Git
+提交号</label></li>
+<li><label><input type="checkbox"></input>原始资料目录</label></li>
+<li><label><input type="checkbox"></input><code>document_library.json</code>
+资料数量</label></li>
+<li><label><input type="checkbox"></input>OCR 完成数量</label></li>
+<li><label><input type="checkbox"></input>向量索引 items 数量</label></li>
+<li><label><input type="checkbox"></input>教材检索验证截图</label></li>
+<li><label><input type="checkbox"></input>教材页图片验证截图</label></li>
+<li><label><input type="checkbox"></input>管理员知识库状态截图</label></li>
+<li><label><input type="checkbox"></input>备份目录</label></li>
+<li><label><input type="checkbox"></input>启动、停止和重启命令</label></li>
+</ul>
+<h2 id="十四最小操作顺序">十四、最小操作顺序</h2>
+<p>如果只想尽快让服务器恢复教材检索：</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /opt/medical_system/medical_system</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> activate pytorch_env</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. 上传 PDF 到 /opt/medical_system/materials</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. 修改 backend/scripts/import_medical_documents.py 的 SOURCES</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> backend/scripts/import_medical_documents.py</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> backend/scripts/extract_document_text.py</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> backend/scripts/build_document_embeddings.py</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. 验证</span></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="st">&quot;http://127.0.0.1:8000/api/anatomy/evidence?q=心脏&amp;limit=3&amp;with_answer=false&quot;</span></span></code></pre></div>
+</body>
+</html>
