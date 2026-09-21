@@ -391,6 +391,7 @@ class AnatomyNoteRequest(BaseModel):
     line_start: int | None = Field(default=None, ge=1)
     line_end: int | None = Field(default=None, ge=1)
     content: str = Field(default="", max_length=5000)
+    annotations: list[dict[str, Any]] = Field(default_factory=list, max_length=500)
 
 
 class TTSRequest(BaseModel):

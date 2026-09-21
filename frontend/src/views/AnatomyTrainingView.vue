@@ -8,16 +8,17 @@ import AnatomyViewer3D from '../components/anatomy/AnatomyViewer3D.vue';
 import AnatomyQuizPanel from '../components/anatomy/AnatomyQuizPanel.vue';
 import AgentEvidence from '../components/anatomy/AgentEvidence.vue';
 import MarkdownContent from '../components/MarkdownContent.vue';
+import TextbookPageViewer from '../components/TextbookPageViewer.vue';
 import { mockAnatomyExercises } from '../data/anatomy';
 import { anatomyAtlasNodes, anatomyAtlasSystems, type AnatomyAtlasHotspot } from '../data/anatomyAtlas';
 import { resolveAnatomyPracticeTarget } from '../data/anatomyPractice';
 import { anatomyImageSources, anatomyVideos } from '../data/anatomyResources';
 import { ANATOMY_SYSTEMS_3D, ANATOMY_SYSTEM_3D_BY_ID, ATLAS_3D_URL, ATLAS_ORGAN_URL, system3DColor, system3DName, type AnatomyOrgan, type AnatomyOrganPayload } from '../data/anatomy3d';
-import type { AgentAction, AgentResponse, AnatomyEvidenceItem, AnatomyEvidenceResponse, AnatomyExercise, AnatomyResult, AnatomyTextbookResult } from '../types';
+import type { AgentAction, AgentResponse, AnatomyEvidenceItem, AnatomyEvidenceResponse, AnatomyExercise, AnatomyResult, AnatomyTextbookResult, TextbookAnnotationStroke } from '../types';
 
 interface Point { x: number; y: number }
 interface Zone extends Point { width: number; height: number; shape?: 'ellipse' | 'rect'; covered?: boolean }
-interface TextbookNoteEditor { id: string; content: string; saving: boolean }
+interface TextbookNoteEditor { id: string; content: string; annotations: TextbookAnnotationStroke[]; saving: boolean }
 
 const route = useRoute();
 const router = useRouter();
@@ -429,7 +430,7 @@ function textbookNoteKey(item: AnatomyEvidenceItem) {
 
 function textbookNoteFor(item: AnatomyEvidenceItem) {
   const key = textbookNoteKey(item);
-  if (!textbookNotes[key]) textbookNotes[key] = { id: '', content: '', saving: false };
+  if (!textbookNotes[key]) textbookNotes[key] = { id: '', content: '', annotations: [], saving: false };
   return textbookNotes[key];
 }
 
@@ -440,6 +441,7 @@ async function loadTextbookNotes(items: AnatomyEvidenceItem[], requestId: number
       const notes = await getAnatomyNotes(item.document_id, item.page);
       if (requestId !== textbookRequestId) return;
       editor.content = notes[0]?.content ?? '';
+      editor.annotations = notes[0]?.annotations ?? [];
       editor.id = notes[0]?.id ?? '';
     } catch {
       // Notes require a signed-in account; the editor still works after login.
@@ -455,7 +457,7 @@ function saveTextbookNote(item: AnatomyEvidenceItem) {
   textbookNoteTimers.set(key, setTimeout(async () => {
     editor.saving = true;
     try {
-      const saved = await saveAnatomyNote({ note_id: editor.id || undefined, document_id: item.document_id, page: item.page, line_start: item.line_start, line_end: item.line_end, content: editor.content });
+      const saved = await saveAnatomyNote({ note_id: editor.id || undefined, document_id: item.document_id, page: item.page, line_start: item.line_start, line_end: item.line_end, content: editor.content, annotations: editor.annotations });
       editor.id = saved.id;
     } catch { /* unauthenticated demo mode keeps the text in the open editor */ }
     finally {
@@ -463,6 +465,12 @@ function saveTextbookNote(item: AnatomyEvidenceItem) {
       textbookNoteTimers.delete(key);
     }
   }, 650));
+}
+
+function updateTextbookAnnotations(item: AnatomyEvidenceItem, annotations: TextbookAnnotationStroke[]) {
+  const editor = textbookNoteFor(item);
+  editor.annotations = annotations;
+  saveTextbookNote(item);
 }
 
 function choose(id: string) {
@@ -910,10 +918,17 @@ onBeforeUnmount(() => {
             <article v-for="item in textbookEvidence.evidence" :key="`${item.document_id}-${item.page}`" class="textbook-evidence-item">
               <header><strong>{{ item.document_title }}</strong><span>第 {{ item.page }} 页 · 第 {{ item.line_start }}-{{ item.line_end }} 行 · 相似度 {{ Math.round(item.score * 100) }}%</span></header>
               <div class="textbook-evidence-grid">
-                <img :src="item.page_image_url" :alt="`${item.document_title} 第 ${item.page } 页`" loading="lazy" />
-                <div class="textbook-evidence-lines"><p v-for="line in item.lines" :key="line.line" :class="{ matched: line.matched }"><b>{{ line.line }}</b><mark v-if="line.matched">{{ line.text }}</mark><template v-else>{{ line.text }}</template></p></div>
+                <TextbookPageViewer
+                  :image-url="item.page_image_url"
+                  :alt="`${item.document_title} 第 ${item.page} 页`"
+                  :annotations="textbookNoteFor(item).annotations"
+                  @update:annotations="updateTextbookAnnotations(item, $event)"
+                />
+                <div class="textbook-study-side">
+                  <div class="textbook-evidence-lines"><p v-for="line in item.lines" :key="line.line" :class="{ matched: line.matched }"><b>{{ line.line }}</b><mark v-if="line.matched">{{ line.text }}</mark><template v-else>{{ line.text }}</template></p></div>
+                  <label class="textbook-note-editor"><span>我的笔记</span><textarea v-model="textbookNoteFor(item).content" rows="5" placeholder="记录这页教材的理解、疑问或老师补充" @input="saveTextbookNote(item)" /><small>{{ textbookNoteFor(item).saving ? '正在保存...' : '笔记与勾画自动保存到当前账号' }}</small></label>
+                </div>
               </div>
-              <label class="textbook-note-editor"><span>我的笔记</span><textarea v-model="textbookNoteFor(item).content" rows="3" placeholder="记录这页教材的理解、疑问或老师补充" @input="saveTextbookNote(item)" /><small>{{ textbookNoteFor(item).saving ? '正在保存...' : '自动保存到当前账号' }}</small></label>
             </article>
           </template>
           <div v-if="textbookLoading" class="textbook-state"><LoaderCircle class="spin" :size="24" />正在检索教材</div>

@@ -372,7 +372,25 @@ export interface AnatomyEvidenceResponse {
   answer_source: string;
   hint?: string;
 }
-export interface AnatomyNote { id: string; account?: string; document_id: string; page: number; line_start?: number; line_end?: number; content: string; updated_at: string; }
+export interface TextbookAnnotationPoint { x: number; y: number; }
+export interface TextbookAnnotationStroke {
+  id: string;
+  tool: 'pen' | 'highlight';
+  color: string;
+  width: number;
+  points: TextbookAnnotationPoint[];
+}
+export interface AnatomyNote {
+  id: string;
+  account?: string;
+  document_id: string;
+  page: number;
+  line_start?: number;
+  line_end?: number;
+  content: string;
+  annotations?: TextbookAnnotationStroke[];
+  updated_at: string;
+}
 
 export interface HistoryTakingTemplate {
   found: boolean;

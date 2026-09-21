@@ -2844,14 +2844,16 @@ p { color: var(--muted); line-height: 1.68; }
 .textbook-evidence-item { margin-top: 14px; padding: 12px; border: 1px solid #d8e5e4; border-radius: 6px; background: #fff; }
 .textbook-evidence-item > header { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
 .textbook-evidence-item > header span { color: #557175; font-size: 12px; }
-.textbook-evidence-grid { display: grid; grid-template-columns: minmax(180px, .8fr) minmax(0, 1fr); gap: 12px; margin-top: 10px; }
+.textbook-evidence-grid { display: grid; grid-template-columns: minmax(300px, 1.15fr) minmax(260px, .85fr); align-items: start; gap: 14px; margin-top: 10px; }
 .textbook-evidence-grid img { width: 100%; max-height: 430px; object-fit: contain; border: 1px solid #d8e5e4; background: #f6f9f8; }
-.textbook-evidence-lines { min-width: 0; max-height: 430px; overflow: auto; padding: 8px; background: #f7faf9; font: 13px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.textbook-evidence-grid .textbook-page-viewer img { max-height: none; border: 0; background: transparent; }
+.textbook-study-side { display: grid; min-width: 0; gap: 10px; }
+.textbook-evidence-lines { min-width: 0; max-height: 300px; overflow: auto; padding: 8px; background: #f7faf9; font: 13px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace; }
 .textbook-evidence-lines p { margin: 0; overflow-wrap: anywhere; }
 .textbook-evidence-lines b { display: inline-block; width: 38px; color: #88a1a0; font-weight: 500; }
 .textbook-evidence-lines mark { padding: 2px 3px; border-radius: 3px; color: #173b35; background: #ffe28a; }
 .textbook-note-editor { display: grid; gap: 5px; margin-top: 12px; }
-.textbook-note-editor textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 72px; padding: 8px; border: 1px solid #cbdcda; border-radius: 4px; font: inherit; }
+.textbook-note-editor textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 138px; padding: 8px; border: 1px solid #cbdcda; border-radius: 4px; font: inherit; }
 @media (max-width: 760px) { .textbook-evidence-grid { grid-template-columns: 1fr; } }
 
 /* Onboarding remains visible without intercepting interaction with the page underneath. */
