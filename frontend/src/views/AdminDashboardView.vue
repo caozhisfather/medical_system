@@ -72,7 +72,7 @@ async function decideTeacher(userId: string, approved: boolean) {
 
 <template>
   <div class="workspace-page admin-page">
-    <section id="admin-console" class="page-title-row admin-heading">
+    <section id="admin-console" class="page-title-row admin-heading" data-tour="admin-console">
       <div>
         <span class="section-kicker">超级管理员控制台</span>
         <h1>数据源、知识库、图谱、Agent 与复盘策略配置</h1>

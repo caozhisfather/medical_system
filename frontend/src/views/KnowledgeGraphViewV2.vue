@@ -576,7 +576,7 @@ function endDrag() {
     </section>
 
     <div class="graph-workbench">
-      <section ref="stageRef" class="graph-stage" :class="`mode-${graphMode}`">
+      <section ref="stageRef" class="graph-stage" data-tour="graph-stage" :class="`mode-${graphMode}`">
         <div class="graph-legend">
           <span v-for="(text, key) in typeLabels" :key="key"><i :class="`node-${key}`"></i>{{ text }}</span>
         </div>

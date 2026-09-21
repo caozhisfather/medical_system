@@ -101,7 +101,7 @@ onMounted(async () => {
       <article><BookOpenCheck :size="19" /><span><small>中文解剖名</small><strong>{{ termCount || '—' }}</strong></span></article>
     </section>
 
-    <nav class="archive-tabs" aria-label="学习档案分类">
+    <nav class="archive-tabs" data-tour="archive-tabs" aria-label="学习档案分类">
       <button type="button" :class="{ active: activeTab === 'records' }" @click="selectTab('records')">
         <ClipboardList :size="18" /><span><strong>测验记录</strong><small>{{ records.length }} 次作答 · 平均 {{ summary.average_score }} 分</small></span>
       </button>

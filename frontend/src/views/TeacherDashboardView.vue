@@ -51,7 +51,7 @@ onMounted(async () => {
 
 <template>
   <div class="workspace-page teacher-page">
-    <section class="teacher-dashboard-hero">
+    <section class="teacher-dashboard-hero" data-tour="teacher-dashboard-hero">
       <div>
         <span class="section-kicker">解剖学课程 · 2023-2 班</span>
         <h1>教学知识库与命题控制</h1>

@@ -569,6 +569,23 @@ function next() {
   choose(filtered.value[(index + 1) % filtered.value.length]?.id ?? exercises.value[0].id);
 }
 
+watch(() => route.fullPath, () => {
+  if (route.path !== '/student/anatomy') return;
+  const requestedMode = typeof route.query.mode === 'string' ? route.query.mode : '';
+  if (requestedMode === 'practice') {
+    viewMode.value = 'practice';
+  } else if (requestedMode === 'atlas') {
+    viewMode.value = 'atlas';
+  } else if (!requestedMode) {
+    viewMode.value = 'body';
+  }
+  const requestedSystem = typeof route.query.system === 'string' ? route.query.system : '';
+  if (requestedSystem && ANATOMY_SYSTEM_3D_BY_ID[requestedSystem]) {
+    viewMode.value = 'body';
+    focusOnSystem(requestedSystem);
+  }
+});
+
 onMounted(async () => {
   try {
     const remote = await getAnatomyExercises();
@@ -626,7 +643,7 @@ onBeforeUnmount(() => {
       </div>
     </header>
 
-    <div class="anatomy-mode-switch" role="tablist" aria-label="选择解剖学习模式">
+    <div class="anatomy-mode-switch" data-tour="anatomy-mode-switch" role="tablist" aria-label="选择解剖学习模式">
       <button type="button" role="tab" :aria-selected="viewMode === 'body'" :class="{ active: viewMode === 'body' }" @click="switchMode('body')"><ScanLine :size="18" /><span><strong>三维人体解剖</strong><small>点击结构查看教材依据</small></span></button>
       <button type="button" role="tab" :aria-selected="viewMode === 'atlas'" :class="{ active: viewMode === 'atlas' }" @click="switchMode('atlas')"><Layers3 :size="18" /><span><strong>图谱分层浏览</strong><small>系统 → 器官 → 精细结构</small></span></button>
       <button type="button" role="tab" :aria-selected="viewMode === 'practice'" :class="{ active: viewMode === 'practice' }" @click="switchMode('practice')"><Crosshair :size="18" /><span><strong>空间定位测验</strong><small>点击结构并获得即时反馈</small></span></button>
@@ -639,7 +656,7 @@ onBeforeUnmount(() => {
       </button>
     </div>
 
-    <section v-if="viewMode === 'body'" ref="bodyWorkbench" class="anatomy-body-workbench" :class="{ 'is-fullscreen': isBodyFullscreen }">
+    <section v-if="viewMode === 'body'" ref="bodyWorkbench" class="anatomy-body-workbench" data-tour="anatomy-workspace" :class="{ 'is-fullscreen': isBodyFullscreen }">
       <aside class="body-system-rail">
         <header><span><Layers3 :size="18" /><b>人体系统</b></span><small>{{ ANATOMY_SYSTEMS_3D.length }} 个系统</small></header>
         <div class="body-system-list">
@@ -834,7 +851,7 @@ onBeforeUnmount(() => {
       </aside>
     </section>
 
-    <section v-else class="anatomy-workbench">
+    <section v-else class="anatomy-workbench" data-tour="anatomy-practice-workspace">
       <aside class="anatomy-exercise-rail">
         <header><span><ScanLine :size="18" />定位任务</span><small>{{ filtered.length }} 项</small></header>
         <div class="anatomy-exercise-list">

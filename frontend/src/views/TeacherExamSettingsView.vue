@@ -107,7 +107,7 @@ onMounted(load);
     <div v-if="loading" class="exam-settings-loading"><LoaderCircle class="spin" :size="22" />正在读取配置</div>
 
     <template v-else-if="settings">
-      <section class="exam-settings-grid">
+      <section class="exam-settings-grid" data-tour="exam-question-types">
         <article class="exam-card">
           <header><ListChecks :size="18" /><div><h2>选择题</h2><small>单选自 {{ settings.question_types.single_choice.option_counts.join(' / ') }} 选一</small></div>
             <label class="exam-switch"><input v-model="settings.question_types.single_choice.enabled" type="checkbox" /><span /></label>
@@ -136,7 +136,7 @@ onMounted(load);
         </article>
       </section>
 
-      <section class="exam-panel">
+      <section class="exam-panel" data-tour="exam-prompt">
         <header>
           <div><Sparkles :size="18" /><h2>难度基线</h2></div>
           <small>当前启用 {{ enabledCount }} 种题型，权重合计 {{ weightTotal }}%</small>

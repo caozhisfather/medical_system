@@ -313,7 +313,7 @@ onUnmounted(() => { if (processingTimer) window.clearInterval(processingTimer); 
     <header v-if="isAdmin" class="admin-library-heading">
       <div><span class="section-kicker">管理员资料中心</span><h1>教学知识库管理</h1><p>统一维护病例、教材和权威临床资料，导入前完成脱敏与来源审核。</p></div>
     </header>
-    <div class="case-library-toolbar">
+    <div class="case-library-toolbar" data-tour="knowledge-library-toolbar">
       <div class="case-library-actions">
         <button class="button-secondary" type="button" :disabled="importing" @click="runImport">
           <LoaderCircle v-if="importing" class="spin" :size="17" /><Database v-else :size="17" />{{ importing ? '正在导入素材' : (isAdmin ? '导入教学资料' : '导入本地素材') }}

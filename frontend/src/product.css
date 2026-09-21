@@ -2858,3 +2858,11 @@ p { color: var(--muted); line-height: 1.68; }
 
 /* Onboarding remains visible without intercepting interaction with the page underneath. */
 .tour-scrim { pointer-events: none; }
+.tour-popover {
+  right: auto;
+  bottom: auto;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  transition: top .18s ease, left .18s ease, width .18s ease;
+}
+.tour-spotlight.is-fallback { border-style: dashed; opacity: .72; }
