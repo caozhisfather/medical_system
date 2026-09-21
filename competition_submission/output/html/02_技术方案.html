@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>临思智训：教材可追溯的解剖学习平台</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+  <style type="text/css">@page {
+size: A4;
+margin: 18mm 16mm 20mm;
+}
+html {
+font-size: 11.5pt;
+}
+body {
+max-width: 170mm;
+margin: 0 auto;
+color: #1f2d31;
+font-family: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+line-height: 1.72;
+}
+h1 {
+margin: 0 0 18px;
+padding-bottom: 10px;
+border-bottom: 2px solid #0f766e;
+color: #123c3a;
+font-size: 24pt;
+line-height: 1.3;
+}
+h2 {
+margin: 24px 0 10px;
+color: #155e59;
+font-size: 17pt;
+line-height: 1.4;
+break-after: avoid;
+}
+h3 {
+margin: 18px 0 8px;
+color: #245b61;
+font-size: 14pt;
+break-after: avoid;
+}
+p,
+li {
+orphans: 3;
+widows: 3;
+}
+table {
+width: 100%;
+margin: 12px 0 16px;
+border-collapse: collapse;
+font-size: 10.5pt;
+}
+th,
+td {
+padding: 6px 8px;
+border: 1px solid #bfd2d0;
+text-align: left;
+vertical-align: top;
+}
+th {
+background: #e8f4f1;
+color: #174f4a;
+}
+code {
+padding: 1px 4px;
+border-radius: 3px;
+background: #eef3f3;
+font-family: Consolas, monospace;
+}
+pre {
+overflow-x: auto;
+padding: 10px 12px;
+border: 1px solid #d7e2e1;
+border-radius: 5px;
+background: #f6f9f9;
+white-space: pre-wrap;
+word-break: break-word;
+}
+blockquote {
+margin: 12px 0;
+padding: 8px 12px;
+border-left: 4px solid #4ca99c;
+background: #eef8f5;
+}
+hr {
+margin: 18px 0;
+border: 0;
+border-top: 1px solid #d8e4e3;
+}
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">临思智训：教材可追溯的解剖学习平台</h1>
+</header>
+<h1 id="临思智训教材可追溯的解剖学习平台">临思智训：教材可追溯的解剖学习平台</h1>
+<h2 id="一项目概述">一、项目概述</h2>
+<h3 id="项目背景与意义">1.1 项目背景与意义</h3>
+<p>解剖学是医学教育的基础课程。学生需要同时掌握结构名称、空间位置、周边关系和临床联系。当前学习过程通常依赖教材、图谱、三维模型和题库等多个工具，教材中的文字描述与三维结构之间缺少直接连接，定位练习和错题记录也容易被分散在纸张、截图或聊天工具中。</p>
+<p>临思智训面向医学教育场景，构建三维解剖探索、二维结构定位、教材证据、逐页笔记、知识图谱和学习档案之间的连接。系统不提供诊断、治疗或处方建议，只用于教学、竞赛演示和技术研究。</p>
+<h3 id="赛题方向定位">1.2 赛题方向定位</h3>
+<p>项目属于
+AI+医学方向，聚焦医学教育中的自主学习与实验实训。核心技术包括三维可视化、教材证据检索、OpenAI
+兼容模型、知识图谱、服务端评分和 Skill 权限治理。</p>
+<h2 id="二需求分析">二、需求分析</h2>
+<h3 id="学生需求">2.1 学生需求</h3>
+<p>学生需要在同一个学习环境中完成以下任务：</p>
+<ol type="1">
+<li>观察人体系统和器官的三维位置。</li>
+<li>查看中文、英文结构名称。</li>
+<li>从结构进入教材页，并知道具体页码和行号。</li>
+<li>在教材页上放大、勾画和记录笔记。</li>
+<li>使用二维器官或精细结构图进行定位练习。</li>
+<li>提交答案后立即得到评分和解析。</li>
+<li>从学习档案查看历史测验和错题。</li>
+<li>通过知识图谱理解结构、疾病、检查和病例之间的联系。</li>
+</ol>
+<h3 id="教师需求">2.2 教师需求</h3>
+<p>教师需要：</p>
+<ol type="1">
+<li>导入教材、指南和病例资料。</li>
+<li>查看 OCR、向量化和图谱处理状态。</li>
+<li>配置测验题型、难度和权重。</li>
+<li>编辑出题系统提示词。</li>
+<li>查看班级共性薄弱结构和教学建议。</li>
+</ol>
+<h3 id="管理员需求">2.3 管理员需求</h3>
+<p>管理员需要：</p>
+<ol type="1">
+<li>审核教师账号。</li>
+<li>管理数据源和知识库状态。</li>
+<li>控制 Skill 启停、角色权限和小时额度。</li>
+<li>查看 Skill 调用记录和系统运行状态。</li>
+<li>确认 Agent 只在批准范围内调用只读工具。</li>
+</ol>
+<h2 id="三系统架构">三、系统架构</h2>
+<h3 id="总体架构">3.1 总体架构</h3>
+<pre class="text"><code>学生 / 教师 / 管理员
+        |
+        v
+Vue 3 + TypeScript + Vite
+        |
+        +-- 三维解剖：Three.js
+        +-- 二维定位：图谱图片和结构热点
+        +-- 教材阅读：Markdown 和 PDF 页渲染
+        +-- 标注笔记：SVG 标注层和自动保存
+        |
+        v
+FastAPI 单体服务
+        |
+        +-- 认证、邮箱、角色权限
+        +-- 教材证据检索和垂类模型
+        +-- 解剖知识图谱
+        +-- 空间定位测验与服务端评分
+        +-- Skill 注册、权限和调用审计
+        +-- 学习档案和错题聚合
+        |
+        v
+SQLite + JSON + PDF/OCR + 本地模型资源</code></pre>
+<h3 id="数据分层">3.2 数据分层</h3>
+<table>
+<thead>
+<tr>
+<th>数据层</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>三维模型层</td>
+<td>BodyParts3D 结构、器官分组、系统分组、几何分块</td>
+</tr>
+<tr>
+<td>教材证据层</td>
+<td>OCR 页文本、文档信息、页码、行号、原始 PDF 页</td>
+</tr>
+<tr>
+<td>知识图谱层</td>
+<td>解剖根节点、系统、器官、结构和关系边</td>
+</tr>
+<tr>
+<td>学习记录层</td>
+<td>定位测验、得分、坐标、正误和错题</td>
+</tr>
+<tr>
+<td>用户笔记层</td>
+<td>账号、文档、页码、笔记和标注笔画</td>
+</tr>
+<tr>
+<td>Skill 治理层</td>
+<td>启停状态、允许角色、小时额度和调用记录</td>
+</tr>
+</tbody>
+</table>
+<h3 id="前端模块">3.3 前端模块</h3>
+<ul>
+<li>学习总览</li>
+<li>三维人体解剖</li>
+<li>图谱分层浏览</li>
+<li>二维空间定位</li>
+<li>教材优先详解</li>
+<li>教材页放大与勾画</li>
+<li>学习档案</li>
+<li>知识图谱</li>
+<li>教师知识库和测验设置</li>
+<li>管理员 Skill 与系统状态</li>
+</ul>
+<h3 id="后端模块">3.4 后端模块</h3>
+<ul>
+<li><code>AuthService</code>：邮箱注册、登录、服务和角色权限。</li>
+<li><code>DocumentEvidenceService</code>：逐页教材证据检索和模型回答。</li>
+<li><code>AnatomyKnowledgeGraphService</code>：人体解剖四层知识图谱。</li>
+<li><code>AnatomyLearningService</code>：定位测验记录和错题聚合。</li>
+<li><code>AnatomySkills</code>：模型结构、教材和图谱只读 Skill。</li>
+<li><code>SkillRegistry</code>：管理员策略、小时额度和调用审计。</li>
+<li><code>ExamQuizService</code>：题目生成、缓存和服务端判分。</li>
+</ul>
+<h2 id="四关键-ai-技术与实现">四、关键 AI 技术与实现</h2>
+<h3 id="教材证据检索">4.1 教材证据检索</h3>
+<p>系统优先读取管理员上传文档的逐页 OCR 结果。检索分为两个层次：</p>
+<ol type="1">
+<li>有向量索引时，使用 Embedding 计算语义相似度。</li>
+<li>向量索引不可用时，使用 OCR 文本词法检索回退。</li>
+</ol>
+<p>结果返回文档标题、页码、行号、匹配文本、相似度和原始页图。当前演示数据中向量索引数量为
+0，实际主要使用 OCR 词法回退。</p>
+<h3 id="教材证据约束讲解">4.2 教材证据约束讲解</h3>
+<p>模型回答使用 <code>教材依据</code> 和
+<code>模型补充说明（非教材原文）</code> 两段结构。Prompt 规定：</p>
+<ul>
+<li>只能根据给定教材证据回答。</li>
+<li>教材没有或一笔带过时才允许补充。</li>
+<li>每个关键结论后标注资料编号、页码和行号。</li>
+<li>不得编造页码。</li>
+<li>不提供诊断或治疗建议。</li>
+<li>涉及结构、位置或临床联系对比时，优先使用 Markdown 表格。</li>
+</ul>
+<p>前端使用 Marked 解析 Markdown，使用 DOMPurify 过滤
+HTML，支持标题、列表、引用、代码和 GFM 表格。</p>
+<h3 id="三维解剖">4.3 三维解剖</h3>
+<p>三维模型包含 1742 个结构、11 个几何分块、约 141 万个三角形和 9
+个教学系统。系统按系统按需加载几何块，使用合并网格和材质组控制结构显示，支持旋转、缩放、系统聚焦、器官隐藏、精细结构隐藏和结构高亮。</p>
+<h3 id="二维空间定位">4.4 二维空间定位</h3>
+<p>定位题使用器官或精细结构二维图。前端根据题目和精细结构解析图谱节点与目标热点，点击后记录归一化坐标。坐标落在目标区域时判为正确，提交后显示标准和评分。</p>
+<h3 id="教材页勾画与笔记">4.5 教材页勾画与笔记</h3>
+<p>教材页使用 SVG 作为标注层，坐标统一映射到 0-1000
+的归一化空间。用户可以使用画笔、荧光笔和单笔擦除。标注点、颜色、宽度、工具类型和笔记内容按账号、文档和页码保存。</p>
+<h3 id="知识图谱">4.6 知识图谱</h3>
+<p>解剖图谱分为四个层级：</p>
+<ol type="1">
+<li>人体解剖根节点</li>
+<li>教学系统</li>
+<li>器官</li>
+<li>精细结构</li>
+</ol>
+<p>当前解剖图谱包含 736 个节点和 1011
+条关系，用于结构检索、关系浏览和学习路径展示。</p>
+<h3 id="skill-权限治理">4.7 Skill 权限治理</h3>
+<p>系统预置三个只读 Skill：</p>
+<ul>
+<li><code>anatomy_search</code></li>
+<li><code>textbook_search</code></li>
+<li><code>graph_query</code></li>
+</ul>
+<p>Skill
+默认关闭。管理员决定启停、允许角色和每账号每小时额度。执行中、成功、无匹配和失败都会记录调用状态；禁用、无权限和额度拒绝不会占用额度。</p>
+<h2 id="五创新点">五、创新点</h2>
+<h3 id="教材证据优先模型补充独立">5.1 教材证据优先，模型补充独立</h3>
+<p>系统把教材原文和模型补充严格分开，降低模型在没有教材依据时自行补写医学结论的风险。</p>
+<h3 id="三维学习与教材页双向连接">5.2 三维学习与教材页双向连接</h3>
+<p>学生从三维结构进入教材证据，也可以从教材页查看原始页图、行高亮和笔记，减少在教材、模型和题库之间来回切换。</p>
+<h3 id="二维定位训练和学习档案闭环">5.3 二维定位训练和学习档案闭环</h3>
+<p>系统使用二维器官图进行定位，记录每次点击坐标和得分，并把错误题目自动聚合到错题本，形成探索、练习、评分和复习闭环。</p>
+<h3 id="管理员控制的-skill">5.4 管理员控制的 Skill</h3>
+<p>系统不支持任意脚本和远程插件执行。AI 能力按照只读 Skill
+处理，管理员可以撤权、限流和审计，适合医学教育中的边界控制。</p>
+<h3 id="标注和笔记可恢复">5.5 标注和笔记可恢复</h3>
+<p>教材页标注使用归一化坐标保存，不依赖固定屏幕尺寸；学生重新打开教材后可以继续查看和编辑。</p>
+<h2 id="六实验与验证">六、实验与验证</h2>
+<h3 id="当前验证内容">6.1 当前验证内容</h3>
+<table>
+<thead>
+<tr>
+<th>验证项</th>
+<th>当前结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>后端自动化测试</td>
+<td>34 项通过</td>
+</tr>
+<tr>
+<td>Vue TypeScript 检查</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>Vite 生产构建</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>Python 编译检查</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>三维模型结构数</td>
+<td>1742</td>
+</tr>
+<tr>
+<td>三维三角形数量</td>
+<td>1416914</td>
+</tr>
+<tr>
+<td>解剖术语数</td>
+<td>1202</td>
+</tr>
+<tr>
+<td>解剖图谱节点/关系</td>
+<td>736 / 1011</td>
+</tr>
+<tr>
+<td>教材页定位</td>
+<td>可显示页码、行号和页图</td>
+</tr>
+<tr>
+<td>学习档案</td>
+<td>可保存并回读测验记录和错题</td>
+</tr>
+<tr>
+<td>教材标注</td>
+<td>可保存并恢复笔画</td>
+</tr>
+</tbody>
+</table>
+<h3 id="真实分类测试样例">6.2 真实分类测试样例</h3>
+<p>以“心脏”为查询时，系统返回《奈特人体解剖学彩色图谱 第 8 版中文版》第
+10 页作为最高相似教材页。系统同时展示教材证据和模型补充内容。</p>
+<h3 id="待补充的真实试点">6.3 待补充的真实试点</h3>
+<p>以下数据必须通过真实调研获取：</p>
+<ul>
+<li>学生人数：<code>[待填写]</code></li>
+<li>教师访谈人数：<code>[待填写]</code></li>
+<li>教材查找时间前后变化：<code>[待填写]</code></li>
+<li>定位测验正确率变化：<code>[待填写]</code></li>
+<li>满意度：<code>[待填写]</code></li>
+<li>教师教学时间变化：<code>[待填写]</code></li>
+</ul>
+<p>本文不使用虚构数据代替试点结果。</p>
+<h2 id="七应用价值">七、应用价值</h2>
+<h3 id="学生价值">7.1 学生价值</h3>
+<ul>
+<li>把三维结构、教材证据和定位练习放在同一个学习过程中。</li>
+<li>记录每次测验和错题，减少重复查找。</li>
+<li>允许直接在教材页勾画和做笔记。</li>
+</ul>
+<h3 id="教师价值">7.2 教师价值</h3>
+<ul>
+<li>维护教材和医学依据。</li>
+<li>配置题型和提示词。</li>
+<li>查看学生共同薄弱结构。</li>
+<li>用可追溯证据替代不可验证的模型结论。</li>
+</ul>
+<h3 id="管理价值">7.3 管理价值</h3>
+<ul>
+<li>使用角色权限和 Skill 策略控制 AI 工具范围。</li>
+<li>对数据源、文档处理、图谱和调用行为进行审计。</li>
+</ul>
+<h2 id="八局限与后续方向">八、局限与后续方向</h2>
+<h3 id="当前局限">8.1 当前局限</h3>
+<ul>
+<li>向量索引当前为空，教材检索主要依赖 OCR 词法回退。</li>
+<li>学生笔记当前使用本地 JSON 保存，并发写入仍需要加强。</li>
+<li>学习效果尚未经过正式对照实验。</li>
+<li>三维图谱不是经过医学审校的血管或神经支配模型。</li>
+<li>系统不适合临床诊断和治疗决策。</li>
+<li>部分数字人、RAG 和早期临床训练模块仍是兼容或实验功能。</li>
+</ul>
+<h3 id="后续方向">8.2 后续方向</h3>
+<ol type="1">
+<li>完成教材向量索引建设。</li>
+<li>将笔记迁移到支持并发写入的数据库。</li>
+<li>完成学生试点和教师访谈。</li>
+<li>对图谱热点和教材页码进行人工医学审校。</li>
+<li>增加端到端测试、性能测试和弱网回退测试。</li>
+<li>建设正式的版权、数据治理和内容审核流程。</li>
+</ol>
+<h2 id="九附录">九、附录</h2>
+<ul>
+<li>BodyParts3D 4.0：三维结构来源，CC BY 4.0。</li>
+<li><code>ashemag/human-atlas</code>：模型打包参考，MIT。</li>
+<li>Blausen Medical 图片：逐文件核对许可。</li>
+<li>OpenStax Anatomy and Physiology 2e：按页面注明引用。</li>
+<li>Wikimedia Commons：逐文件核对许可。</li>
+<li>教材、临床指南和病例资料：仅用于教学研究，正式发布前完成授权审查。</li>
+</ul>
+</body>
+</html>
