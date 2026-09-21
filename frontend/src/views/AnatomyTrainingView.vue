@@ -7,6 +7,7 @@ import anatomyImage from '../assets/medical/anatomy-organs.png';
 import AnatomyViewer3D from '../components/anatomy/AnatomyViewer3D.vue';
 import AnatomyQuizPanel from '../components/anatomy/AnatomyQuizPanel.vue';
 import AgentEvidence from '../components/anatomy/AgentEvidence.vue';
+import MarkdownContent from '../components/MarkdownContent.vue';
 import { mockAnatomyExercises } from '../data/anatomy';
 import { anatomyAtlasNodes, anatomyAtlasSystems, type AnatomyAtlasHotspot } from '../data/anatomyAtlas';
 import { resolveAnatomyPracticeTarget } from '../data/anatomyPractice';
@@ -905,7 +906,7 @@ onBeforeUnmount(() => {
           <template v-if="!textbookLoading && textbookEvidence?.found">
             <div v-if="textbookEvidence.answer" class="textbook-evidence-answer">
               <strong>教材优先讲解</strong>
-              <p class="textbook-content">{{ textbookEvidence.answer }}</p>
+              <MarkdownContent class="textbook-markdown" :content="textbookEvidence.answer" />
               <small>回答来源：{{ textbookEvidence.answer_source }}<template v-if="textbookEvidence.answer_model"> · {{ textbookEvidence.answer_model }}</template></small>
             </div>
             <article v-for="item in textbookEvidence.evidence" :key="`${item.document_id}-${item.page}`" class="textbook-evidence-item">

@@ -212,6 +212,10 @@ class DocumentEvidenceService:
             "你是医学教育平台的垂类解剖学讲解模型。只能依据给定教材证据回答。"
             "先写‘教材依据’，再写‘模型补充说明（非教材原文）’；教材没有或一笔带过时才允许补充，"
             "补充必须明确标注。每个关键结论后标注[资料编号-页码-行号]。不得编造页码，不提供诊断或治疗建议。\n\n"
+            "请严格按照 Markdown 输出，使用清晰标题、短段落和列表。"
+            "当需要比较两个及以上结构、层次、位置差异或临床联系时，优先使用 Markdown 表格；"
+            "表头应简洁明确，每个单元格只放一个结论，避免为了凑表格而虚构内容。"
+            "模型补充内容必须与教材依据分开，不能把推测写成教材原文。\n\n"
             f"问题：{query}\n教材证据：\n{sources}"
         )
         body = json.dumps({"model": settings.openai_answer_model, "messages": [{"role": "user", "content": prompt}], "temperature": 0.15, "max_tokens": settings.openai_max_tokens}, ensure_ascii=False).encode("utf-8")

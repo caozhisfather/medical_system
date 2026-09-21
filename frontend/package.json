@@ -10,10 +10,12 @@
   },
   "dependencies": {
     "@lucide/vue": "^1.27.0",
-    "@vitejs/plugin-vue": "latest",
+    "@vitejs/plugin-vue": "6.0.8",
+    "dompurify": "^3.4.15",
+    "marked": "^18.0.13",
     "three": "^0.186.0",
     "vite": "latest",
-    "vue": "latest",
+    "vue": "3.5.42",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
