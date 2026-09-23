@@ -96,7 +96,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     subtitle: '从中轴骨与附肢骨进入主要骨骼区域',
     level: 'system',
     image: skeletalOverview,
-    image_aspect: '1600 / 1600',
+    image_aspect: '1800 / 1800',
     description: '骨骼系统由中轴骨和附肢骨组成，为身体提供支撑、保护和运动杠杆。点击热点认识主要骨骼区域。',
     instruction: '点击颅骨、胸廓、脊柱、骨盆或四肢区域',
     hotspots: [
@@ -120,7 +120,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
   },
   {
     id: 'skull_bones_detail', system: '运动系统', title: '颅骨精细图', subtitle: '第二层：区分脑颅骨与面颅骨', level: 'organ', parent_id: 'skeletal_overview',
-    image: skullBonesDetail, image_aspect: '2000 / 2000', description: '颅骨由脑颅骨和面颅骨组成，骨缝连接多数颅骨并共同围成颅腔、眶和鼻腔。', instruction: '点击主要颅骨分区查看说明',
+    image: skullBonesDetail, image_aspect: '1800 / 1800', description: '颅骨由脑颅骨和面颅骨组成，骨缝连接多数颅骨并共同围成颅腔、眶和鼻腔。', instruction: '点击主要颅骨分区查看说明',
     hotspots: [
       { id: 'cranial_bones_hs', label: '脑颅骨', x: 43, y: 23, width: 46, height: 35, structure_id: 'cranial_bones' },
       { id: 'facial_bones_hs', label: '面颅骨', x: 76, y: 66, width: 31, height: 31, structure_id: 'facial_bones' },
@@ -152,7 +152,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
   },
   {
     id: 'shoulder_joint_detail', system: '运动系统', title: '肩关节精细图', subtitle: '第二层：肱骨头、关节盂、关节囊与滑膜', level: 'organ', parent_id: 'skeletal_overview',
-    image: shoulderJointDetail, image_aspect: '2000 / 2000', description: '盂肱关节以较浅的关节盂容纳较大的肱骨头，活动度大但稳定性较依赖软组织。', instruction: '点击关节面和关节囊结构查看说明',
+    image: shoulderJointDetail, image_aspect: '1800 / 1800', description: '盂肱关节以较浅的关节盂容纳较大的肱骨头，活动度大但稳定性较依赖软组织。', instruction: '点击关节面和关节囊结构查看说明',
     hotspots: [
       { id: 'humeral_head_hs', label: '肱骨头', x: 55, y: 44, width: 26, height: 30, structure_id: 'humeral_head' },
       { id: 'glenoid_hs', label: '关节盂', x: 70, y: 44, width: 17, height: 24, structure_id: 'glenoid' },
@@ -200,7 +200,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
   },
   {
     id: 'skeletal_muscle_detail', system: '运动系统', title: '骨骼肌纤维超微结构', subtitle: '第二层：从肌纤维进入肌原纤维与兴奋-收缩耦联结构', level: 'organ', parent_id: 'skeletal_overview',
-    image: skeletalMuscleDetail, image_aspect: '2000 / 1823', description: '骨骼肌纤维是多核细胞，内部含大量肌原纤维；T管与肌浆网共同将电信号转化为收缩。', instruction: '点击细胞膜、肌原纤维和细胞器查看功能',
+    image: skeletalMuscleDetail, image_aspect: '1800 / 1641', description: '骨骼肌纤维是多核细胞，内部含大量肌原纤维；T管与肌浆网共同将电信号转化为收缩。', instruction: '点击细胞膜、肌原纤维和细胞器查看功能',
     hotspots: [
       { id: 'sarcolemma_hs', label: '肌膜', x: 52, y: 54, width: 58, height: 58, structure_id: 'sarcolemma' },
       { id: 'myofibrils_hs', label: '肌原纤维', x: 57, y: 52, width: 30, height: 31, structure_id: 'myofibrils' },
@@ -221,7 +221,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     subtitle: '从上气道进入气管、支气管、肺与膈',
     level: 'system',
     image: respiratoryOverview,
-    image_aspect: '1680 / 1416',
+    image_aspect: '1600 / 1280',
     description: '呼吸系统由上呼吸道和下呼吸道组成，空气经鼻腔、咽、喉、气管和支气管到达肺泡。',
     instruction: '点击气道、肺或膈肌区域查看说明',
     hotspots: [
@@ -242,7 +242,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
   },
   {
     id: 'upper_respiratory_detail', system: '呼吸系统', title: '上呼吸道矢状面', subtitle: '第二层：鼻腔、鼻旁窦、咽与喉入口', level: 'organ', parent_id: 'respiratory_overview',
-    image: upperRespiratoryDetail, image_aspect: '2500 / 2200', description: '上呼吸道对吸入空气进行过滤、加温和湿化，并通过咽与下呼吸道相连。', instruction: '点击鼻腔、鼻旁窦和咽部分区查看说明',
+    image: upperRespiratoryDetail, image_aspect: '1800 / 1584', description: '上呼吸道对吸入空气进行过滤、加温和湿化，并通过咽与下呼吸道相连。', instruction: '点击鼻腔、鼻旁窦和咽部分区查看说明',
     hotspots: [
       { id: 'nasal_cavity_hs', label: '鼻腔与鼻甲', x: 69, y: 28, width: 33, height: 32, structure_id: 'nasal_cavity' },
       { id: 'paranasal_sinus_hs', label: '鼻旁窦', x: 62, y: 15, width: 35, height: 19, structure_id: 'paranasal_sinuses' },
@@ -266,7 +266,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     level: 'organ',
     parent_id: 'respiratory_overview',
     image: tracheaDetail,
-    image_aspect: '2800 / 3000',
+    image_aspect: '1680 / 1800',
     description: '气管由一系列C形透明软骨环支撑，在胸骨角附近分为左右主支气管，分叉处内面形成隆嵴。',
     instruction: '点击气管、隆嵴或主支气管查看临床关联',
     hotspots: [
@@ -285,7 +285,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
   },
   {
     id: 'respiratory_epithelium_detail', system: '呼吸系统', title: '呼吸上皮精细结构', subtitle: '第三层：纤毛柱状细胞、黏液层与黏液纤毛清除', level: 'detail', parent_id: 'trachea_detail',
-    image: respiratoryEpitheliumDetail, image_aspect: '2500 / 2500', description: '典型传导气道上皮由纤毛细胞、杯状细胞和基底细胞等组成，黏液捕获颗粒后由纤毛向咽部运送。', instruction: '点击纤毛、黏液和细胞层查看防御功能',
+    image: respiratoryEpitheliumDetail, image_aspect: '1800 / 1800', description: '典型传导气道上皮由纤毛细胞、杯状细胞和基底细胞等组成，黏液捕获颗粒后由纤毛向咽部运送。', instruction: '点击纤毛、黏液和细胞层查看防御功能',
     hotspots: [
       { id: 'cilia_hs', label: '纤毛', x: 70, y: 61, width: 20, height: 27, structure_id: 'cilia' },
       { id: 'mucus_layer_hs', label: '黏液层', x: 67, y: 49, width: 21, height: 21, structure_id: 'mucus_layer' },
@@ -306,7 +306,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     subtitle: '从肾皮质、髓质到肾盂和输尿管',
     level: 'system',
     image: kidneyOverview,
-    image_aspect: '1976 / 1123',
+    image_aspect: '1600 / 1200',
     description: '肾脏通过肾单位滤过血液并形成尿液，尿液经肾盏、肾盂和输尿管排出。',
     instruction: '点击肾实质、肾门或集合系统',
     hotspots: [
@@ -391,7 +391,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     subtitle: '睾丸、附睾、输精管、前列腺与尿道',
     level: 'system',
     image: maleReproductiveOverview,
-    image_aspect: '1445 / 1584',
+    image_aspect: '1800 / 1473',
     description: '男性生殖系统包括生殖腺、生殖管道、附属腺体和外生殖器。可在左侧切换女性生殖系统。',
     instruction: '点击睾丸、输精管、前列腺或外生殖器',
     hotspots: [
@@ -436,7 +436,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     level: 'organ',
     parent_id: 'male_reproductive_overview',
     image: femaleReproductiveOverview,
-    image_aspect: '1290 / 1792',
+    image_aspect: '1800 / 1800',
     description: '女性生殖系统包括卵巢、输卵管、子宫、阴道和外生殖器，图中展示矢状面与前面观。',
     instruction: '点击子宫、卵巢、输卵管、宫颈或阴道',
     hotspots: [
@@ -478,7 +478,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     subtitle: '外侧面与前面观的主要大脑结构',
     level: 'system',
     image: nervousOverview,
-    image_aspect: '1081 / 521',
+    image_aspect: '1800 / 1080',
     description: '大脑由左右半球组成，表面为大脑皮质，胼胝体连接两侧半球。',
     instruction: '点击皮质、半球、胼胝体或纵裂区域',
     hotspots: [
@@ -505,7 +505,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
   },
   {
     id: 'brain_lobes_detail', system: '神经系统', title: '大脑脑叶分区', subtitle: '第二层：额叶、顶叶、颞叶与枕叶', level: 'organ', parent_id: 'nervous_overview',
-    image: brainLobesDetail, image_aspect: '2250 / 1350', description: '大脑半球表面依据主要脑沟分为不同脑叶，各脑叶承担相互联系又有所侧重的高级功能。', instruction: '点击不同颜色的脑叶查看功能定位',
+    image: brainLobesDetail, image_aspect: '1800 / 1080', description: '大脑半球表面依据主要脑沟分为不同脑叶，各脑叶承担相互联系又有所侧重的高级功能。', instruction: '点击不同颜色的脑叶查看功能定位',
     hotspots: [
       { id: 'frontal_lobe_hs', label: '额叶', x: 36, y: 39, width: 35, height: 43, structure_id: 'frontal_lobe' },
       { id: 'parietal_lobe_hs', label: '顶叶', x: 65, y: 35, width: 35, height: 38, structure_id: 'parietal_lobe' },
@@ -544,7 +544,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     level: 'organ',
     parent_id: 'nervous_overview',
     image: brainVentriclesDetail,
-    image_aspect: '2988 / 1432',
+    image_aspect: '1800 / 863',
     description: '脑室系统内含脑脊液，各腔室依次相通并延续至脊髓中央管及蛛网膜下腔。',
     instruction: '点击蓝色脑室结构查看脑脊液通路',
     hotspots: [
@@ -585,7 +585,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     level: 'organ',
     parent_id: 'nervous_overview',
     image: cranialNervesDetail,
-    image_aspect: '2250 / 1350',
+    image_aspect: '1800 / 1080',
     description: '十二对脑神经与嗅觉、视觉、眼球运动、面部感觉和运动、听觉平衡、吞咽、内脏调节及舌运动等功能相关。',
     instruction: '点击功能分组查看常用查体和定位提示',
     hotspots: [
@@ -649,7 +649,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
   },
   {
     id: 'spinal_sensory_pathways_detail', system: '神经系统', title: '脊髓感觉上行通路', subtitle: '第三层：后索、脊髓丘脑束与脊髓小脑束', level: 'detail', parent_id: 'spinal_cord_section_detail',
-    image: spinalSensoryPathwaysDetail, image_aspect: '2500 / 2500', description: '感觉信息通过不同上行束传向脑干、丘脑与小脑，各束传递的感觉模态和交叉位置不同。', instruction: '点击彩色束区区分感觉模态',
+    image: spinalSensoryPathwaysDetail, image_aspect: '1800 / 1800', description: '感觉信息通过不同上行束传向脑干、丘脑与小脑，各束传递的感觉模态和交叉位置不同。', instruction: '点击彩色束区区分感觉模态',
     hotspots: [
       { id: 'posterior_columns_hs', label: '后索', x: 61, y: 39, width: 25, height: 24, structure_id: 'posterior_columns' },
       { id: 'spinothalamic_hs', label: '脊髓丘脑束', x: 71, y: 65, width: 24, height: 20, structure_id: 'spinothalamic' },
@@ -665,7 +665,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
   },
   {
     id: 'spinal_motor_pathways_detail', system: '神经系统', title: '脊髓运动下行通路', subtitle: '第三层：皮质脊髓束与脑干下行束', level: 'detail', parent_id: 'spinal_cord_section_detail',
-    image: spinalMotorPathwaysDetail, image_aspect: '2200 / 2300', description: '下行运动束把大脑皮质和脑干的运动指令传向脊髓前角，调控随意运动、姿势和肌张力。', instruction: '点击主要下行束查看功能',
+    image: spinalMotorPathwaysDetail, image_aspect: '1722 / 1800', description: '下行运动束把大脑皮质和脑干的运动指令传向脊髓前角，调控随意运动、姿势和肌张力。', instruction: '点击主要下行束查看功能',
     hotspots: [
       { id: 'lateral_corticospinal_hs', label: '外侧皮质脊髓束', x: 67, y: 52, width: 19, height: 22, structure_id: 'lateral_corticospinal' },
       { id: 'anterior_corticospinal_hs', label: '前皮质脊髓束', x: 51, y: 64, width: 16, height: 22, structure_id: 'anterior_corticospinal' },
@@ -681,7 +681,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
   },
   {
     id: 'multipolar_neuron_detail', system: '神经系统', title: '多极神经元结构', subtitle: '第二层：树突、胞体、轴突与突触末梢', level: 'organ', parent_id: 'nervous_overview',
-    image: multipolarNeuronDetail, image_aspect: '2500 / 1612', description: '多极神经元通过树突接收信息，胞体整合信号，轴突将动作电位传至其他细胞。', instruction: '点击神经元各区查看信息流向',
+    image: multipolarNeuronDetail, image_aspect: '1800 / 1161', description: '多极神经元通过树突接收信息，胞体整合信号，轴突将动作电位传至其他细胞。', instruction: '点击神经元各区查看信息流向',
     hotspots: [
       { id: 'neuron_dendrites_hs', label: '树突', x: 18, y: 51, width: 32, height: 72, structure_id: 'neuron_dendrites' },
       { id: 'neuron_soma_hs', label: '胞体与细胞核', x: 28, y: 52, width: 26, height: 35, structure_id: 'neuron_soma' },
@@ -697,7 +697,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
   },
   {
     id: 'sympathetic_innervation_detail', system: '神经系统', title: '交感神经支配总览', subtitle: '第二层：胸腰部起源、交感链与内脏神经', level: 'organ', parent_id: 'nervous_overview',
-    image: sympatheticInnervationDetail, image_aspect: '1600 / 2000', description: '交感神经节前纤维主要起自胸腰段脊髓，经交感链或椎前神经节换元后支配全身器官。', instruction: '点击交感链、内脏神经和靶器官查看通路',
+    image: sympatheticInnervationDetail, image_aspect: '1440 / 1800', description: '交感神经节前纤维主要起自胸腰段脊髓，经交感链或椎前神经节换元后支配全身器官。', instruction: '点击交感链、内脏神经和靶器官查看通路',
     hotspots: [
       { id: 'sympathetic_chain_hs', label: '交感干神经节', x: 28, y: 56, width: 25, height: 62, structure_id: 'sympathetic_chain' },
       { id: 'sympathetic_splanchnic_hs', label: '内脏神经与椎前节', x: 51, y: 54, width: 34, height: 31, structure_id: 'sympathetic_splanchnic' },
@@ -713,7 +713,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
   },
   {
     id: 'parasympathetic_innervation_detail', system: '神经系统', title: '副交感神经支配总览', subtitle: '第二层：脑干与骶髓起源、迷走神经及盆神经', level: 'organ', parent_id: 'nervous_overview',
-    image: parasympatheticInnervationDetail, image_aspect: '1600 / 2000', description: '副交感神经节前纤维起自脑干和骶髓，通过相关脑神经及盆内脏神经到达靶器官附近换元。', instruction: '点击颅部、迷走和骶部通路查看支配范围',
+    image: parasympatheticInnervationDetail, image_aspect: '1440 / 1800', description: '副交感神经节前纤维起自脑干和骶髓，通过相关脑神经及盆内脏神经到达靶器官附近换元。', instruction: '点击颅部、迷走和骶部通路查看支配范围',
     hotspots: [
       { id: 'cranial_para_hs', label: '颅部副交感通路', x: 61, y: 18, width: 48, height: 27, structure_id: 'cranial_para' },
       { id: 'vagus_hs', label: '迷走神经通路', x: 60, y: 48, width: 48, height: 50, structure_id: 'vagus_pathway' },
@@ -734,7 +734,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     subtitle: '从下丘脑—垂体到甲状腺、肾上腺、胰腺与性腺',
     level: 'system',
     image: endocrineOverview,
-    image_aspect: '1336 / 1488',
+    image_aspect: '1534 / 1167',
     description: '内分泌系统通过激素调节生长、代谢、应激、生殖和内环境稳定。',
     instruction: '点击主要内分泌腺体查看结构与功能',
     hotspots: [
@@ -757,7 +757,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
   },
   {
     id: 'pancreatic_islet_detail', system: '内分泌系统', title: '胰岛与胰腺组织精细图', subtitle: '第二层：比较内分泌胰岛与外分泌腺泡', level: 'organ', parent_id: 'endocrine_overview',
-    image: pancreaticIsletDetail, image_aspect: '2500 / 2500', description: '胰腺同时具有外分泌与内分泌功能。腺泡分泌消化酶，胰岛细胞通过丰富毛细血管向血液释放激素。', instruction: '点击胰岛、腺泡、胰管或血管查看差异',
+    image: pancreaticIsletDetail, image_aspect: '1800 / 1800', description: '胰腺同时具有外分泌与内分泌功能。腺泡分泌消化酶，胰岛细胞通过丰富毛细血管向血液释放激素。', instruction: '点击胰岛、腺泡、胰管或血管查看差异',
     hotspots: [
       { id: 'pancreatic_islet_hs', label: '胰岛', x: 72, y: 62, width: 30, height: 28, structure_id: 'pancreatic_islet' },
       { id: 'pancreatic_acini_hs', label: '胰腺腺泡', x: 58, y: 62, width: 23, height: 30, structure_id: 'pancreatic_acini' },
@@ -778,7 +778,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     subtitle: '从心腔、瓣膜和血流方向进入精细学习',
     level: 'system',
     image: heartOverview,
-    image_aspect: '458 / 481',
+    image_aspect: '1800 / 1636',
     description: '心脏由左右心房、左右心室以及房室瓣和半月瓣组成。点击图中区域进入心腔与瓣膜的精细图。',
     instruction: '点击心房、心室或瓣膜区域进入下一层',
     hotspots: [
@@ -825,7 +825,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     level: 'organ',
     parent_id: 'heart_overview',
     image: coronaryArteriesDetail,
-    image_aspect: '4096 / 3072',
+    image_aspect: '1800 / 1636',
     description: '左右冠状动脉起自主动脉根部，沿心表面走行，为心肌提供血供。',
     instruction: '点击主要冠状动脉分支查看供血与临床意义',
     hotspots: [
@@ -844,7 +844,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
   },
   {
     id: 'artery_wall_detail', system: '循环系统', title: '动脉壁精细结构', subtitle: '第三层：内膜、中膜、外膜与弹性膜', level: 'detail', parent_id: 'coronary_arteries_detail',
-    image: arteryWallDetail, image_aspect: '2500 / 2500', description: '典型动脉壁由内膜、中膜和外膜构成，各层在血管顺应性、张力调节和结构支持中承担不同作用。', instruction: '点击血管壁各层查看组织结构与病理关联',
+    image: arteryWallDetail, image_aspect: '1800 / 1800', description: '典型动脉壁由内膜、中膜和外膜构成，各层在血管顺应性、张力调节和结构支持中承担不同作用。', instruction: '点击血管壁各层查看组织结构与病理关联',
     hotspots: [
       { id: 'tunica_intima_hs', label: '内膜', x: 73, y: 57, width: 17, height: 34, structure_id: 'tunica_intima' },
       { id: 'tunica_media_hs', label: '中膜', x: 62, y: 57, width: 21, height: 39, structure_id: 'tunica_media' },
@@ -866,7 +866,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     level: 'organ',
     parent_id: 'heart_overview',
     image: heartDetail,
-    image_aspect: '17600 / 14068',
+    image_aspect: '1800 / 1800',
     description: '四个心腔形成串联的肺循环和体循环，四组瓣膜维持单向血流。',
     instruction: '点击带编号的热点查看结构与临床关联',
     hotspots: [
@@ -914,7 +914,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     subtitle: '从完整消化道进入十二指肠、大肠与直肠',
     level: 'system',
     image: digestiveOverview,
-    image_aspect: '370 / 810',
+    image_aspect: '1600 / 1600',
     description: '消化道自口腔延续至肛管。点击十二指肠、大肠或直肠区域进入器官级精细图。',
     instruction: '点击蓝色热点进入对应器官细节',
     hotspots: [
@@ -947,7 +947,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
   },
   {
     id: 'pancreas_biliary_detail', system: '消化系统', title: '胰腺、胆囊与十二指肠关系图', subtitle: '第二层：胰头体尾、胰管和胆总管', level: 'organ', parent_id: 'digestive_overview',
-    image: pancreasBiliaryDetail, image_aspect: '2500 / 2000', description: '胰头被十二指肠环抱，胰管贯穿胰腺，胆总管与胰管在十二指肠降部附近开口。', instruction: '点击胰腺分部和胆胰管道查看毗邻关系',
+    image: pancreasBiliaryDetail, image_aspect: '1800 / 1440', description: '胰头被十二指肠环抱，胰管贯穿胰腺，胆总管与胰管在十二指肠降部附近开口。', instruction: '点击胰腺分部和胆胰管道查看毗邻关系',
     hotspots: [
       { id: 'pancreas_head_hs', label: '胰头', x: 54, y: 69, width: 24, height: 24, structure_id: 'pancreas_head' },
       { id: 'pancreas_body_hs', label: '胰体', x: 70, y: 56, width: 29, height: 23, structure_id: 'pancreas_body' },
@@ -1021,7 +1021,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     level: 'organ',
     parent_id: 'digestive_overview',
     image: duodenumDetail,
-    image_aspect: '1400 / 1000',
+    image_aspect: '1800 / 1440',
     description: '十二指肠呈C形包绕胰头，是胆汁和胰液进入消化道的重要区域。',
     instruction: '点击各段查看毗邻和临床意义',
     hotspots: [
@@ -1046,7 +1046,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     level: 'organ',
     parent_id: 'digestive_overview',
     image: largeIntestineDetail,
-    image_aspect: '900 / 1200',
+    image_aspect: '1500 / 1500',
     description: '大肠包括盲肠、结肠和直肠，结肠形成围绕小肠的框架。',
     instruction: '点击结肠分段查看解剖走行',
     hotspots: [
@@ -1073,7 +1073,7 @@ export const anatomyAtlasNodes: AnatomyAtlasNode[] = [
     level: 'organ',
     parent_id: 'digestive_overview',
     image: rectumDetail,
-    image_aspect: '612 / 700',
+    image_aspect: '1800 / 1440',
     description: '直肠自第3骶椎平面续于乙状结肠，下端穿过盆膈移行为肛管。',
     instruction: '点击直肠和肛管区域查看结构说明',
     hotspots: [

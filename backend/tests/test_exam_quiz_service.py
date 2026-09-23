@@ -5,6 +5,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
+from backend.app import main
 from backend.app.main import app, exam_quiz_service
 from backend.app.services import exam_quiz_service as quiz_module
 from backend.app.services.exam_quiz_service import ExamQuizService
@@ -179,14 +180,23 @@ def test_quiz_api_requires_auth_and_uses_question_id(monkeypatch) -> None:
     )
     monkeypatch.setattr(
         exam_quiz_service,
-        "grade_by_id",
-        lambda question_id, answer: {
-            "correct": question_id == "question-1" and answer is True,
+        "find_question",
+        lambda question_id: {
+            "quiz_id": "quiz-1",
+            "question": {"id": question_id, "type": "true_false", "stem": "Test"},
+        },
+    )
+    monkeypatch.setattr(
+        exam_quiz_service,
+        "grade",
+        lambda question, answer: {
+            "correct": question["id"] == "question-1" and answer is True,
             "score": 100,
             "feedback": "ok",
             "correct_answer": True,
         },
     )
+    monkeypatch.setattr(main.anatomy_learning_service, "record_quiz", lambda **_kwargs: {})
 
     generated = client.post(
         "/api/exam/quiz/generate",

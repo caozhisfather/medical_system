@@ -157,6 +157,10 @@ data/anatomy_learning.sqlite3
 data/anatomy_learning.sqlite3-journal
 data/anatomy_learning.sqlite3-wal
 data/anatomy_learning.sqlite3-shm
+data/classrooms.sqlite3
+data/classrooms.sqlite3-journal
+data/classrooms.sqlite3-wal
+data/classrooms.sqlite3-shm
 data/exam_questions.json
 runtime/
 

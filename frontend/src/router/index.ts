@@ -26,6 +26,7 @@ const router = createRouter({
         { path: 'student/history', redirect: { path: '/student/archive', query: { tab: 'history' } }, meta: { role: 'student' } },
         { path: 'student/daily-review', redirect: { path: '/student/archive', query: { tab: 'review' } }, meta: { role: 'student' } },
         { path: 'teacher/dashboard', component: () => import('../views/TeacherDashboardView.vue'), meta: { role: 'teacher' } },
+        { path: 'teacher/classrooms', component: () => import('../views/TeacherClassroomView.vue'), meta: { role: 'teacher' } },
         { path: 'teacher/knowledge', component: () => import('../views/TeacherCaseLibraryView.vue'), meta: { role: 'teacher' } },
         { path: 'teacher/exam-settings', component: () => import('../views/TeacherExamSettingsView.vue'), meta: { role: 'teacher' } },
         { path: 'admin/dashboard', component: () => import('../views/AdminDashboardView.vue'), meta: { role: 'admin' } },

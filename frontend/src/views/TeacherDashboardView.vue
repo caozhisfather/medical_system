@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ArrowRight, BookOpenCheck, ChartNetwork, Database, Layers3, ListChecks, SlidersHorizontal, Sparkles } from '@lucide/vue';
 import { getExamSettings, getTeachingKnowledge } from '../api';
+import MarkdownContent from '../components/MarkdownContent.vue';
 import type { ExamSettings } from '../types';
 import { ANATOMY_SYSTEMS_3D } from '../data/anatomy3d';
 
@@ -57,7 +58,10 @@ onMounted(async () => {
         <h1>教学知识库与命题控制</h1>
         <p>维护可追溯的教学依据，决定学生做哪些题型、按什么难度和提示词出题。</p>
       </div>
-      <button class="button-primary" type="button" @click="router.push('/teacher/exam-settings')">配置题型与提示词 <ArrowRight :size="18" /></button>
+      <div class="teacher-hero-actions">
+        <button class="button-secondary" type="button" @click="router.push('/teacher/classrooms')">班级与学情 <ArrowRight :size="17" /></button>
+        <button class="button-primary" type="button" @click="router.push('/teacher/exam-settings')">配置题型与提示词 <ArrowRight :size="18" /></button>
+      </div>
     </section>
 
     <section class="metric-strip teacher-metrics">
@@ -93,7 +97,7 @@ onMounted(async () => {
     <div class="teacher-dashboard-grid lower">
       <section class="surface-panel">
         <div class="section-heading"><div><span class="section-kicker">提示词</span><h2>当前出题指令</h2></div><Sparkles :size="20" /></div>
-        <p class="teacher-prompt-preview">{{ settings?.system_prompt || '尚未加载提示词配置。' }}</p>
+        <MarkdownContent class="teacher-prompt-preview" :content="settings?.system_prompt || '尚未加载提示词配置。'" />
         <button class="text-button" type="button" @click="router.push('/teacher/exam-settings')">编辑系统提示词 <ArrowRight :size="15" /></button>
       </section>
       <section class="surface-panel">
@@ -109,6 +113,7 @@ onMounted(async () => {
 .teacher-dashboard-hero { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 22px 24px; border-radius: 8px; background: #eef6f4; }
 .teacher-dashboard-hero h1 { margin: 4px 0 6px; color: #16414a; font-size: 1.6rem; }
 .teacher-dashboard-hero p { margin: 0; max-width: 640px; color: #5a757b; font-size: 13px; line-height: 1.6; }
+.teacher-hero-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .teacher-config-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .teacher-config-list li { display: flex; align-items: center; justify-content: space-between; padding: 9px 11px; border-radius: 7px; background: #f2f7f6; color: #35535a; font-size: 13px; }
 .teacher-config-list li strong { color: var(--teal-dark, #075b57); }
@@ -118,6 +123,10 @@ onMounted(async () => {
 .teacher-type-row span { color: #35535a; font-size: 13px; }
 .teacher-type-row strong { color: #21484e; text-align: right; }
 .teacher-type-row b { position: absolute; left: 11px; bottom: 5px; height: 3px; border-radius: 2px; background: rgba(15,118,110,.35); }
-.teacher-prompt-preview { margin: 0; max-height: 150px; overflow: auto; color: #4f6b70; font-size: 12px; line-height: 1.65; white-space: pre-wrap; }
+.teacher-prompt-preview { max-height: 160px; overflow: auto; color: #4f6b70; font-size: 13px; line-height: 1.68; }
+.teacher-prompt-preview :deep(h1),
+.teacher-prompt-preview :deep(h2),
+.teacher-prompt-preview :deep(h3) { margin: 8px 0 4px; font-size: 14px; }
+.teacher-prompt-preview :deep(p) { margin: 4px 0; font-size: inherit; }
 .empty-copy { color: #8b9a9c; font-size: 12px; }
 </style>

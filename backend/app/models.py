@@ -394,6 +394,21 @@ class AnatomyNoteRequest(BaseModel):
     annotations: list[dict[str, Any]] = Field(default_factory=list, max_length=500)
 
 
+class ClassroomCreateRequest(BaseModel):
+    name: str = Field(..., min_length=2, max_length=60)
+    description: str = Field(default="", max_length=500)
+
+
+class ClassroomJoinRequest(BaseModel):
+    code: str = Field(..., min_length=4, max_length=16)
+
+
+class ClassroomGuidanceRequest(BaseModel):
+    student_id: str = Field(default="", max_length=80)
+    content: str = Field(default="", max_length=5000)
+    recommended_score: int | None = Field(default=None, ge=0, le=100)
+
+
 class TTSRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=800)
     voice: str = "clinical_tutor"

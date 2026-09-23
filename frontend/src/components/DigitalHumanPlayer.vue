@@ -12,7 +12,11 @@ const props = defineProps<{
   loading: boolean;
 }>();
 
-const emit = defineEmits<{ mediaError: [] }>();
+const emit = defineEmits<{
+  mediaError: [];
+  playBlocked: [];
+  playbackChange: [value: boolean];
+}>();
 const stateLabels: Record<DigitalHumanState, string> = {
   idle: '待机陪练',
   listening: '正在倾听',
@@ -44,8 +48,7 @@ watch(
     try {
       await videoRef.value.play();
     } catch {
-      mediaFailed.value = true;
-      emit('mediaError');
+      emit('playBlocked');
     }
   }
 );
@@ -66,8 +69,11 @@ function handleMediaError() {
       :poster="poster"
       :muted="muted"
       :autoplay="playing"
+      controls
       playsinline
       loop
+      @play="emit('playbackChange', true)"
+      @pause="emit('playbackChange', false)"
       @error="handleMediaError"
     />
     <div v-else class="dh-mock-media" role="img" aria-label="人工智能医学导师动态占位画面">

@@ -33,15 +33,15 @@ const html = computed(() => {
 </template>
 
 <style scoped>
-.markdown-content { color: #33454f; font-size: 14px; line-height: 1.78; overflow-wrap: anywhere; }
+.markdown-content { color: #33454f; font-size: 15px; line-height: 1.78; overflow-wrap: anywhere; }
 .markdown-content :deep(h1),
 .markdown-content :deep(h2),
 .markdown-content :deep(h3),
 .markdown-content :deep(h4) { margin: 18px 0 9px; color: #16313a; line-height: 1.38; }
-.markdown-content :deep(h1) { font-size: 21px; }
-.markdown-content :deep(h2) { font-size: 18px; }
-.markdown-content :deep(h3) { font-size: 16px; }
-.markdown-content :deep(h4) { font-size: 14px; }
+.markdown-content :deep(h1) { font-size: 22px; }
+.markdown-content :deep(h2) { font-size: 19px; }
+.markdown-content :deep(h3) { font-size: 17px; }
+.markdown-content :deep(h4) { font-size: 15px; }
 .markdown-content :deep(p) { margin: 8px 0; }
 .markdown-content :deep(ul),
 .markdown-content :deep(ol) { margin: 8px 0; padding-left: 22px; }

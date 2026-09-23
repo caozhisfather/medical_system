@@ -27,7 +27,7 @@ const definitions: Record<string, PracticeDefinition> = {
   liver_position: { nodeId: 'liver_detail', hotspotId: 'right_lobe_hs' },
   stomach_position: {
     nodeId: 'digestive_overview',
-    target: { id: 'stomach_target', label: '胃', x: 42, y: 34, width: 17, height: 15 }
+    target: { id: 'stomach_target', label: '胃', x: 63, y: 44, width: 14, height: 14 }
   },
   pancreas_position: { nodeId: 'pancreas_biliary_detail', hotspotId: 'pancreas_body_hs' },
   gallbladder_position: { nodeId: 'gallbladder_detail', hotspotId: 'gallbladder_hs' },
@@ -39,7 +39,7 @@ const definitions: Record<string, PracticeDefinition> = {
   brain_position: { nodeId: 'brain_lobes_detail', hotspotId: 'frontal_lobe_hs' },
   cerebellum_position: {
     nodeId: 'nervous_overview',
-    target: { id: 'cerebellum_target', label: '小脑', x: 76, y: 72, width: 20, height: 18 }
+    target: { id: 'cerebellum_target', label: '小脑', x: 68, y: 82, width: 22, height: 18 }
   },
   brainstem_position: { nodeId: 'brainstem_detail', hotspotId: 'midbrain_hs' },
   spinal_cord: { nodeId: 'spinal_cord_section_detail', hotspotId: 'white_columns_hs' }

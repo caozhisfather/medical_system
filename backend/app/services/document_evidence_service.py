@@ -74,9 +74,17 @@ class DocumentEvidenceService:
         if not compact:
             return []
         terms = [compact]
-        if re.fullmatch(r"[\u4e00-\u9fff]+", compact):
-            terms.extend(compact)
-        terms.extend(re.findall(r"[a-z0-9]+", compact))
+        terms.extend(re.findall(r"[a-z0-9]+", text.casefold()))
+        question_chars = set("的了与和及为是在把对请介绍讲解说明如何怎么什么哪些")
+        for run in re.findall(r"[\u4e00-\u9fff]+", compact):
+            if len(run) < 5:
+                continue
+            for size in (2, 3, 4):
+                for index in range(len(run) - size + 1):
+                    term = run[index:index + size]
+                    if any(char in question_chars for char in term):
+                        continue
+                    terms.append(term)
         return list(dict.fromkeys(term for term in terms if term))
 
     def _lexical_score(
@@ -96,33 +104,43 @@ class DocumentEvidenceService:
         matched = sum(1 for term in query_terms if term in haystack)
         coverage = matched / len(query_terms)
         phrase_hits = haystack.count(query_phrase) if query_phrase else 0
-        frequency = min(1.0, math.log1p(phrase_hits) / math.log(6))
-        density = min(1.0, phrase_hits / max(len(haystack) / 900, 1))
+        occurrences = sum(haystack.count(term) for term in query_terms)
+        frequency = min(1.0, math.log1p(occurrences) / math.log(12))
+        density = min(1.0, occurrences / max(len(haystack) / 600, 1))
         title_haystack = self._normalise(title)
-        title_bonus = 1.0 if query_phrase and query_phrase in title_haystack else 0.0
+        title_bonus = 1.0 if query_phrase and query_phrase in title_haystack else max(
+            (min(1.0, len(term) / 4) for term in query_terms if term in title_haystack),
+            default=0.0,
+        )
 
         # TOC/front-matter pages often contain the term once plus long dot leaders.
         dot_leaders = len(re.findall(r"\.{4,}|…{3,}", text))
         toc_penalty = min(0.46, dot_leaders * 0.022)
         if "目录" in title:
             toc_penalty += 0.08
+        leading_text = self._normalise(text[:500])
+        front_matter_penalty = 0.24 if any(
+            marker in leading_text
+            for marker in ("前言", "序言", "编委简介", "目录", "版权", "出版说明", "译者简介")
+        ) else 0.0
         source_bonus = 0.0
         if document_type == "textbook":
-            source_bonus += 0.07
+            source_bonus += 0.10
         if category in {"解剖图谱", "解剖学"} or "解剖" in title or "图谱" in title:
-            source_bonus += 0.11
+            source_bonus += 0.02
         if document_type == "evidence" or category in {"临床指南", "医学依据"}:
-            source_bonus -= 0.08
+            source_bonus -= 0.12
 
         score = (
-            coverage * 0.48
-            + min(frequency, 1.0) * 0.24
-            + density * 0.16
-            + title_bonus * 0.12
+            coverage * 0.34
+            + min(frequency, 1.0) * 0.30
+            + density * 0.20
+            + title_bonus * 0.16
             + source_bonus
             - toc_penalty
+            - front_matter_penalty
         )
-        return round(max(0.0, min(0.98, score)), 4)
+        return round(max(0.0, min(0.96, score)), 4)
 
     def _query_vector_scores(self, query: str, records: list[dict[str, Any]]) -> dict[str, float]:
         if not self.vectors_file.exists() or not records or not embedding_service.configured():

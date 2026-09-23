@@ -1,7 +1,8 @@
-import type { AgentResponse, AnatomyEvidenceResponse, AnatomyExercise, AnatomyLearningRecordsResponse, AnatomyMistake, AnatomyNote, AnatomyResult, AnatomyTextbookResult, AuthResponse, CaseLibraryDeidentifyResult, CaseLibraryEntry, CaseLibraryImportReport, CaseLibraryListResponse, CaseSummary, ChatMessage, DailyReview, DailyReviewClassSummary, DailyReviewPolicy, DataSourceItem, ExamSettings, GuidelineDoc, HistoryTakingTemplate, KnowledgeEdge, KnowledgeItem, KnowledgeNode, Overview, PatientChatResponse, QuizGrade, QuizSet, RagResponse, TeacherCaseDraft, TeacherCaseRecommendations, TeacherDashboard, TextbookStage, TrainingAssessment, TrainingReport, TtsResponse } from './types';
+import type { AgentResponse, AnatomyEvidenceResponse, AnatomyExercise, AnatomyLearningRecordsResponse, AnatomyMistake, AnatomyNote, AnatomyResult, AnatomyTextbookResult, AuthResponse, CaseLibraryDeidentifyResult, CaseLibraryEntry, CaseLibraryImportReport, CaseLibraryListResponse, CaseSummary, ChatMessage, ClassroomDetail, ClassroomGuidance, ClassroomSummary, DailyReview, DailyReviewClassSummary, DailyReviewPolicy, DataSourceItem, ExamSettings, GuidelineDoc, HistoryTakingTemplate, KnowledgeEdge, KnowledgeItem, KnowledgeNode, Overview, PatientChatResponse, QuizGrade, QuizLearningRecordsResponse, QuizSet, RagResponse, TeacherCaseDraft, TeacherCaseRecommendations, TeacherDashboard, TextbookStage, TrainingAssessment, TrainingReport, TtsResponse } from './types';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
 import type { SkillCall, SkillDefinition, SkillPolicy, SkillQuery, SkillResult } from './types';
+import type { DigitalHumanModesResponse, DigitalHumanResponse, DigitalHumanSpeakRequest } from './types';
 
 export function getAdminSkills() { return readJson<SkillDefinition[]>('/api/admin/skills'); }
 export function getSkillCalls() { return readJson<{ items: SkillCall[] }>('/api/admin/skills/calls'); }
@@ -142,6 +143,8 @@ export function getAnatomyExercises() { return readJson<AnatomyExercise[]>('/api
 export function submitAnatomy(payload: { exercise_id: string; selected_zone: string; node_id?: string; structure_id?: string; click_x?: number; click_y?: number }) { return postJson<AnatomyResult>('/api/anatomy/submit', payload); }
 export function getAnatomyRecords(limit = 80) { return readJson<AnatomyLearningRecordsResponse>(`/api/anatomy/records?limit=${limit}`); }
 export function getAnatomyMistakes(limit = 80) { return readJson<{ items: AnatomyMistake[] }>(`/api/anatomy/mistakes?limit=${limit}`); }
+export function getQuizRecords(limit = 80) { return readJson<QuizLearningRecordsResponse>(`/api/anatomy/quiz-records?limit=${limit}`); }
+export function getQuizMistakes(limit = 80) { return readJson<{ items: QuizLearningRecordsResponse['items'] }>(`/api/anatomy/quiz-mistakes?limit=${limit}`); }
 export function getAnatomyTextbook(q: string) { return readJson<AnatomyTextbookResult>(`/api/anatomy/textbook?q=${encodeURIComponent(q)}`); }
 export function getAnatomyEvidence(q: string, withAnswer = true) { return readJson<AnatomyEvidenceResponse>(`/api/anatomy/evidence?q=${encodeURIComponent(q)}&with_answer=${withAnswer}`); }
 export function getAnatomyNotes(documentId: string, page: number) { return readJson<AnatomyNote[]>(`/api/anatomy/notes?document_id=${encodeURIComponent(documentId)}&page=${page}`); }
@@ -152,8 +155,20 @@ export function getExamSettings() { return readJson<ExamSettings>('/api/exam/set
 export function generateQuiz(payload: { structure_en: string; structure_cn?: string; system?: string; force?: boolean }) {
   return postJson<QuizSet>('/api/exam/quiz/generate', payload);
 }
-export function gradeQuiz(payload: { question_id: string; answer: unknown }) {
+export function gradeQuiz(payload: { question_id: string; quiz_id?: string; answer: unknown }) {
   return postJson<QuizGrade>('/api/exam/quiz/grade', payload);
+}
+export function getMyClassrooms() { return readJson<{ role: string; items: ClassroomSummary[] }>('/api/classrooms/mine'); }
+export function createClassroom(payload: { name: string; description?: string }) { return postJson<ClassroomSummary>('/api/classrooms', payload); }
+export function joinClassroom(code: string) { return postJson<ClassroomSummary>('/api/classrooms/join', { code }); }
+export function getClassroomDetail(classId: string) { return readJson<ClassroomDetail>(`/api/classrooms/${encodeURIComponent(classId)}`); }
+export function getMyClassroomGuidance(classId = '') { return readJson<{ items: ClassroomGuidance[] }>(`/api/classrooms/guidance/mine${classId ? `?class_id=${encodeURIComponent(classId)}` : ''}`); }
+export function getClassroomGuidance(classId: string, studentId = '') { return readJson<{ items: ClassroomGuidance[] }>(`/api/classrooms/${encodeURIComponent(classId)}/guidance${studentId ? `?student_id=${encodeURIComponent(studentId)}` : ''}`); }
+export function sendClassroomGuidance(classId: string, payload: { student_id: string; content: string; recommended_score?: number | null }) {
+  return postJson<ClassroomGuidance>(`/api/classrooms/${encodeURIComponent(classId)}/guidance`, payload);
+}
+export function generateAiClassroomGuidance(classId: string, studentId = '') {
+  return postJson<ClassroomGuidance & { performance: Record<string, unknown> }>(`/api/classrooms/${encodeURIComponent(classId)}/guidance/ai`, { student_id: studentId });
 }
 export async function saveExamSettings(payload: Partial<ExamSettings>) {
   const response = await fetch(`${baseUrl}/api/exam/settings`, {
@@ -165,6 +180,10 @@ export async function saveExamSettings(payload: Partial<ExamSettings>) {
   return response.json() as Promise<ExamSettings>;
 }
 export function speak(text: string) { return postJson<TtsResponse>('/api/tts/speak', { text, voice: 'clinical_tutor' }); }
+export function getDigitalHumanModes() { return readJson<DigitalHumanModesResponse>('/api/digital-human/modes'); }
+export function speakDigitalHuman(payload: DigitalHumanSpeakRequest) {
+  return postJson<DigitalHumanResponse>('/api/digital-human/speak', payload);
+}
 
 export function startTraining(caseId: string, variantId: string, difficulty: string, mode: string) {
   return postJson<{ session_id: string; case: CaseSummary; opening_statement: string }>('/api/training/start', { case_id: caseId, variant_id: variantId, difficulty, mode });

@@ -43,6 +43,7 @@ const studentNav: NavItem[] = [
 ];
 const teacherNav: NavItem[] = [
   { label: '教学总览', path: '/teacher/dashboard', icon: BarChart3, tour: 'teacher-dashboard' },
+  { label: '班级管理', path: '/teacher/classrooms', icon: Users },
   { label: '教学知识库', path: '/teacher/knowledge', icon: Library, tour: 'case-management' },
   { label: '题型与提示词', path: '/teacher/exam-settings', icon: SlidersHorizontal, tour: 'exam-settings' },
   { label: '知识图谱', path: '/knowledge-graph', icon: BookOpen, tour: 'teacher-graph' }

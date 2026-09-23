@@ -2,3 +2,51 @@
 @import './knowledge-graph-enhancements.css';
 @import './student-dashboard-cards.css';
 @import './learning-archive.css';
+
+@font-face {
+  font-family: "Alibaba PuHuiTi";
+  src: url('/fonts/alibaba-puhuiti/Alibaba-PuHuiTi-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Alibaba PuHuiTi";
+  src: url('/fonts/alibaba-puhuiti/Alibaba-PuHuiTi-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Alibaba PuHuiTi";
+  src: url('/fonts/alibaba-puhuiti/Alibaba-PuHuiTi-Bold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Alibaba PuHuiTi";
+  src: url('/fonts/alibaba-puhuiti/Alibaba-PuHuiTi-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Alibaba PuHuiTi";
+  src: url('/fonts/alibaba-puhuiti/Alibaba-PuHuiTi-Bold.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Alibaba PuHuiTi";
+  src: url('/fonts/alibaba-puhuiti/Alibaba-PuHuiTi-Heavy.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}

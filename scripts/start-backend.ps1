@@ -1,15 +1,12 @@
-param(
-    [string]$Python = "python"
-)
-
 $ErrorActionPreference = "Stop"
-$Root = Resolve-Path (Join-Path $PSScriptRoot "..")
-Set-Location $Root
+$env:PYTHONIOENCODING = "utf-8"
 
-if (-not (Test-Path -LiteralPath "env\.env")) {
-    New-Item -ItemType Directory -Force -Path "env" | Out-Null
-    Copy-Item -LiteralPath ".env.example" -Destination "env\.env" -Force
+$condaRoot = Split-Path (Split-Path $env:CONDA_EXE -Parent) -Parent
+$condaHook = Join-Path $condaRoot "shell\condabin\conda-hook.ps1"
+if (Test-Path -LiteralPath $condaHook) {
+    & $condaHook
 }
+conda activate pytorch_env
 
-& $Python -m pip install -r requirements.txt
-& $Python -m backend.app.main
+Set-Location (Resolve-Path (Join-Path $PSScriptRoot ".."))
+python -m backend.app.main

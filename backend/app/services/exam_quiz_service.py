@@ -241,6 +241,8 @@ class ExamQuizService:
                 label,
                 citation,
             )
+        for question in questions:
+            question["system"] = system_label or ""
 
         payload = {
             "quiz_id": uuid4().hex,
@@ -488,6 +490,16 @@ class ExamQuizService:
         return questions
 
     def grade_by_id(self, question_id: str, answer: Any) -> dict[str, Any]:
+        located = self.find_question(question_id)
+        question = located["question"]
+        result = self.grade(question, answer)
+        if question.get("type") == "single_choice":
+            result["correct_answer"] = question.get("answer_index")
+        elif question.get("type") == "true_false":
+            result["correct_answer"] = question.get("answer")
+        return result
+
+    def find_question(self, question_id: str) -> dict[str, Any]:
         question_id = question_id.strip()
         if not question_id:
             raise KeyError(question_id)
@@ -496,12 +508,10 @@ class ExamQuizService:
                 continue
             for question in payload.get("questions", []):
                 if isinstance(question, dict) and question.get("id") == question_id:
-                    result = self.grade(question, answer)
-                    if question.get("type") == "single_choice":
-                        result["correct_answer"] = question.get("answer_index")
-                    elif question.get("type") == "true_false":
-                        result["correct_answer"] = question.get("answer")
-                    return result
+                    return {
+                        "quiz_id": str(payload.get("quiz_id") or ""),
+                        "question": question,
+                    }
         raise KeyError(question_id)
 
     def grade(self, question: dict[str, Any], answer: Any) -> dict[str, Any]:

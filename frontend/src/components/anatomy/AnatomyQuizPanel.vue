@@ -77,7 +77,11 @@ async function submit() {
     question.type === 'single_choice' ? picked.value : question.type === 'true_false' ? judge.value : draft.value.trim();
   grading.value = true;
   try {
-    const result = await gradeQuiz({ question_id: question.id, answer });
+    const result = await gradeQuiz({
+      question_id: question.id,
+      quiz_id: quiz.value?.quiz_id,
+      answer
+    });
     grade.value = result;
     results.value = [...results.value, { question, score: result.score, correct: result.correct }];
   } catch (gradeError) {

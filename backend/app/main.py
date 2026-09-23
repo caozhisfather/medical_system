@@ -36,7 +36,8 @@ from .models import (
     CaseLibraryEntryCreateRequest, CaseLibraryEntryUpdateRequest, CaseLibraryDeidentifyRequest, CaseLibraryImportRequest,
     CaseLibraryCompileRequest, TeachingKnowledgeCreateRequest, TeachingKnowledgeUpdateRequest,
     SkillPolicyUpdate, SkillQuery, SkillResult,
-    AnatomyNoteRequest,
+    AnatomyNoteRequest, ClassroomCreateRequest, ClassroomJoinRequest,
+    ClassroomGuidanceRequest,
 )
 from .services.case_generation_service import CaseGenerationService
 from .services.case_citation_service import CaseCitationService
@@ -61,6 +62,8 @@ from .services.skill_registry import SkillRegistry
 from .services.anatomy_tutor import AnatomyTutor
 from .services.document_evidence_service import document_evidence_service
 from .services.anatomy_learning_service import AnatomyLearningService
+from .services.knowledge_note_service import KnowledgeNoteService
+from .services.classroom_service import ClassroomService
 from .rag import RagPipeline
 from .workflow import build_trace, load_workflow
 
@@ -79,6 +82,8 @@ anatomy_skills = AnatomySkills(ROOT_DIR, anatomy_term_service, anatomy_textbook_
 skill_registry = SkillRegistry(Path(settings.skill_database_path), anatomy_skills.handlers)
 anatomy_tutor = AnatomyTutor(skill_registry)
 anatomy_learning_service = AnatomyLearningService(Path(settings.anatomy_learning_database_path))
+knowledge_note_service = KnowledgeNoteService(Path(settings.knowledge_notes_path))
+classroom_service = ClassroomService(Path(settings.classroom_database_path))
 obsidian_service = ObsidianGraphExportService()
 case_repository = CaseRepository()
 case_citation_service = CaseCitationService(
@@ -150,6 +155,71 @@ def optional_user(authorization: str | None) -> AuthUser | None:
         return None
     user = AuthUser(**item)
     return user if user.status == "active" else None
+
+
+def student_learning_snapshot(account: str) -> dict[str, Any]:
+    anatomy = anatomy_learning_service.records(account, 200)
+    quiz = anatomy_learning_service.quiz_records(account, 200)
+    anatomy_mistakes = anatomy_learning_service.mistakes(account, 8)["items"]
+    quiz_mistakes = anatomy_learning_service.quiz_mistakes(account, 8)["items"]
+    total = int(anatomy["summary"]["total"]) + int(quiz["summary"]["total"])
+    score_sum = (
+        int(anatomy["summary"]["average_score"]) * int(anatomy["summary"]["total"])
+        + int(quiz["summary"]["average_score"]) * int(quiz["summary"]["total"])
+    )
+    average_score = round(score_sum / total) if total else 0
+    weak_points = []
+    for item in anatomy_mistakes:
+        label = item.get("title") or item.get("target")
+        if label and label not in weak_points:
+            weak_points.append(label)
+    for item in quiz_mistakes:
+        label = item.get("structure_label") or item.get("question_stem")
+        if label and label not in weak_points:
+            weak_points.append(label)
+    return {
+        "total_attempts": total,
+        "average_score": average_score,
+        "anatomy": anatomy["summary"],
+        "quiz": quiz["summary"],
+        "weak_points": weak_points[:5],
+        "anatomy_mistakes": anatomy_mistakes,
+        "quiz_mistakes": quiz_mistakes,
+    }
+
+
+def build_ai_guidance(student_name: str, snapshot: dict[str, Any]) -> tuple[str, int]:
+    total = int(snapshot.get("total_attempts") or 0)
+    average = int(snapshot.get("average_score") or 0)
+    weak_points = list(snapshot.get("weak_points") or [])
+    if total == 0:
+        content = (
+            f"{student_name}目前还没有形成可分析的学习记录。\n\n"
+            "建议先完成 1 组二维器官定位测验和 1 组结构刷题，"
+            "系统会在产生真实作答后给出针对错误结构的复习顺序。"
+        )
+        return content, 75
+
+    if average >= 90:
+        judgment = "整体掌握稳定，已经可以把重点转向综合辨析和临床联系。"
+    elif average >= 75:
+        judgment = "基础掌握较好，但错题仍集中在少数结构，需要做针对性复练。"
+    else:
+        judgment = "当前错误较集中，应先巩固高频结构的位置、毗邻和功能，再进入综合题。"
+
+    focus = "、".join(weak_points[:3]) if weak_points else "近期错题涉及的结构"
+    lines = [
+        f"## 当前学习判断\n{student_name}已记录 {total} 次有效作答，综合平均分 {average} 分。{judgment}",
+        f"## 优先复习\n- 重点回落：{focus}",
+        "## 下一步安排\n"
+        f"- 先对“{weak_points[0] if weak_points else '近期错题结构'}”完成 1 次定位复练和 1 组同类题。\n"
+        "- 每道错题复习时同时回答“在哪里、毗邻什么、临床意义是什么”三个问题。\n"
+        "- 完成后再做一组混合题，重点观察同类错误是否减少。",
+    ]
+    if snapshot.get("quiz_mistakes"):
+        lines.append("## 刷题提醒\n刷题错题已同步到学习档案，建议优先查看遗漏要点，不要只记正确答案。")
+    target = max(average + 5, 75) if average < 90 else min(average + 3, 98)
+    return "\n\n".join(lines), min(100, target)
 
 
 def write_audit_log(user: AuthUser, action: str, target: str, detail: str = "") -> None:
@@ -1439,41 +1509,23 @@ def anatomy_textbook_page(document_id: str, page: int = 1) -> StreamingResponse:
 @app.get("/api/anatomy/notes")
 def anatomy_notes(document_id: str = "", page: int = 0, authorization: str | None = Header(default=None)) -> list[dict[str, Any]]:
     user = require_role(authorization, {"student", "teacher", "admin", "super_admin"})
-    path = Path(settings.knowledge_notes_path)
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
-    except (OSError, json.JSONDecodeError):
-        payload = []
-    return [item for item in payload if item.get("account") == user.account and (not document_id or item.get("document_id") == document_id) and (not page or item.get("page") == page)]
+    return knowledge_note_service.list(user.account, document_id, page)
 
 
 @app.put("/api/anatomy/notes")
 def anatomy_notes_put(payload: AnatomyNoteRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
     user = require_role(authorization, {"student", "teacher", "admin", "super_admin"})
-    path = Path(settings.knowledge_notes_path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        notes = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
-    except (OSError, json.JSONDecodeError):
-        notes = []
-    note_id = payload.note_id or uuid4().hex
-    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    note = {"id": note_id, "account": user.account, **payload.model_dump(exclude={"note_id"}), "updated_at": now}
-    notes = [item for item in notes if not (item.get("id") == note_id and item.get("account") == user.account)]
-    notes.append(note)
-    path.write_text(json.dumps(notes, ensure_ascii=False, indent=2), encoding="utf-8")
-    return note
+    return knowledge_note_service.upsert(
+        user.account,
+        payload.model_dump(exclude={"note_id"}),
+        payload.note_id,
+    )
 
 
 @app.delete("/api/anatomy/notes/{note_id}")
 def anatomy_notes_delete(note_id: str, authorization: str | None = Header(default=None)) -> dict[str, Any]:
     user = require_role(authorization, {"student", "teacher", "admin", "super_admin"})
-    path = Path(settings.knowledge_notes_path)
-    try:
-        notes = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
-    except (OSError, json.JSONDecodeError):
-        notes = []
-    path.write_text(json.dumps([item for item in notes if not (item.get("id") == note_id and item.get("account") == user.account)], ensure_ascii=False, indent=2), encoding="utf-8")
+    knowledge_note_service.delete(user.account, note_id)
     return {"status": "deleted", "id": note_id}
 
 
@@ -1512,12 +1564,29 @@ def exam_quiz_generate(payload: dict[str, Any], authorization: str | None = Head
 
 @app.post("/api/exam/quiz/grade")
 def exam_quiz_grade(payload: dict[str, Any], authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    require_role(authorization, {"student", "teacher", "admin", "super_admin"})
+    user = require_role(authorization, {"student", "teacher", "admin", "super_admin"})
     question_id = str(payload.get("question_id") or "").strip()
     if not question_id:
         raise HTTPException(status_code=400, detail="question_id is required")
     try:
-        return exam_quiz_service.grade_by_id(question_id, payload.get("answer"))
+        located = exam_quiz_service.find_question(question_id)
+        question = located["question"]
+        answer = payload.get("answer")
+        result = exam_quiz_service.grade(question, answer)
+        if question.get("type") == "single_choice":
+            result["correct_answer"] = question.get("answer_index")
+        elif question.get("type") == "true_false":
+            result["correct_answer"] = question.get("answer")
+        if user.role == "student":
+            anatomy_learning_service.record_quiz(
+                account=user.account,
+                user_id=user.id,
+                question=question,
+                answer=answer,
+                result=result,
+                quiz_id=str(payload.get("quiz_id") or located.get("quiz_id") or ""),
+            )
+        return result
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="题目已过期，请重新生成测验") from exc
 
@@ -1583,6 +1652,194 @@ def anatomy_records(limit: int = 80, authorization: str | None = Header(default=
 def anatomy_mistakes(limit: int = 80, authorization: str | None = Header(default=None)) -> dict[str, Any]:
     user = require_role(authorization, {"student", "teacher", "admin", "super_admin"})
     return anatomy_learning_service.mistakes(user.account, limit)
+
+
+@app.get("/api/anatomy/quiz-records")
+def anatomy_quiz_records(limit: int = 80, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user = require_role(authorization, {"student", "teacher", "admin", "super_admin"})
+    return anatomy_learning_service.quiz_records(user.account, limit)
+
+
+@app.get("/api/anatomy/quiz-mistakes")
+def anatomy_quiz_mistakes(limit: int = 80, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user = require_role(authorization, {"student", "teacher", "admin", "super_admin"})
+    return anatomy_learning_service.quiz_mistakes(user.account, limit)
+
+
+@app.get("/api/classrooms/mine")
+def classrooms_mine(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user = require_role(authorization, {"student", "teacher", "admin", "super_admin"})
+    if user.role == "teacher":
+        items = classroom_service.list_for_teacher(user.id)
+    elif user.role == "student":
+        items = classroom_service.list_for_student(user.id)
+    else:
+        items = []
+    return {"role": user.role, "items": items}
+
+
+@app.post("/api/classrooms")
+def classrooms_create(payload: ClassroomCreateRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user = require_role(authorization, {"teacher"})
+    try:
+        classroom = classroom_service.create_class(
+            teacher_id=user.id,
+            teacher_account=user.account,
+            teacher_name=user.name,
+            name=payload.name,
+            description=payload.description,
+        )
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    write_audit_log(user, "classroom.create", classroom["id"], classroom["name"])
+    return classroom
+
+
+@app.post("/api/classrooms/join")
+def classrooms_join(payload: ClassroomJoinRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user = require_role(authorization, {"student"})
+    try:
+        classroom = classroom_service.join_by_code(
+            student_id=user.id,
+            student_account=user.account,
+            student_name=user.name,
+            code=payload.code,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="班级码无效或班级已关闭") from exc
+    write_audit_log(user, "classroom.join", classroom["id"], classroom["name"])
+    return classroom
+
+
+@app.get("/api/classrooms/{class_id}")
+def classrooms_detail(class_id: str, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user = require_role(authorization, {"teacher"})
+    try:
+        classroom = classroom_service.class_detail(user.id, class_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="班级不存在") from exc
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    classroom["students"] = [
+        {**student, **student_learning_snapshot(student["student_account"])}
+        for student in classroom["students"]
+    ]
+    return classroom
+
+
+@app.get("/api/classrooms/guidance/mine")
+def classrooms_guidance_mine(class_id: str = "", authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user = require_role(authorization, {"student"})
+    return {
+        "items": classroom_service.list_guidance(
+            student_id=user.id,
+            class_id=class_id,
+        )
+    }
+
+
+@app.get("/api/classrooms/{class_id}/guidance")
+def classrooms_guidance(
+    class_id: str,
+    student_id: str = "",
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user = require_role(authorization, {"teacher"})
+    try:
+        items = classroom_service.class_guidance(
+            teacher_id=user.id,
+            class_id=class_id,
+            student_id=student_id,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="班级不存在或学生不在班级中") from exc
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    return {"items": items}
+
+
+@app.post("/api/classrooms/{class_id}/guidance")
+def classrooms_guidance_create(
+    class_id: str,
+    payload: ClassroomGuidanceRequest,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user = require_role(authorization, {"teacher"})
+    if not payload.student_id:
+        raise HTTPException(status_code=422, detail="请选择需要指导的学生")
+    if not classroom_service.is_teacher(class_id, user.id):
+        raise HTTPException(status_code=403, detail="只能指导自己班级的学生")
+    try:
+        guidance = classroom_service.add_guidance(
+            class_id=class_id,
+            student_id=payload.student_id,
+            author_id=user.id,
+            author_name=user.name,
+            source="teacher",
+            content=payload.content,
+            recommended_score=payload.recommended_score,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="学生不在当前班级") from exc
+    write_audit_log(user, "classroom.guidance", payload.student_id, class_id)
+    return guidance
+
+
+@app.post("/api/classrooms/{class_id}/guidance/ai")
+def classrooms_guidance_ai(
+    class_id: str,
+    payload: ClassroomGuidanceRequest,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user = require_role(authorization, {"student", "teacher"})
+    if user.role == "student":
+        if not classroom_service.is_member(class_id, user.id):
+            raise HTTPException(status_code=403, detail="你尚未加入该班级")
+        student_id = user.id
+        student_account = user.account
+        student_name = user.name
+    else:
+        if not classroom_service.is_teacher(class_id, user.id):
+            raise HTTPException(status_code=403, detail="只能分析自己班级的学生")
+        if not payload.student_id:
+            raise HTTPException(status_code=422, detail="请选择学生")
+        try:
+            classroom = classroom_service.class_detail(user.id, class_id)
+        except (KeyError, PermissionError) as exc:
+            raise HTTPException(status_code=403, detail=str(exc)) from exc
+        student = next(
+            (item for item in classroom["students"] if item["student_id"] == payload.student_id),
+            None,
+        )
+        if not student:
+            raise HTTPException(status_code=404, detail="学生不在当前班级")
+        student_id = student["student_id"]
+        student_account = student["student_account"]
+        student_name = student["student_name"]
+
+    snapshot = student_learning_snapshot(student_account)
+    recent = classroom_service.latest_ai_guidance(
+        class_id=class_id,
+        student_id=student_id,
+        within_minutes=10,
+    )
+    if recent:
+        return {**recent, "performance": snapshot, "reused": True}
+    content, suggested_score = build_ai_guidance(student_name, snapshot)
+    guidance = classroom_service.add_guidance(
+        class_id=class_id,
+        student_id=student_id,
+        author_id="ai-learning-coach",
+        author_name="AI学习教练",
+        source="ai",
+        content=content,
+        recommended_score=suggested_score,
+    )
+    return {**guidance, "performance": snapshot, "reused": False}
 
 
 @app.post("/api/tts/speak", response_model=TTSResponse)

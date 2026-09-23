@@ -33,6 +33,7 @@ import {
   uploadTeachingKnowledge,
   updateTeachingKnowledge
 } from '../api';
+import MarkdownContent from '../components/MarkdownContent.vue';
 import type { CaseLibraryDeidentifyResult, CaseLibraryEntry } from '../types';
 import { trainingStore } from '../stores/training';
 
@@ -418,7 +419,7 @@ onUnmounted(() => { if (processingTimer) window.clearInterval(processingTimer); 
           </div>
           <div v-if="selectedIsWholeDocument" class="editor-section document-outline-section">
             <h3><FolderTree :size="17" />本书目录与章节定位</h3>
-            <p class="document-summary">{{ selected.content_summary || '正在生成本书摘要与目录结构。' }}</p>
+            <MarkdownContent class="document-summary" :content="selected.content_summary || '正在生成本书摘要与目录结构。'" />
             <ol v-if="selectedOutline.length" class="document-outline-list">
               <li v-for="section in selectedOutline" :key="`${section.start_page}-${section.title}`">
                 <ChevronRight :size="15" /><span>{{ section.title }}</span><small>第 {{ section.start_page }}{{ section.end_page !== section.start_page ? `-${section.end_page}` : '' }} 页</small>
@@ -428,7 +429,8 @@ onUnmounted(() => { if (processingTimer) window.clearInterval(processingTimer); 
           </div>
           <div v-else class="editor-section">
             <h3>脱敏全文</h3>
-            <div class="case-library-content">{{ selected.content || '暂无全文内容' }}</div>
+            <MarkdownContent v-if="selected.content" class="case-library-content" :content="selected.content" />
+            <div v-else class="case-library-content">暂无全文内容</div>
           </div>
         </template>
       </section>
@@ -516,7 +518,12 @@ onUnmounted(() => { if (processingTimer) window.clearInterval(processingTimer); 
 .embedding-badge { background: #fff7ed; color: #b45309; }
 .embedding-badge.ready { background: #ecfdf5; color: #047857; }
 .case-library-risk { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 14px; padding: 10px 12px; border: 1px solid #fde6c8; border-radius: 8px; background: #fffbeb; color: #92400e; font-size: 13px; }
-.case-library-content { max-height: 420px; overflow: auto; padding: 14px 16px; border: 1px solid var(--line, #e1e9ea); border-radius: 8px; background: #f8fafb; color: #33454f; font-size: 14px; line-height: 1.8; white-space: pre-wrap; word-break: break-word; }
+.case-library-content { max-height: 420px; overflow: auto; padding: 14px 16px; border: 1px solid var(--line, #e1e9ea); border-radius: 8px; background: #f8fafb; color: #33454f; font-size: 15px; line-height: 1.8; word-break: break-word; }
+.case-library-content :deep(h1),
+.case-library-content :deep(h2),
+.case-library-content :deep(h3),
+.case-library-content :deep(h4) { margin: 14px 0 7px; font-size: 17px; }
+.case-library-content :deep(p) { margin: 7px 0; font-size: inherit; }
 .case-library-empty-detail { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text-muted, #64748b); font-size: 14px; }
 .case-library-modal { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(12, 30, 36, 0.48); }
 .case-library-modal-card { width: min(720px, 100%); max-height: calc(100vh - 40px); overflow: auto; border-radius: 10px; background: #fff; box-shadow: 0 18px 50px rgba(12, 30, 36, 0.28); }

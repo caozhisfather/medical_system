@@ -1,5 +1,5 @@
 :root {
-  font-family: "HarmonyOS Sans SC", "Microsoft YaHei UI", "PingFang SC", "Segoe UI", sans-serif;
+  font-family: "Alibaba PuHuiTi", "Microsoft YaHei UI", "PingFang SC", "Segoe UI", sans-serif;
   color: #172b4d;
   background: #f3f6fa;
   font-synthesis: none;
@@ -14,14 +14,14 @@
   --orange: #c27a24;
   --danger: #c04b55;
   --shadow: 0 14px 38px rgba(31, 57, 91, .11);
-  --text-caption: 12px;
-  --text-compact: 14px;
-  --text-control: 15px;
-  --text-body: 16px;
+  --text-caption: 13px;
+  --text-compact: 15px;
+  --text-control: 16px;
+  --text-body: 17px;
 }
 
 * { box-sizing: border-box; letter-spacing: 0; }
-html { min-width: 320px; background: #f3f6fa; font-size: 16px; }
+html { min-width: 320px; background: #f3f6fa; font-size: 17px; }
 body { margin: 0; min-width: 320px; min-height: 100vh; background: #f3f6fa; font-size: var(--text-body); line-height: 1.65; }
 button, input, textarea, select { font: inherit; }
 button, select { cursor: pointer; }
@@ -40,7 +40,7 @@ p { color: var(--muted); line-height: 1.68; }
 
 /* Long-form medical content benefits from a readable Chinese serif face. */
 .case-library-content, .teaching-document, .rich-note-content {
-  font-family: "Noto Serif CJK SC", "Source Han Serif SC", "STSong", "SimSun", serif;
+  font-family: "Alibaba PuHuiTi", "Microsoft YaHei UI", "PingFang SC", sans-serif;
 }
 
 .button-primary, .button-secondary, .text-button, .icon-button, .back-link {
@@ -1028,6 +1028,14 @@ p { color: var(--muted); line-height: 1.68; }
 .atlas-structure-detail > .atlas-agent-answer { display: block; min-width: 0; }
 .atlas-agent-answer strong { display: flex; align-items: center; gap: 5px; min-width: 0; color: #176b5d; font-size: 10px; line-height: 1.45; }
 .atlas-agent-answer p { min-width: 0; margin: 5px 0 0; color: #4f686e; font-size: 11px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.atlas-agent-answer .markdown-content { min-width: 0; margin-top: 5px; color: #4f686e; font-size: 12px; line-height: 1.7; }
+.atlas-agent-answer .markdown-content h1,
+.atlas-agent-answer .markdown-content h2,
+.atlas-agent-answer .markdown-content h3,
+.atlas-agent-answer .markdown-content h4 { margin: 11px 0 6px; font-size: 13px; }
+.atlas-agent-answer .markdown-content p { margin: 5px 0; color: inherit; font-size: inherit; white-space: normal; }
+.atlas-agent-answer .markdown-content ul,
+.atlas-agent-answer .markdown-content ol { margin: 5px 0; padding-left: 18px; }
 .atlas-agent-answer small { display: block; margin-top: 6px; color: #8b9a9c; font-size: 9px; }
 .atlas-empty-detail { display: grid; justify-items: center; margin-top: 12px; padding: 22px 10px; border-top: 1px solid var(--line); color: #799093; text-align: center; }
 .atlas-empty-detail strong { margin-top: 6px; color: #41666c; font-size: 12px; }
@@ -1152,7 +1160,23 @@ p { color: var(--muted); line-height: 1.68; }
 .body-agent-block .atlas-agent-prompts button { min-height: 34px; padding: 6px 9px; font-size: 12px; font-weight: 700; }
 .body-agent-block .atlas-agent-answer { max-height: 320px; overflow-y: auto; margin-top: 0; padding: 12px; border-radius: 7px; background: #fff; }
 .body-agent-block .atlas-agent-answer strong { color: #176b5d; font-size: 11px; }
-.body-agent-block .atlas-agent-answer p { margin-top: 7px; font-size: 12px; line-height: 1.75; }
+.body-agent-block .atlas-agent-answer p { margin-top: 7px; font-size: 13px; line-height: 1.75; }
+.body-agent-block .atlas-agent-answer .markdown-content { font-size: 13px; }
+.digital-human-lecture { display: grid; gap: 9px; min-width: 0; }
+.digital-human-lecture-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.digital-human-lecture-heading strong { display: inline-flex; align-items: center; gap: 6px; color: #205b55; font-size: 13px; }
+.digital-human-lecture-heading strong::before { content: '●'; color: #1e9b8c; font-size: 9px; }
+.digital-human-lecture-heading span { min-width: 0; color: #6d8588; font-size: 10px; line-height: 1.4; text-align: right; overflow-wrap: anywhere; }
+.digital-human-lecture .dh-player { aspect-ratio: 16 / 9; border-radius: 8px; box-shadow: 0 8px 18px rgba(11,57,62,.12); }
+.digital-human-lecture-controls { display: flex; flex-wrap: wrap; gap: 6px; }
+.digital-human-lecture-controls button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 30px; padding: 5px 8px; border: 1px solid rgba(15,118,110,.16); border-radius: 6px; background: #fff; color: #27665f; font-size: 11px; font-weight: 700; cursor: pointer; }
+.digital-human-lecture-controls button:disabled { cursor: not-allowed; opacity: .5; }
+.digital-human-lecture-state { display: flex; align-items: center; gap: 6px; padding: 7px 9px; border: 1px dashed rgba(15,118,110,.2); border-radius: 6px; color: #47716e; font-size: 11px; line-height: 1.45; }
+.digital-human-transcript { min-width: 0; padding: 8px 10px; border: 1px solid rgba(15,118,110,.14); border-radius: 6px; background: #fff; }
+.digital-human-transcript summary { color: #27665f; font-size: 11px; font-weight: 800; cursor: pointer; }
+.digital-human-transcript .markdown-content { max-height: 230px; overflow-y: auto; margin-top: 7px; color: #4f686e; font-size: 12px; line-height: 1.7; }
+.digital-human-transcript small { display: block; margin-top: 6px; color: #8b9a9c; font-size: 10px; }
+.digital-human-lecture > .atlas-agent-prompts { margin-top: 0; }
 .body-detail-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .body-empty-detail { display: grid; justify-items: center; gap: 7px; margin: auto 0; padding: 24px 12px; color: #6d8489; text-align: center; }
 .body-empty-detail strong { color: #2b5b62; font-size: 14px; }
@@ -1824,7 +1848,7 @@ p { color: var(--muted); line-height: 1.68; }
 .landing-v2,
 .landing-v2 button,
 .landing-v2 input {
-  font-family: "Segoe UI Variable Display", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+  font-family: "Alibaba PuHuiTi", "Microsoft YaHei UI", "PingFang SC", sans-serif;
 }
 .landing-v2 a,
 .landing-v2 button {
@@ -2784,7 +2808,7 @@ p { color: var(--muted); line-height: 1.68; }
 .textbook-modal-body { overflow: auto; padding: 20px 24px 26px; }
 .textbook-citation { display: inline-block; margin: 0 0 12px; padding: 4px 10px; border-radius: 999px; background: #eef4f6; color: #48606b; font-size: 12px; }
 .textbook-modal-body h2 { margin: 0 0 12px; color: #16313a; font-size: 19px; }
-.textbook-content { margin: 0; color: #33454f; font-size: 15px; line-height: 1.9; white-space: pre-wrap; }
+.textbook-content { margin: 0; color: #33454f; font-size: 16px; line-height: 1.9; }
 .textbook-state { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 160px; color: #6b8290; font-size: 14px; }
 .textbook-state.empty { flex-direction: column; text-align: center; }
 .textbook-state.empty strong { color: #33454f; }

@@ -165,6 +165,78 @@ export interface AnatomyMistake {
   explanation: string;
   clinical_link: string;
 }
+export interface QuizAttempt {
+  id: string;
+  question_id: string;
+  quiz_id: string;
+  structure_en: string;
+  structure_cn: string;
+  structure_label: string;
+  system: string;
+  question_type: string;
+  question_stem: string;
+  question_options: string[];
+  answer: string;
+  correct_answer: string;
+  correct: boolean;
+  score: number;
+  feedback: string;
+  hit_points: string[];
+  missed_points: string[];
+  citation: string;
+  created_at: string;
+  updated_at: string;
+}
+export interface QuizLearningRecordsResponse {
+  items: QuizAttempt[];
+  summary: AnatomyLearningSummary;
+}
+export interface ClassroomSummary {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+  teacher_name: string;
+  created_at: string;
+  student_count: number;
+  joined_at?: string;
+}
+export interface ClassroomStudentPerformance {
+  total_attempts: number;
+  average_score: number;
+  anatomy: AnatomyLearningSummary;
+  quiz: AnatomyLearningSummary;
+  weak_points: string[];
+}
+export interface ClassroomStudent {
+  student_id: string;
+  student_account: string;
+  student_name: string;
+  joined_at: string;
+  total_attempts: number;
+  average_score: number;
+  anatomy: AnatomyLearningSummary;
+  quiz: AnatomyLearningSummary;
+  weak_points: string[];
+  anatomy_mistakes: AnatomyMistake[];
+  quiz_mistakes: QuizAttempt[];
+}
+export interface ClassroomDetail extends ClassroomSummary {
+  students: ClassroomStudent[];
+}
+export interface ClassroomGuidance {
+  id: string;
+  class_id: string;
+  class_name?: string;
+  student_id: string;
+  author_id: string;
+  author_name: string;
+  source: 'teacher' | 'ai';
+  content: string;
+  recommended_score?: number | null;
+  created_at: string;
+  reused?: boolean;
+}
 export interface AgentResultCard { kind: string; title: string; summary: string; target: string; }
 export type SkillRole = 'student' | 'teacher' | 'admin';
 export interface SkillQuery { query: string; part_id?: string; }
@@ -250,7 +322,7 @@ export interface DigitalHumanSpeakRequest {
   voice: string;
   mode: DigitalHumanMode;
   audio_url?: string | null;
-  context?: { case_id?: string; chief_complaint?: string; speaking_style?: string; role?: 'patient' | 'teacher' };
+  context?: { case_id?: string; chief_complaint?: string; speaking_style?: string; role?: 'patient' | 'teacher' | 'tutor'; topic?: string };
 }
 export interface DigitalHumanResponse {
   status: string;

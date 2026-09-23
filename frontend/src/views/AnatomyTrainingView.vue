@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Activity, ArrowLeft, ArrowRight, BookOpenCheck, Brain, Check, ChevronDown, ChevronRight, CircleAlert, Crosshair, ExternalLink, Eye, EyeOff, Layers3, LoaderCircle, LocateFixed, Maximize2, Minimize2, MousePointer2, PanelLeftClose, PanelLeftOpen, RotateCcw, ScanLine, Sparkles, Target, Video, X, ZoomIn } from '@lucide/vue';
-import { getAnatomyExercises, getAnatomyGlossary, getAnatomyEvidence, getAnatomyNotes, getAnatomyTextbook, saveAnatomyNote, sendAgentMessage, submitAnatomy } from '../api';
+import { Activity, ArrowLeft, ArrowRight, BookOpenCheck, Brain, Check, ChevronDown, ChevronRight, CircleAlert, Crosshair, ExternalLink, Eye, EyeOff, Layers3, LoaderCircle, LocateFixed, Maximize2, Minimize2, MousePointer2, PanelLeftClose, PanelLeftOpen, RotateCcw, ScanLine, Target, Video, X, ZoomIn } from '@lucide/vue';
+import { getAnatomyExercises, getAnatomyGlossary, getAnatomyEvidence, getAnatomyNotes, getAnatomyTextbook, saveAnatomyNote, sendAgentMessage, speakDigitalHuman, submitAnatomy } from '../api';
 import anatomyImage from '../assets/medical/anatomy-organs.png';
 import AnatomyViewer3D from '../components/anatomy/AnatomyViewer3D.vue';
 import AnatomyQuizPanel from '../components/anatomy/AnatomyQuizPanel.vue';
-import AgentEvidence from '../components/anatomy/AgentEvidence.vue';
+import DigitalHumanLecture from '../components/anatomy/DigitalHumanLecture.vue';
+import digitalHumanPoster from '../assets/digital-human/medical-tutor.png';
 import MarkdownContent from '../components/MarkdownContent.vue';
 import TextbookPageViewer from '../components/TextbookPageViewer.vue';
 import { mockAnatomyExercises } from '../data/anatomy';
@@ -14,11 +15,22 @@ import { anatomyAtlasNodes, anatomyAtlasSystems, type AnatomyAtlasHotspot } from
 import { resolveAnatomyPracticeTarget } from '../data/anatomyPractice';
 import { anatomyImageSources, anatomyVideos } from '../data/anatomyResources';
 import { ANATOMY_SYSTEMS_3D, ANATOMY_SYSTEM_3D_BY_ID, ATLAS_3D_URL, ATLAS_ORGAN_URL, system3DColor, system3DName, type AnatomyOrgan, type AnatomyOrganPayload } from '../data/anatomy3d';
-import type { AgentAction, AgentResponse, AnatomyEvidenceItem, AnatomyEvidenceResponse, AnatomyExercise, AnatomyResult, AnatomyTextbookResult, TextbookAnnotationStroke } from '../types';
+import type { AgentAction, AgentResponse, AnatomyEvidenceItem, AnatomyEvidenceResponse, AnatomyExercise, AnatomyResult, AnatomyTextbookResult, DigitalHumanResponse, TextbookAnnotationStroke } from '../types';
 
 interface Point { x: number; y: number }
 interface Zone extends Point { width: number; height: number; shape?: 'ellipse' | 'rect'; covered?: boolean }
-interface TextbookNoteEditor { id: string; content: string; annotations: TextbookAnnotationStroke[]; saving: boolean }
+interface TextbookNoteEditor {
+  id: string;
+  content: string;
+  annotations: TextbookAnnotationStroke[];
+  saving: boolean;
+  revision: number;
+  savedRevision: number;
+}
+interface TextbookNoteSchedule {
+  timer: ReturnType<typeof setTimeout>;
+  item: AnatomyEvidenceItem;
+}
 
 const route = useRoute();
 const router = useRouter();
@@ -50,12 +62,25 @@ const textbookLoading = ref(false);
 const showTextbook = ref(false);
 const textbookEvidence = ref<AnatomyEvidenceResponse | null>(null);
 const textbookNotes = reactive<Record<string, TextbookNoteEditor>>({});
-const textbookNoteTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const textbookNoteTimers = new Map<string, TextbookNoteSchedule>();
+const textbookNoteSaveChains = new Map<string, Promise<void>>();
 let textbookRequestId = 0;
 const agentLoading = ref(false);
 const agentReply = ref('');
 const agentResponse = ref<AgentResponse | null>(null);
-watch(agentReply, value => { if (!value) agentResponse.value = null; }, { flush: 'sync' });
+const digitalHuman = ref<DigitalHumanResponse | null>(null);
+const digitalHumanLoading = ref(false);
+const digitalHumanPlaying = ref(false);
+const digitalHumanMuted = ref(false);
+const digitalHumanError = ref('');
+const digitalHumanSessionId = `anatomy-tutor-${Date.now().toString(36)}`;
+let digitalHumanRequestId = 0;
+watch(agentReply, value => {
+  if (!value) {
+    agentResponse.value = null;
+    resetDigitalHuman();
+  }
+}, { flush: 'sync' });
 const agentPrompt = ref('');
 const bodyViewer = ref<InstanceType<typeof AnatomyViewer3D> | null>(null);
 const bodySelection = ref<{ id: string; name: string; system: string; systemName: string } | null>(null);
@@ -143,7 +168,7 @@ const practiceZone = computed<Zone | undefined>(() => {
 });
 const covered = computed(() => Boolean(practiceZone.value));
 const practiceImageUrl = computed(() => practiceTarget.value?.node.image || anatomyImage);
-const practiceImageAspect = computed(() => practiceTarget.value?.node.image_aspect || '1086 / 1448');
+const practiceImageAspect = ref('1086 / 1448');
 const practicePrompt = computed(() => practiceTarget.value
   ? `请在《${practiceTarget.value.node.title}》中点击：${practiceTarget.value.label}`
   : active.value.prompt);
@@ -187,6 +212,15 @@ function syncAtlasImageAspect(event: Event) {
   const image = event.target as HTMLImageElement;
   if (image.naturalWidth && image.naturalHeight) atlasImageAspect.value = `${image.naturalWidth} / ${image.naturalHeight}`;
 }
+
+function syncPracticeImageAspect(event: Event) {
+  const image = event.target as HTMLImageElement;
+  if (image.naturalWidth && image.naturalHeight) practiceImageAspect.value = `${image.naturalWidth} / ${image.naturalHeight}`;
+}
+
+watch(practiceTarget, (target) => {
+  practiceImageAspect.value = target?.node.image_aspect || '1086 / 1448';
+}, { immediate: true });
 
 function switchMode(mode: 'body' | 'atlas' | 'practice') {
   viewMode.value = mode;
@@ -315,6 +349,61 @@ function onBodyClear() {
   agentPrompt.value = '';
 }
 
+function resetDigitalHuman() {
+  digitalHumanRequestId += 1;
+  digitalHuman.value = null;
+  digitalHumanLoading.value = false;
+  digitalHumanPlaying.value = false;
+  digitalHumanError.value = '';
+}
+
+function toSpokenText(markdown: string) {
+  return markdown
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/^\s*[-*_]{3,}\s*$/gm, '')
+    .replace(/^\s*[-+*]\s+/gm, '')
+    .replace(/^\s*\d+[.)]\s+/gm, '')
+    .replace(/^\s*[#>|]+\s*/gm, '')
+    .replace(/[|*_`]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 1200);
+}
+
+async function startDigitalHumanNarration(reply: string, topic: string) {
+  const spokenText = toSpokenText(reply);
+  if (!spokenText) return;
+  const requestId = ++digitalHumanRequestId;
+  digitalHumanLoading.value = true;
+  digitalHumanPlaying.value = false;
+  digitalHumanError.value = '';
+  try {
+    const response = await speakDigitalHuman({
+      session_id: digitalHumanSessionId,
+      text: spokenText,
+      emotion: 'teaching',
+      action: 'explain',
+      avatar_id: 'standardized_patient_001',
+      voice: 'zh_female_warm',
+      mode: 'liveact',
+      context: { role: 'tutor', topic, speaking_style: '教材优先、清晰分段、医学教学语气' }
+    });
+    if (requestId !== digitalHumanRequestId) return;
+    digitalHuman.value = response;
+    digitalHumanPlaying.value = true;
+  } catch (error) {
+    if (requestId === digitalHumanRequestId) digitalHumanError.value = error instanceof Error ? error.message : '数字人服务暂不可用';
+  } finally {
+    if (requestId === digitalHumanRequestId) digitalHumanLoading.value = false;
+  }
+}
+
+function replayDigitalHuman() {
+  if (agentReply.value) void startDigitalHumanNarration(agentReply.value, bodyDisplayName.value || atlasStructure.value?.name || '解剖结构');
+}
+
 async function askBodyAgent(prompt: string) {
   const selected = bodySelection.value;
   if (!selected || agentLoading.value) return;
@@ -332,11 +421,40 @@ async function askBodyAgent(prompt: string) {
     if (bodySelection.value?.id !== selected.id || viewMode.value !== 'body') return;
     agentReply.value = response.reply;
     agentResponse.value = response;
+    void startDigitalHumanNarration(response.reply, selected.name);
   } catch (error) {
     if (bodySelection.value?.id === selected.id && viewMode.value === 'body') agentReply.value = error instanceof Error ? error.message : '智能讲解服务暂不可用。';
   } finally {
     agentLoading.value = false;
   }
+}
+
+function atlasNameTerms(value: string) {
+  const compact = value.replace(/[^\u4e00-\u9fffA-Za-z0-9]/g, '').toLocaleLowerCase();
+  const terms = new Set<string>();
+  for (const size of [2, 3]) {
+    for (let index = 0; index <= compact.length - size; index += 1) {
+      terms.add(compact.slice(index, index + size));
+    }
+  }
+  return terms;
+}
+
+function resolveAtlasTargetStructure(targetId: string, source: AnatomyAtlasHotspot) {
+  const target = anatomyAtlasNodes.find((item) => item.id === targetId);
+  if (!target) return source.structure_id ?? '';
+  if (source.structure_id && target.structures.some((item) => item.id === source.structure_id)) {
+    return source.structure_id;
+  }
+  const sourceTerms = atlasNameTerms(source.label);
+  let best: { id: string; score: number } | null = null;
+  for (const hotspot of target.hotspots) {
+    if (!hotspot.structure_id) continue;
+    const targetTerms = atlasNameTerms(hotspot.label);
+    const score = [...sourceTerms].filter((term) => targetTerms.has(term)).length;
+    if (score > (best?.score ?? 0)) best = { id: hotspot.structure_id, score };
+  }
+  return best?.id ?? target.hotspots.find((item) => item.structure_id)?.structure_id ?? target.structures[0]?.id ?? '';
 }
 
 function chooseAtlasNode(id: string, structureId = '') {
@@ -349,7 +467,10 @@ function chooseAtlasNode(id: string, structureId = '') {
 }
 
 function openAtlasHotspot(hotspot: AnatomyAtlasHotspot) {
-  if (hotspot.target_id) chooseAtlasNode(hotspot.target_id, hotspot.structure_id ?? '');
+  if (hotspot.target_id) chooseAtlasNode(
+    hotspot.target_id,
+    resolveAtlasTargetStructure(hotspot.target_id, hotspot)
+  );
   else if (hotspot.structure_id) atlasStructureId.value = hotspot.structure_id;
 }
 
@@ -365,6 +486,7 @@ async function askAnatomyAgent(prompt: string) {
     if (atlasStructure.value?.id !== structure.id || viewMode.value !== 'atlas') return;
     agentReply.value = response.reply;
     agentResponse.value = response;
+    void startDigitalHumanNarration(response.reply, structure.name);
   } catch (error) {
     if (atlasStructure.value?.id === structure.id && viewMode.value === 'atlas') agentReply.value = error instanceof Error ? error.message : '智能讲解服务暂不可用。';
   } finally {
@@ -400,6 +522,7 @@ async function executeAgentAction(action: AgentAction) {
 }
 
 async function openTextbook(name: string) {
+  await flushAllTextbookNotes();
   const requestId = ++textbookRequestId;
   showTextbook.value = true;
   textbookLoading.value = true;
@@ -430,47 +553,126 @@ function textbookNoteKey(item: AnatomyEvidenceItem) {
 
 function textbookNoteFor(item: AnatomyEvidenceItem) {
   const key = textbookNoteKey(item);
-  if (!textbookNotes[key]) textbookNotes[key] = { id: '', content: '', annotations: [], saving: false };
+  if (!textbookNotes[key]) {
+    textbookNotes[key] = {
+      id: '',
+      content: '',
+      annotations: [],
+      saving: false,
+      revision: 0,
+      savedRevision: 0
+    };
+  }
   return textbookNotes[key];
 }
 
 async function loadTextbookNotes(items: AnatomyEvidenceItem[], requestId: number) {
   await Promise.all(items.slice(0, 5).map(async (item) => {
     const editor = textbookNoteFor(item);
+    const revisionAtLoad = editor.revision;
     try {
       const notes = await getAnatomyNotes(item.document_id, item.page);
-      if (requestId !== textbookRequestId) return;
+      if (requestId !== textbookRequestId || editor.revision !== revisionAtLoad) return;
       editor.content = notes[0]?.content ?? '';
       editor.annotations = notes[0]?.annotations ?? [];
       editor.id = notes[0]?.id ?? '';
+      editor.revision = 0;
+      editor.savedRevision = 0;
+      editor.saving = false;
     } catch {
       // Notes require a signed-in account; the editor still works after login.
     }
   }));
 }
 
-function saveTextbookNote(item: AnatomyEvidenceItem) {
+function scheduleTextbookNoteSave(item: AnatomyEvidenceItem, delay = 650) {
   const key = textbookNoteKey(item);
   const editor = textbookNoteFor(item);
-  const previousTimer = textbookNoteTimers.get(key);
-  if (previousTimer) clearTimeout(previousTimer);
-  textbookNoteTimers.set(key, setTimeout(async () => {
-    editor.saving = true;
-    try {
-      const saved = await saveAnatomyNote({ note_id: editor.id || undefined, document_id: item.document_id, page: item.page, line_start: item.line_start, line_end: item.line_end, content: editor.content, annotations: editor.annotations });
-      editor.id = saved.id;
-    } catch { /* unauthenticated demo mode keeps the text in the open editor */ }
-    finally {
+  const previous = textbookNoteTimers.get(key);
+  if (previous) clearTimeout(previous.timer);
+  editor.saving = true;
+  const timer = setTimeout(() => {
+    const scheduled = textbookNoteTimers.get(key);
+    if (scheduled?.timer === timer) textbookNoteTimers.delete(key);
+    void flushTextbookNote(item);
+  }, delay);
+  textbookNoteTimers.set(key, { timer, item });
+}
+
+function flushTextbookNote(item: AnatomyEvidenceItem) {
+  const key = textbookNoteKey(item);
+  const editor = textbookNoteFor(item);
+  if (editor.revision <= editor.savedRevision) {
+    editor.saving = false;
+    return Promise.resolve();
+  }
+  const previous = textbookNoteSaveChains.get(key) ?? Promise.resolve();
+  const next = previous.catch(() => undefined).then(async () => {
+    if (editor.revision <= editor.savedRevision) {
       editor.saving = false;
-      textbookNoteTimers.delete(key);
+      return;
     }
-  }, 650));
+    const revision = editor.revision;
+    const snapshot = {
+      content: editor.content,
+      annotations: editor.annotations.map((stroke) => ({
+        ...stroke,
+        points: stroke.points.map((point) => ({ ...point }))
+      }))
+    };
+    let persisted = false;
+    try {
+      const response = await saveAnatomyNote({
+        note_id: editor.id || undefined,
+        document_id: item.document_id,
+        page: item.page,
+        line_start: item.line_start,
+        line_end: item.line_end,
+        content: snapshot.content,
+        annotations: snapshot.annotations
+      });
+      editor.id = response.id;
+      editor.savedRevision = Math.max(editor.savedRevision, revision);
+      persisted = true;
+    } catch {
+      // Unauthenticated demo mode keeps the text in the open editor.
+    }
+    if (persisted && editor.savedRevision >= editor.revision) {
+      editor.saving = false;
+    } else if (persisted && editor.revision > revision) {
+      scheduleTextbookNoteSave(item, 0);
+    } else {
+      editor.saving = false;
+    }
+  });
+  textbookNoteSaveChains.set(key, next);
+  const cleanup = () => {
+    if (textbookNoteSaveChains.get(key) === next) textbookNoteSaveChains.delete(key);
+  };
+  void next.then(cleanup, cleanup);
+  return next;
+}
+
+function saveTextbookNote(item: AnatomyEvidenceItem) {
+  const editor = textbookNoteFor(item);
+  editor.revision += 1;
+  scheduleTextbookNoteSave(item);
 }
 
 function updateTextbookAnnotations(item: AnatomyEvidenceItem, annotations: TextbookAnnotationStroke[]) {
   const editor = textbookNoteFor(item);
   editor.annotations = annotations;
   saveTextbookNote(item);
+}
+
+async function flushAllTextbookNotes() {
+  const items = [...textbookNoteTimers.values()].map((entry) => entry.item);
+  for (const entry of textbookNoteTimers.values()) clearTimeout(entry.timer);
+  textbookNoteTimers.clear();
+  await Promise.allSettled([
+    ...items.map((item) => flushTextbookNote(item)),
+    ...textbookNoteSaveChains.values()
+  ]);
 }
 
 function choose(id: string) {
@@ -621,8 +823,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   textbookRequestId += 1;
-  for (const timer of textbookNoteTimers.values()) clearTimeout(timer);
-  textbookNoteTimers.clear();
+  void flushAllTextbookNotes();
   document.removeEventListener('fullscreenchange', syncFullscreenState);
   if (document.fullscreenElement) void document.exitFullscreen();
 });
@@ -742,19 +943,33 @@ onBeforeUnmount(() => {
             <div><span>{{ bodySelection.systemName }}</span><h2>{{ bodyDisplayName }}</h2><small v-if="bodyDisplayName !== bodySelection.name">{{ bodySelection.name }}</small></div>
           </div>
           <section class="body-agent-block">
-            <strong><Sparkles :size="16" />AnatomyAgent 讲解</strong>
-            <div class="atlas-agent-prompts">
-              <button type="button" :disabled="agentLoading" @click="askBodyAgent('它的主要功能和结构特点是什么？')">功能结构</button>
-              <button type="button" :disabled="agentLoading" @click="askBodyAgent('它与周围结构有什么空间关系？')">空间关系</button>
-              <button type="button" :disabled="agentLoading" @click="askBodyAgent('它有哪些重要的临床联系？')">临床联系</button>
-              <button type="button" :disabled="agentLoading" @click="askBodyAgent('请用考试重点总结它。')">考试重点</button>
-            </div>
-            <div v-if="agentLoading || agentReply" class="atlas-agent-answer" role="status" aria-live="polite">
-              <strong><Sparkles :size="15" /> AnatomyAgent{{ agentLoading ? ' 正在检索教材并组织讲解' : ' 讲解' }}</strong>
-              <p v-if="agentLoading">正在结合当前结构、教材索引和知识图谱生成回答…</p>
-              <p v-else style="white-space: pre-line">{{ agentReply }}</p>
-              <AgentEvidence v-if="!agentLoading && agentResponse" :response="agentResponse" @action="executeAgentAction" />
-            </div>
+            <DigitalHumanLecture
+              :agent-loading="agentLoading"
+              :agent-reply="agentReply"
+              :agent-response="agentResponse"
+              :agent-prompt="agentPrompt"
+              :narration="digitalHuman"
+              :narration-loading="digitalHumanLoading"
+              :narration-error="digitalHumanError"
+              :playing="digitalHumanPlaying"
+              :muted="digitalHumanMuted"
+              :poster="digitalHumanPoster"
+              @action="executeAgentAction"
+              @replay="replayDigitalHuman"
+              @update:playing="digitalHumanPlaying = $event"
+              @update:muted="digitalHumanMuted = $event"
+              @media-error="digitalHumanError = '数字人视频加载失败，已保留文字讲解与教材依据。'"
+              @play-blocked="digitalHumanPlaying = false"
+            >
+              <template #prompts>
+                <div class="atlas-agent-prompts">
+                  <button type="button" :disabled="agentLoading" @click="askBodyAgent('它的主要功能和结构特点是什么？')">功能结构</button>
+                  <button type="button" :disabled="agentLoading" @click="askBodyAgent('它与周围结构有什么空间关系？')">空间关系</button>
+                  <button type="button" :disabled="agentLoading" @click="askBodyAgent('它有哪些重要的临床联系？')">临床联系</button>
+                  <button type="button" :disabled="agentLoading" @click="askBodyAgent('请用考试重点总结它。')">考试重点</button>
+                </div>
+              </template>
+            </DigitalHumanLecture>
           </section>
           <div class="body-detail-actions">
             <button class="button-primary" type="button" @click="startQuizForSelection"><Crosshair :size="16" />针对该结构出题</button>
@@ -813,18 +1028,33 @@ onBeforeUnmount(() => {
             <button class="button-primary" type="button" @click="askAnatomyAgent('它的主要功能和结构特点是什么？')"><Brain :size="16" />AI讲解</button>
             <button class="button-secondary textbook-reopen" type="button" @click="openTextbook(atlasStructure.name)"><BookOpenCheck :size="16" />教材详解</button>
           </div>
-          <div class="atlas-agent-prompts" aria-label="解剖讲解快捷问题">
-            <button type="button" :disabled="agentLoading" @click="askAnatomyAgent('它与周围结构有什么空间关系？')">空间关系</button>
-            <button type="button" :disabled="agentLoading" @click="askAnatomyAgent('它有哪些重要的临床联系？')">临床联系</button>
-            <button type="button" :disabled="agentLoading" @click="askAnatomyAgent('请用考试重点总结它。')">考试重点</button>
-          </div>
-          <div v-if="agentLoading || agentReply" class="atlas-agent-answer" role="status" aria-live="polite">
-            <strong><Sparkles :size="15" /> AnatomyAgent{{ agentLoading ? ' 正在检索教材并组织讲解' : ' 讲解' }}</strong>
-            <p v-if="agentLoading">正在结合当前结构、教材索引和知识图谱生成回答…</p>
-            <p v-else style="white-space: pre-line">{{ agentReply }}</p>
-            <AgentEvidence v-if="!agentLoading && agentResponse" :response="agentResponse" @action="executeAgentAction" />
-            <small v-if="agentPrompt">本次问题：{{ agentPrompt }}</small>
-          </div>
+          <DigitalHumanLecture
+            :agent-loading="agentLoading"
+            :agent-reply="agentReply"
+            :agent-response="agentResponse"
+            :agent-prompt="agentPrompt"
+            :narration="digitalHuman"
+            :narration-loading="digitalHumanLoading"
+            :narration-error="digitalHumanError"
+            :playing="digitalHumanPlaying"
+            :muted="digitalHumanMuted"
+            :poster="digitalHumanPoster"
+            @action="executeAgentAction"
+            @replay="replayDigitalHuman"
+            @update:playing="digitalHumanPlaying = $event"
+            @update:muted="digitalHumanMuted = $event"
+            @media-error="digitalHumanError = '数字人视频加载失败，已保留文字讲解与教材依据。'"
+            @play-blocked="digitalHumanPlaying = false"
+          >
+            <template #prompts>
+              <div class="atlas-agent-prompts" aria-label="解剖讲解快捷问题">
+                <button type="button" :disabled="agentLoading" @click="askAnatomyAgent('它的主要功能和结构特点是什么？')">功能结构</button>
+                <button type="button" :disabled="agentLoading" @click="askAnatomyAgent('它与周围结构有什么空间关系？')">空间关系</button>
+                <button type="button" :disabled="agentLoading" @click="askAnatomyAgent('它有哪些重要的临床联系？')">临床联系</button>
+                <button type="button" :disabled="agentLoading" @click="askAnatomyAgent('请用考试重点总结它。')">考试重点</button>
+              </div>
+            </template>
+          </DigitalHumanLecture>
         </article>
         <div v-else class="atlas-empty-detail"><MousePointer2 :size="25" /><strong>选择一个热点</strong><p>点击图中带编号区域，查看该结构的中文说明与临床关联。</p></div>
         <section class="atlas-resource-panel">
@@ -870,7 +1100,7 @@ onBeforeUnmount(() => {
         </header>
         <div ref="imageFrame" class="anatomy-image-frame" :class="{ 'is-dragging': isDraggingImage }" @pointerdown="startImageDrag" @pointermove="dragImage" @pointerup="stopImageDrag" @pointercancel="stopImageDrag" @pointerleave="stopImageDrag">
           <button class="anatomy-image-stage" :style="{ aspectRatio: practiceImageAspect }" type="button" :disabled="!covered" :aria-label="covered ? '在二维解剖图中定位' + practiceTarget?.label : '当前任务没有可用靶区'" @click="locate">
-            <img :src="practiceImageUrl" alt="二维器官与精细结构定位训练图" />
+            <img :src="practiceImageUrl" alt="二维器官与精细结构定位训练图" @load="syncPracticeImageAspect" />
             <span v-if="point" class="student-marker" :class="{ correct: result?.correct, wrong: result && !result.correct }" :style="markerStyle"><Crosshair :size="24" /></span>
             <span v-if="result && covered" class="standard-zone" :style="zoneStyle"><span>标准区域</span></span>
           </button>
@@ -952,7 +1182,7 @@ onBeforeUnmount(() => {
           <template v-else-if="textbook?.found">
             <p class="textbook-citation">{{ textbook.citation }}</p>
             <h2>{{ textbook.title }}</h2>
-            <p class="textbook-content">{{ textbook.content }}</p>
+            <MarkdownContent v-if="textbook.content" class="textbook-content" :content="textbook.content" />
           </template>
           <div v-else class="textbook-state empty"><BookOpenCheck :size="24" /><strong>暂未找到详细讲解</strong><p>{{ textbook?.hint || '可查看相关知识图谱或在教材中进一步检索。' }}</p></div>
         </div>
