@@ -104,6 +104,7 @@ onBeforeUnmount(() => revealObserver?.disconnect());
           </button>
           <a class="landing-secondary" href="#showcase">查看产品实景</a>
         </div>
+        <p class="landing-hero-source">数据来源：<strong>BodyParts3D 4.0</strong> · <strong>人民卫生出版社教材体系</strong></p>
       </div>
 
       <figure class="landing-hero-media" aria-label="虚拟解剖实验室界面">
@@ -124,8 +125,10 @@ onBeforeUnmount(() => revealObserver?.disconnect());
     </section>
 
     <section id="showcase" class="landing-showcase reveal">
-      <header>
+      <header class="landing-section-head">
+        <span class="landing-section-kicker">产品实景</span>
         <h2>不是概念片，是一套能上手操作的解剖教学产品。</h2>
+        <p class="landing-section-lede">学生探索三维结构，教师维护可追溯的教学依据，管理员治理数据与索引，三个角色共用同一份知识底稿。</p>
       </header>
 
       <div class="showcase-grid">
@@ -159,8 +162,10 @@ onBeforeUnmount(() => revealObserver?.disconnect());
     </section>
 
     <section id="workflow" class="landing-workflow reveal">
-      <div class="workflow-intro">
+      <div class="workflow-intro landing-section-head">
+        <span class="landing-section-kicker">学习路径</span>
         <h2>一次学习，从整体人体走到一个具体结构。</h2>
+        <p class="landing-section-lede">从选择系统到精细结构，每一步都保留教材依据与可回看的训练记录。</p>
       </div>
       <div class="workflow-track">
         <article>
@@ -187,7 +192,8 @@ onBeforeUnmount(() => revealObserver?.disconnect());
     </section>
 
     <section id="entry" class="landing-entry reveal">
-      <div class="entry-heading">
+      <div class="entry-heading landing-section-head">
+        <span class="landing-section-kicker">进入平台</span>
         <h2>选择身份，进入各自的工作空间。</h2>
         <p>学生探索三维结构并完成测验，教师维护教学依据并决定命题方式，管理员治理数据与索引。</p>
       </div>

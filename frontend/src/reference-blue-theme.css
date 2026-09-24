@@ -1424,3 +1424,116 @@ textarea::placeholder {
     min-height: 320px;
   }
 }
+
+/* Sidebar refresh: soft clinical pattern replaces the navy rail. */
+.product-sidebar {
+  background: #eef5ff url('./assets/brand/sidebar-medical.webp') center top / cover no-repeat !important;
+  border-right: 1px solid #cfe0f5 !important;
+}
+
+.product-sidebar .brand-logo-copy strong,
+.sidebar-brand strong {
+  color: #0b2a63 !important;
+}
+
+.product-sidebar .brand-logo-copy small,
+.sidebar-brand small {
+  color: #5b7099 !important;
+}
+
+.product-sidebar .brand-mark {
+  background: #0b46df !important;
+  color: #fff !important;
+  box-shadow: 0 8px 18px rgba(11, 70, 223, .22) !important;
+}
+
+.sidebar-search {
+  border-color: rgba(255, 255, 255, .92) !important;
+  background: rgba(255, 255, 255, .76) !important;
+  color: #4d6392 !important;
+  backdrop-filter: blur(6px);
+}
+
+.sidebar-search input {
+  color: #12315f !important;
+}
+
+.nav-section-label {
+  color: #4d6691 !important;
+}
+
+.product-sidebar nav a {
+  color: #23406f !important;
+}
+
+.product-sidebar nav a:hover {
+  background: rgba(255, 255, 255, .78) !important;
+  color: #0b46df !important;
+  transform: none !important;
+}
+
+.product-sidebar nav a.active {
+  background: rgba(255, 255, 255, .94) !important;
+  color: #0b46df !important;
+  box-shadow: 0 8px 18px rgba(23, 72, 168, .12), inset 3px 0 0 #0b46df !important;
+}
+
+.sidebar-progress {
+  border-color: rgba(255, 255, 255, .92) !important;
+  background: rgba(255, 255, 255, .84) !important;
+  color: #0b46df !important;
+}
+
+.sidebar-progress strong {
+  color: #123a7f !important;
+}
+
+.sidebar-progress small {
+  color: #56688c !important;
+}
+
+.sidebar-support > button {
+  color: #37517f !important;
+}
+
+.sidebar-support > button:hover {
+  background: rgba(255, 255, 255, .76) !important;
+  color: #0b46df !important;
+}
+
+.product-sidebar .safety-notice {
+  background: rgba(255, 255, 255, .86) !important;
+  color: #4a5f86 !important;
+}
+
+.product-sidebar .safety-notice svg {
+  color: #0b46df !important;
+}
+
+.sidebar-user {
+  border-top-color: rgba(126, 156, 205, .4) !important;
+}
+
+.sidebar-user strong {
+  color: #10305f !important;
+}
+
+.sidebar-user small {
+  color: #5c6f92 !important;
+}
+
+.sidebar-user button {
+  background: rgba(255, 255, 255, .84) !important;
+  color: #3b5580 !important;
+}
+
+.sidebar-user button:hover {
+  background: #fff !important;
+  color: #0b46df !important;
+}
+
+@media (max-width: 760px) {
+  .product-sidebar {
+    background-position: center 12% !important;
+  }
+}
