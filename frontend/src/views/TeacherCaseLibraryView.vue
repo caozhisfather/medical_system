@@ -322,8 +322,8 @@ onUnmounted(() => { if (processingTimer) window.clearInterval(processingTimer); 
         <div v-if="isAdmin" class="upload-group"><select v-model="uploadType" aria-label="资料类型"><option value="textbook">教材</option><option value="evidence">医学依据</option><option value="case">病例</option></select><label class="button-secondary upload-button"><input type="file" accept=".pdf,.doc,.docx,.txt,.md,.png,.jpg,.jpeg" hidden @change="uploadFile" /><LoaderCircle v-if="uploading" class="spin" :size="17" /><Database v-else :size="17" />{{ uploading ? '正在上传' : '上传整本文档' }}</label></div>
         <button v-if="isAdmin" class="button-secondary" type="button" :disabled="processing" @click="runProcessing"><LoaderCircle v-if="processing" class="spin" :size="17" /><Sparkles v-else :size="17" />{{ processing ? 'OCR 处理中' : '启动批量 OCR' }}</button>
         <button v-if="isAdmin" class="button-secondary" type="button" :disabled="embeddingProcessing" @click="runEmbeddingProcessing"><LoaderCircle v-if="embeddingProcessing" class="spin" :size="17" /><Sparkles v-else :size="17" />{{ embeddingProcessing ? '向量生成中' : '生成 Qwen 向量' }}</button>
-        <button class="button-primary" type="button" @click="openCreate"><Plus :size="17" />新增知识条目</button>
       </div>
+      <button class="button-primary case-library-create" type="button" @click="openCreate"><Plus :size="17" />新增知识条目</button>
     </div>
 
     <div v-if="isAdmin && processing" class="processing-progress"><LoaderCircle class="spin" :size="16" />正在处理文档，完成后会自动更新列表<span v-if="processingCounts['待脱敏']">已完成 {{ processingCounts['待脱敏'] }} 份</span></div>
@@ -471,7 +471,8 @@ onUnmounted(() => { if (processingTimer) window.clearInterval(processingTimer); 
 </template>
 
 <style scoped>
-.case-library-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; }
+.case-library-toolbar { display: flex; justify-content: flex-start; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; }
+.case-library-create { margin-left: auto; flex: 0 0 auto; }
 .case-library-panel { font-family: "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif; color: #18363d; }
 .case-library-panel button, .case-library-panel input, .case-library-panel textarea, .case-library-panel select { font-size: 15px; }
 .case-library-panel .case-management-scroll small, .case-library-panel .case-library-category, .case-library-panel .compile-publish-toggle { font-size: 14px; }
@@ -489,17 +490,17 @@ onUnmounted(() => { if (processingTimer) window.clearInterval(processingTimer); 
 .entry-checkbox { flex: 0 0 auto; width: 15px; height: 15px; accent-color: #2f7d6c; cursor: pointer; }
 .case-management-scroll > button.entry-selected { border-color: rgba(47, 125, 108, .3); background: #edf7f4; }
 .case-library-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.case-library-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0 0 16px; }
-.case-library-stats article { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--line, #e1e9ea); border-radius: 8px; background: #fff; color: var(--text-muted, #64748b); }
-.case-library-stats article strong { display: block; font-size: 22px; line-height: 1.15; color: var(--text-primary, #16313a); }
-.case-library-stats article small { font-size: 12px; }
+.case-library-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 0 0 16px; }
+.case-library-stats article { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line, #e1e9ea); border-radius: 8px; background: #fff; color: var(--text-muted, #64748b); }
+.case-library-stats article strong { display: block; font-size: 20px; line-height: 1.15; color: var(--text-primary, #16313a); }
+.case-library-stats article small { display: block; font-size: 12px; white-space: nowrap; }
 .case-library-stats article.warning { color: #b45309; border-color: #fde6c8; background: #fffbeb; }
 .case-library-stats article.warning strong { color: #92400e; }
 .case-library-detail dd { overflow-wrap: anywhere; }
 .case-library-category { display: flex; align-items: center; gap: 8px; margin: 10px 0; color: var(--text-muted, #64748b); font-size: 13px; }
 .case-library-category select { flex: 1; min-width: 0; height: 34px; padding: 0 8px; border: 1px solid var(--line, #e1e9ea); border-radius: 6px; background: #fff; color: var(--text-primary, #16313a); }
 .knowledge-type-tabs { display: flex; gap: 4px; margin: 10px 0 2px; padding: 3px; border: 1px solid var(--line, #e1e9ea); border-radius: 7px; background: #f6fafb; }
-.knowledge-type-tabs button { flex: 1; padding: 6px 8px; border: 0; border-radius: 5px; background: transparent; color: var(--text-muted, #64748b); font-size: 13px; cursor: pointer; }
+.knowledge-type-tabs button { flex: 1; min-width: 0; padding: 6px 6px; border: 0; border-radius: 5px; background: transparent; color: var(--text-muted, #64748b); font-size: 12px; white-space: nowrap; cursor: pointer; }
 .knowledge-type-tabs button.active { background: #fff; color: #176b5d; box-shadow: 0 1px 3px rgba(20, 50, 58, .1); font-weight: 600; }
 .processing-badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 999px; background: #eef5ff; color: #315b92; font-size: 12px; }
 .processing-progress { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; padding: 10px 14px; border: 1px solid #cfe2f4; border-radius: 8px; background: #f4f9ff; color: #315b92; font-size: 13px; }
@@ -572,13 +573,12 @@ onUnmounted(() => { if (processingTimer) window.clearInterval(processingTimer); 
   background: #edf4f3;
 }
 @media (max-width: 900px) {
-  .case-library-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .case-library-modal-card form > div { grid-template-columns: 1fr; }
   .case-library-list { position: static; height: auto; max-height: none; }
   .case-library-list .case-management-scroll { max-height: 420px; }
+  .case-library-create { margin-left: 0; width: 100%; justify-content: center; }
 }
 @media (max-width: 560px) {
-  .case-library-stats { grid-template-columns: 1fr 1fr; }
   .case-library-modal-card form { padding: 14px; }
 }
 </style>
