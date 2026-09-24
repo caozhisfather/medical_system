@@ -1,5 +1,5 @@
 :root {
-  font-family: "Alibaba PuHuiTi", "Microsoft YaHei UI", "PingFang SC", "Segoe UI", sans-serif;
+  font-family: "MiSans", "Microsoft YaHei UI", "PingFang SC", "Segoe UI", sans-serif;
   color: #172b4d;
   background: #f3f6fa;
   font-synthesis: none;
@@ -40,7 +40,7 @@ p { color: var(--muted); line-height: 1.68; }
 
 /* Long-form medical content benefits from a readable Chinese serif face. */
 .case-library-content, .teaching-document, .rich-note-content {
-  font-family: "Alibaba PuHuiTi", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+  font-family: "MiSans", "Microsoft YaHei UI", "PingFang SC", sans-serif;
 }
 
 .button-primary, .button-secondary, .text-button, .icon-button, .back-link {
@@ -1848,7 +1848,7 @@ p { color: var(--muted); line-height: 1.68; }
 .landing-v2,
 .landing-v2 button,
 .landing-v2 input {
-  font-family: "Alibaba PuHuiTi", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+  font-family: "MiSans", "Microsoft YaHei UI", "PingFang SC", sans-serif;
 }
 .landing-v2 a,
 .landing-v2 button {

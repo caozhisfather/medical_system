@@ -473,7 +473,7 @@ onUnmounted(() => { if (processingTimer) window.clearInterval(processingTimer); 
 <style scoped>
 .case-library-toolbar { display: flex; justify-content: flex-start; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; }
 .case-library-create { margin-left: auto; flex: 0 0 auto; }
-.case-library-panel { font-family: "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif; color: #18363d; }
+.case-library-panel { font-family: "MiSans", "Microsoft YaHei UI", "PingFang SC", sans-serif; color: #18363d; }
 .case-library-panel button, .case-library-panel input, .case-library-panel textarea, .case-library-panel select { font-size: 15px; }
 .case-library-panel .case-management-scroll small, .case-library-panel .case-library-category, .case-library-panel .compile-publish-toggle { font-size: 14px; }
 .upload-button { cursor: pointer; }
