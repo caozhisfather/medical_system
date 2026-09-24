@@ -2,6 +2,7 @@
 import { computed, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, GraduationCap, LoaderCircle, LockKeyhole, ShieldCheck, UserRound, Users } from '@lucide/vue';
+import BrandLogo from '../components/BrandLogo.vue';
 import teacherMentorImage from '../assets/medical/teacher-mentor-hero.png';
 import { trainingStore, type WorkspaceRole } from '../stores/training';
 
@@ -83,8 +84,7 @@ watch(role, () => {
   <main class="login-screen">
     <header class="login-header">
       <button class="brand-lockup" type="button" @click="router.push('/landing')">
-        <span class="brand-mark">临</span>
-        <span><strong>临思智训</strong><small>AI标准化病人临床思维训练平台</small></span>
+        <BrandLogo variant="compact" subtitle="AI 医学解剖与教学知识平台" />
       </button>
       <button class="login-back" type="button" @click="router.push('/landing')"><ArrowLeft :size="17" /> 返回首页</button>
     </header>

@@ -3,6 +3,7 @@ import { computed, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ArrowLeft, CheckCircle2, GraduationCap, LoaderCircle, LockKeyhole, Mail, UserRound, Users } from '@lucide/vue';
 import { forgotPassword, registerAccount, resendVerification, resetPassword, verifyEmail } from '../api';
+import BrandLogo from '../components/BrandLogo.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -78,7 +79,7 @@ watch(() => route.fullPath, async () => {
   <main class="account-screen">
     <header>
       <button class="account-brand-lockup" type="button" @click="router.push('/landing')">
-        <span class="brand-mark">临</span><span><strong>临思智训</strong><small>AI 医学解剖与教学知识平台</small></span>
+        <BrandLogo variant="compact" subtitle="AI 医学解剖与教学知识平台" />
       </button>
       <button class="account-back-button" type="button" @click="router.push('/login')"><ArrowLeft :size="17" /> 返回登录</button>
     </header>

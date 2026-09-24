@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class Citation(BaseModel):
@@ -397,6 +397,14 @@ class AnatomyNoteRequest(BaseModel):
 class ClassroomCreateRequest(BaseModel):
     name: str = Field(..., min_length=2, max_length=60)
     description: str = Field(default="", max_length=500)
+
+    @field_validator("name", "description")
+    @classmethod
+    def reject_mojibake_placeholder(cls, value: str) -> str:
+        compact = value.strip()
+        if "???" in compact:
+            raise ValueError("班级文本编码异常，请使用 UTF-8 重新提交")
+        return compact
 
 
 class ClassroomJoinRequest(BaseModel):

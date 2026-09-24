@@ -2,6 +2,7 @@
 import { computed, reactive } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ArrowLeft, ArrowRight, Check, GraduationCap, Users } from '@lucide/vue';
+import BrandLogo from '../components/BrandLogo.vue';
 import SafetyNotice from '../components/SafetyNotice.vue';
 import { trainingStore, type WorkspaceRole } from '../stores/training';
 
@@ -29,7 +30,7 @@ async function finish() {
     <section class="onboarding-card">
       <button class="icon-button back-button" type="button" title="返回" @click="router.push('/landing')"><ArrowLeft :size="19" /></button>
       <div class="onboarding-intro">
-        <span class="brand-mark">临</span>
+        <BrandLogo variant="compact" subtitle="建立专属教学空间" />
         <span class="section-kicker">建立专属教学空间</span>
         <h1>{{ role === 'teacher' ? '配置教师工作台' : '配置学生训练路径' }}</h1>
         <p>{{ role === 'teacher' ? '用于组织教学知识库与题型配置，不涉及真实诊疗。' : '用于记录你的解剖学习进度与定位测验结果。' }}</p>

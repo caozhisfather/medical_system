@@ -4,20 +4,25 @@ import type { Component } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
   BarChart3,
+  Bell,
   BookOpen,
   ChartNetwork,
+  ChevronDown,
   CircleHelp,
   FileChartColumn,
   History,
   LayoutDashboard,
   Library,
   LogOut,
+  Mail,
   ScanLine,
+  Search,
   Settings2,
   SlidersHorizontal,
   Users
 } from '@lucide/vue';
 import AgentCommand from '../components/AgentCommand.vue';
+import BrandLogo from '../components/BrandLogo.vue';
 import OnboardingTour from '../components/onboarding/OnboardingTour.vue';
 import SafetyNotice from '../components/SafetyNotice.vue';
 import { trainingStore } from '../stores/training';
@@ -60,6 +65,7 @@ const roleMeta = computed(() => {
   if (role.value === 'admin') return { title: '超级管理员', subtitle: '策略与系统控制', space: '系统控制台', progress: '7 类数据源', note: 'Mock 索引可用' };
   return { title: '学生工作台', subtitle: '训练与能力提升', space: '学生训练空间', progress: '本周完成 3 次', note: '连续训练第 4 周' };
 });
+const currentNavLabel = computed(() => nav.value.find((item) => active(item))?.label ?? roleMeta.value.title);
 
 function homePath() {
   if (role.value === 'teacher') return '/teacher/dashboard';
@@ -85,28 +91,16 @@ async function signOut() {
 
 <template>
   <div class="product-shell" :class="`role-${role}`">
-    <header class="product-topbar">
-      <button class="brand-lockup" type="button" @click="router.push(homePath())">
-        <span class="brand-mark">临</span>
-        <span><strong>AI标准化病人临床思维训练平台</strong><small>{{ roleMeta.space }}</small></span>
-      </button>
-      <AgentCommand compact />
-      <div class="topbar-actions">
-        <button class="help-button" type="button" title="帮助中心" aria-label="打开帮助中心" @click="router.push('/help')"><CircleHelp :size="17" /> 帮助</button>
-        <div class="topbar-user">
-          <span>{{ trainingStore.state.profile.name }}</span>
-          <small>{{ trainingStore.state.profile.grade || trainingStore.state.profile.className }}</small>
-          <button type="button" title="退出登录" aria-label="退出登录" @click="signOut"><LogOut :size="17" /></button>
-        </div>
-      </div>
-    </header>
-
     <aside class="product-sidebar">
-      <div class="role-sign">
-        <Users :size="18" />
-        <span><strong>{{ roleMeta.title }}</strong><small>{{ roleMeta.subtitle }}</small></span>
-      </div>
+      <button class="sidebar-brand" type="button" @click="router.push(homePath())">
+        <BrandLogo variant="compact" subtitle="虚拟解剖学习平台" />
+      </button>
+      <label class="sidebar-search">
+        <Search :size="16" />
+        <input type="search" placeholder="搜索知识、结构与任务" aria-label="全局搜索" />
+      </label>
       <nav aria-label="主导航">
+        <span class="nav-section-label">学习工具</span>
         <RouterLink v-for="item in nav" :key="`${item.path}-${item.label}`" :to="{ path: item.path, hash: item.hash }" :class="{ active: active(item) }" :data-tour="item.tour">
           <component :is="item.icon" :size="18" />
           <span>{{ item.label }}</span>
@@ -116,8 +110,33 @@ async function signOut() {
         <FileChartColumn :size="18" />
         <span><strong>{{ roleMeta.progress }}</strong><small>{{ roleMeta.note }}</small></span>
       </div>
-      <SafetyNotice compact />
+      <div class="sidebar-support">
+        <button type="button" @click="router.push('/help')"><CircleHelp :size="16" />帮助中心</button>
+        <SafetyNotice compact />
+      </div>
+      <div class="sidebar-user">
+        <span class="user-avatar">{{ trainingStore.state.profile.name.slice(0, 1) }}</span>
+        <span><strong>{{ trainingStore.state.profile.name }}</strong><small>{{ trainingStore.state.profile.grade || trainingStore.state.profile.className || roleMeta.title }}</small></span>
+        <button type="button" title="退出登录" aria-label="退出登录" @click="signOut"><LogOut :size="17" /></button>
+      </div>
     </aside>
+
+    <header class="product-topbar">
+      <div class="topbar-title">
+        <strong>{{ currentNavLabel }}</strong>
+        <small>{{ roleMeta.space }}</small>
+      </div>
+      <AgentCommand compact />
+      <div class="topbar-actions">
+        <button class="topbar-icon-button" type="button" title="消息" aria-label="消息"><Mail :size="17" /></button>
+        <button class="topbar-icon-button" type="button" title="通知" aria-label="通知"><Bell :size="17" /></button>
+        <button class="topbar-profile" type="button" @click="router.push('/help')">
+          <span class="user-avatar">{{ trainingStore.state.profile.name.slice(0, 1) }}</span>
+          <span><strong>{{ trainingStore.state.profile.name }}</strong><small>{{ roleMeta.title }}</small></span>
+          <ChevronDown :size="15" />
+        </button>
+      </div>
+    </header>
 
     <main class="product-content">
       <RouterView v-slot="{ Component }">

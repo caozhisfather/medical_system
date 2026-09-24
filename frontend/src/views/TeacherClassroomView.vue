@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { BookOpenCheck, Check, LoaderCircle, Plus, Sparkles, TriangleAlert, Users } from '@lucide/vue';
+import { BookOpenCheck, Check, FileClock, LoaderCircle, Plus, Sparkles, TriangleAlert, Users } from '@lucide/vue';
 import {
   createClassroom,
   generateAiClassroomGuidance,
@@ -33,6 +33,8 @@ const guidanceForm = ref({ content: '', recommendedScore: null as number | null 
 const selectedStudent = computed<ClassroomStudent | null>(() =>
   detail.value?.students.find((item) => item.student_id === selectedStudentId.value) ?? null
 );
+const latestGuidance = computed(() => guidance.value[0] ?? null);
+const earlierGuidance = computed(() => guidance.value.slice(1, 11));
 
 function formatTime(value: string) {
   if (!value) return '';
@@ -250,23 +252,44 @@ onMounted(() => { void loadClasses(); });
             <article><small>刷题正确率</small><strong>{{ selectedStudent.quiz.accuracy }}%</strong></article>
           </div>
 
-          <div class="guidance-form">
-            <label><span>建议目标分</span><input v-model.number="guidanceForm.recommendedScore" type="number" min="0" max="100" placeholder="可选" /></label>
-            <label><span>教师指导</span><textarea v-model="guidanceForm.content" rows="4" placeholder="指出优先复习结构、下一次训练目标或课堂观察。" /></label>
-            <button class="button-primary" type="button" :disabled="sending || !guidanceForm.content.trim()" @click="sendGuidance">
-              <LoaderCircle v-if="sending" class="spin" :size="16" /><BookOpenCheck v-else :size="16" />{{ sending ? '发送中' : '发送给学生' }}
-            </button>
+          <div class="guidance-grid">
+            <div class="guidance-form">
+              <label><span>建议目标分</span><input v-model.number="guidanceForm.recommendedScore" type="number" min="0" max="100" placeholder="可选" /></label>
+              <label><span>教师指导</span><textarea v-model="guidanceForm.content" rows="4" placeholder="指出优先复习结构、下一次训练目标或课堂观察。" /></label>
+              <button class="button-primary" type="button" :disabled="sending || !guidanceForm.content.trim()" @click="sendGuidance">
+                <LoaderCircle v-if="sending" class="spin" :size="16" /><BookOpenCheck v-else :size="16" />{{ sending ? '发送中' : '发送给学生' }}
+              </button>
+            </div>
+
+            <div class="guidance-workspace">
+              <div v-if="loadingGuidance" class="classroom-state compact"><LoaderCircle class="spin" :size="18" />读取指导记录</div>
+              <article v-else-if="latestGuidance" class="guidance-latest" :class="{ ai: latestGuidance.source === 'ai' }">
+                <header>
+                  <span class="guidance-source"><Sparkles v-if="latestGuidance.source === 'ai'" :size="16" /><BookOpenCheck v-else :size="16" />{{ latestGuidance.author_name }}</span>
+                  <time>{{ formatTime(latestGuidance.created_at) }}</time>
+                </header>
+                <MarkdownContent :content="latestGuidance.content" />
+                <footer v-if="latestGuidance.recommended_score !== null && latestGuidance.recommended_score !== undefined">
+                  <small>建议目标</small><strong>{{ latestGuidance.recommended_score }} 分</strong>
+                </footer>
+              </article>
+              <div v-else class="classroom-empty compact"><BookOpenCheck :size="22" /><strong>还没有指导记录</strong><p>发送教师指导，或让 AI 学习教练生成首条建议。</p></div>
+            </div>
           </div>
 
-          <div class="guidance-history">
-            <div v-if="loadingGuidance" class="classroom-state compact"><LoaderCircle class="spin" :size="18" />读取指导记录</div>
-            <article v-for="item in guidance" :key="item.id" :class="{ ai: item.source === 'ai' }">
-              <header><strong>{{ item.author_name }}</strong><span>{{ formatTime(item.created_at) }}</span></header>
-              <MarkdownContent :content="item.content" />
-              <small v-if="item.recommended_score !== null && item.recommended_score !== undefined">建议目标：{{ item.recommended_score }} 分</small>
-            </article>
-            <div v-if="!loadingGuidance && !guidance.length" class="classroom-empty compact"><BookOpenCheck :size="22" /><strong>还没有指导记录</strong></div>
-          </div>
+          <details v-if="earlierGuidance.length" class="guidance-history-details">
+            <summary>
+              <span><FileClock :size="16" />历史指导记录</span>
+              <b>{{ earlierGuidance.length }} 条</b>
+            </summary>
+            <div class="guidance-history">
+              <article v-for="item in earlierGuidance" :key="item.id" :class="{ ai: item.source === 'ai' }">
+                <header><strong>{{ item.author_name }}</strong><span>{{ formatTime(item.created_at) }}</span></header>
+                <MarkdownContent :content="item.content" />
+                <small v-if="item.recommended_score !== null && item.recommended_score !== undefined">建议目标：{{ item.recommended_score }} 分</small>
+              </article>
+            </div>
+          </details>
         </section>
       </main>
     </div>
@@ -324,10 +347,39 @@ onMounted(() => { void loadClasses(); });
 .student-guidance > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .student-guidance > header span { color: #188077; font-size: 10px; font-weight: 800; }
 .student-guidance h3 { margin: 2px 0 0; color: #21484e; font-size: 17px; }
-.guidance-form { display: grid; grid-template-columns: 140px minmax(0, 1fr) auto; align-items: end; gap: 10px; padding: 12px; border-radius: 8px; background: #f4f8f7; }
+.guidance-grid { display: grid; grid-template-columns: minmax(300px, .82fr) minmax(0, 1.18fr); align-items: start; gap: 14px; }
+.guidance-form { display: grid; grid-template-columns: 1fr; align-items: stretch; gap: 12px; padding: 14px; border: 1px solid #dbe6f4; border-radius: 9px; background: #f7faff; }
+.guidance-form .button-primary { justify-self: start; }
+.guidance-workspace { min-width: 0; }
+.guidance-latest { display: grid; gap: 10px; max-height: 470px; overflow: auto; padding: 16px; border: 1px solid #cfdcf0; border-left: 4px solid #0b46df; border-radius: 9px; background: #f7faff; }
+.guidance-latest.ai { border-left-color: #0b46df; background: #f1f6ff; }
+.guidance-latest > header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 9px; border-bottom: 1px solid #dce5f2; }
+.guidance-latest .guidance-source { display: inline-flex; align-items: center; gap: 7px; color: #0b46df; font-size: 12px; font-weight: 900; }
+.guidance-latest time { color: #7887a2; font-size: 10px; }
+.guidance-latest footer { display: flex; align-items: baseline; justify-content: flex-end; gap: 7px; padding-top: 9px; border-top: 1px solid #dce5f2; }
+.guidance-latest footer small { color: #71809b; font-size: 10px; }
+.guidance-latest footer strong { color: #0b46df; font-size: 17px; }
+.guidance-latest :deep(.markdown-content) { margin: 0; color: #42536f; font-size: 13px; line-height: 1.65; }
+.guidance-latest :deep(.markdown-content h1),
+.guidance-latest :deep(.markdown-content h2),
+.guidance-latest :deep(.markdown-content h3) { margin: 11px 0 5px; color: #17336b; font-size: 14px; }
+.guidance-latest :deep(.markdown-content h1:first-child),
+.guidance-latest :deep(.markdown-content h2:first-child),
+.guidance-latest :deep(.markdown-content h3:first-child),
+.guidance-latest :deep(.markdown-content p:first-child) { margin-top: 0; }
+.guidance-latest :deep(.markdown-content p) { margin: 5px 0; font-size: inherit; }
+.guidance-latest :deep(.markdown-content ul),
+.guidance-latest :deep(.markdown-content ol) { margin: 5px 0; padding-left: 19px; }
+.guidance-history-details { border: 1px solid #dbe6f4; border-radius: 9px; background: #fff; }
+.guidance-history-details summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 46px; padding: 0 14px; color: #31466f; cursor: pointer; list-style: none; }
+.guidance-history-details summary::-webkit-details-marker { display: none; }
+.guidance-history-details summary span { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 900; }
+.guidance-history-details summary b { padding: 3px 8px; border-radius: 999px; background: #edf3ff; color: #0b46df; font-size: 10px; }
+.guidance-history-details[open] summary { border-bottom: 1px solid #dce5f2; }
+.guidance-history-details .guidance-history { max-height: 520px; overflow: auto; padding: 12px; }
 .guidance-history { display: grid; gap: 8px; }
-.guidance-history article { display: grid; gap: 6px; padding: 12px; border-left: 3px solid #1b8177; border-radius: 6px; background: #f5faf9; }
-.guidance-history article.ai { border-left-color: #d08a30; background: #fff9f0; }
+.guidance-history article { display: grid; gap: 6px; padding: 12px; border-left: 3px solid #0b46df; border-radius: 6px; background: #f7faff; }
+.guidance-history article.ai { border-left-color: #0b46df; background: #f1f6ff; }
 .guidance-history header { display: flex; justify-content: space-between; gap: 10px; }
 .guidance-history header strong { color: #31575e; font-size: 12px; }
 .guidance-history header span, .guidance-history small { color: #839497; font-size: 10px; }
@@ -341,7 +393,7 @@ onMounted(() => { void loadClasses(); });
 @media (max-width: 980px) {
   .classroom-layout { grid-template-columns: 1fr; }
   .classroom-list { max-height: 220px; }
-  .classroom-create, .guidance-form { grid-template-columns: 1fr; }
+  .classroom-create, .guidance-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 680px) {
   .classroom-hero, .classroom-detail-head { align-items: stretch; flex-direction: column; }

@@ -18,6 +18,7 @@ import {
   Users
 } from '@lucide/vue';
 import AgentCommand from '../components/AgentCommand.vue';
+import BrandLogo from '../components/BrandLogo.vue';
 import teacherMentorImage from '../assets/medical/teacher-mentor-hero.png';
 import dashboardImage from '../assets/showcase/student-dashboard-hd.png';
 import teacherDashboardImage from '../assets/medical/teacher-dashboard.png';
@@ -80,8 +81,7 @@ onBeforeUnmount(() => revealObserver?.disconnect());
   <main class="landing-screen landing-v2">
     <header class="landing-header landing-nav">
       <a class="brand-lockup" href="#top" aria-label="返回页面顶部">
-        <span class="brand-mark">临</span>
-        <span><strong>临思智训</strong><small>可追溯的虚拟解剖实验室</small></span>
+        <BrandLogo variant="compact" subtitle="可追溯的虚拟解剖实验室" />
       </a>
       <nav aria-label="落地页导航">
         <a href="#showcase">产品实景</a>
@@ -95,7 +95,8 @@ onBeforeUnmount(() => revealObserver?.disconnect());
 
     <section id="top" class="landing-hero">
       <div class="landing-hero-copy">
-        <h1>把人体结构<br /><em>变成可探索的空间</em></h1>
+        <span class="landing-hero-eyebrow">AI + 医学教育</span>
+        <h1>虚拟解剖实验室</h1>
         <p>三维模型、教材依据与空间定位测验连成一条可验证的学习链路。</p>
         <div class="landing-hero-actions">
           <button class="landing-primary" type="button" @click="scrollToEntry">
@@ -109,7 +110,7 @@ onBeforeUnmount(() => revealObserver?.disconnect());
         <img :src="teacherMentorImage" alt="虚拟解剖实验室中的三维人体与结构讲解界面" />
         <figcaption>
           <span class="live-state"><Activity :size="16" /> AnatomyAgent 已就绪</span>
-          <strong>虚拟解剖实验室</strong>
+          <strong>从整体人体走到具体结构</strong>
           <small>所有内容用于医学教育，不作为临床诊断依据。</small>
         </figcaption>
       </figure>
@@ -227,8 +228,7 @@ onBeforeUnmount(() => revealObserver?.disconnect());
 
     <footer class="landing-footer">
       <div class="brand-lockup">
-        <span class="brand-mark">临</span>
-        <span><strong>临思智训</strong><small>可追溯的虚拟解剖实验室</small></span>
+        <BrandLogo variant="compact" subtitle="可追溯的虚拟解剖实验室" />
       </div>
       <p><ShieldCheck :size="16" /> 三维模型与讲解仅用于医学教育，不作为临床诊断依据。</p>
     </footer>
