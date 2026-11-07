@@ -32,7 +32,7 @@ const difficultyLabel = computed(() => {
 const generationLabel = computed(() => (settings.value?.generation_mode === 'realtime' ? '实时生成' : '预生成题库'));
 
 const documentTypes = computed(() =>
-  Object.entries(typeCounts.value).map(([key, value]) => ({
+  Object.entries(typeCounts.value).filter(([key]) => key !== 'all').map(([key, value]) => ({
     key,
     label: key === 'textbook' ? '教材' : key === 'evidence' ? '权威依据' : key === 'case' ? '病例资料' : key,
     value
@@ -54,7 +54,7 @@ onMounted(async () => {
   <div class="workspace-page teacher-page">
     <section class="teacher-dashboard-hero" data-tour="teacher-dashboard-hero">
       <div>
-        <span class="section-kicker">解剖学课程 · 2023-2 班</span>
+        <span class="section-kicker">教师工作台</span>
         <h1>教学知识库与命题控制</h1>
         <p>维护可追溯的教学依据，决定学生做哪些题型、按什么难度和提示词出题。</p>
       </div>

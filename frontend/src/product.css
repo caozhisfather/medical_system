@@ -2817,22 +2817,12 @@ p { color: var(--muted); line-height: 1.68; }
 /* Current visual system: a navy clinical rail with a light blue-gray canvas.
    This final layer intentionally overrides legacy page-level colors. */
 .product-shell { background: #eef3f8 !important; }
-.product-topbar { background: #ffffff !important; border-bottom: 1px solid #dbe4ee !important; box-shadow: 0 3px 14px rgba(25, 53, 84, .08) !important; }
-.product-sidebar { background: #102a43 !important; border-right: 0 !important; }
-.product-sidebar .role-sign { background: rgba(255,255,255,.1) !important; color: #9fe3dc !important; }
-.product-sidebar .role-sign strong, .product-sidebar .role-sign small { color: #e8f2f8 !important; }
-.product-sidebar nav a { color: #b9cad8 !important; font-size: 15px !important; font-weight: 700 !important; }
-.product-sidebar nav a:hover { background: rgba(255,255,255,.09) !important; color: #ffffff !important; transform: translateX(3px); }
-.product-sidebar nav a.active { background: #1c496b !important; color: #ffffff !important; box-shadow: inset 3px 0 0 #51c5b9 !important; }
-.product-sidebar .safety-notice { background: rgba(255,255,255,.08) !important; color: #c8d9e5 !important; }
-.product-sidebar .sidebar-progress { background: rgba(255,255,255,.08) !important; border-color: rgba(255,255,255,.12) !important; color: #9fe3dc !important; }
-.product-sidebar .sidebar-progress strong, .product-sidebar .sidebar-progress small { color: #dbe8f0 !important; }
 .product-content { background: #eef3f8 !important; }
 .workspace-page { max-width: 1600px; margin: 0 auto; }
-.surface-panel, .surface-section, .case-editor, .case-management-list { background: #ffffff !important; border-color: #dbe4ee !important; box-shadow: 0 8px 24px rgba(25, 53, 84, .07) !important; }
-.section-kicker { color: #087f78 !important; font-size: 13px !important; letter-spacing: .04em; }
-.workspace-page h1 { color: #102a43 !important; font-weight: 800; }
-.workspace-page h2, .workspace-page h3 { color: #193b5a !important; }
+.surface-panel, .surface-section, .case-editor, .case-management-list { background: var(--ui-panel) !important; border-color: var(--ui-panel-line) !important; box-shadow: var(--ui-panel-shadow) !important; }
+.section-kicker { color: var(--blue) !important; font-size: 13px !important; letter-spacing: .04em; }
+.workspace-page h1 { color: var(--ink) !important; font-weight: 800; }
+.workspace-page h2, .workspace-page h3 { color: var(--ink) !important; }
 .product-shell .button-primary { background: #087f78 !important; }
 .product-shell .button-primary:hover { background: #05615d !important; }
 .product-shell .button-secondary { border-color: #cbd8e5; background: #ffffff; color: #31536d; }
@@ -2844,10 +2834,6 @@ p { color: var(--muted); line-height: 1.68; }
 .product-topbar .brand-mark { width: 42px; height: 42px; flex-basis: 42px; border-radius: 10px; background: #087f78 !important; box-shadow: 0 5px 12px rgba(8,127,120,.2); }
 .role-teacher .product-topbar .brand-mark { background: #2b6cb0 !important; }
 .role-admin .product-topbar .brand-mark { background: #5b4b8a !important; }
-.product-shell.role-teacher .button-primary { background: #2b6cb0 !important; }
-.product-shell.role-teacher .button-primary:hover { background: #21558f !important; }
-.product-shell.role-admin .button-primary { background: #5b4b8a !important; }
-.product-shell.role-admin .button-primary:hover { background: #46386f !important; }
 .surface-panel, .surface-section, .case-editor, .case-management-list { transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
 .surface-panel:hover, .case-editor:hover { border-color: #c3d5e5 !important; box-shadow: 0 12px 30px rgba(25, 53, 84, .1) !important; }
 .metric-strip article strong { color: #102a43; font-variant-numeric: tabular-nums; }

@@ -92,3 +92,54 @@
   .graph-workbench { grid-template-columns: 1fr; }
   .graph-detail { height: auto; max-height: none; min-height: 0; }
 }
+
+.graph-stage.anatomy-graph-stage {
+  --graph-canvas-height: 620px;
+  min-height: var(--graph-canvas-height);
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(5, 20, 54, .22), rgba(5, 20, 54, .38) 56%, rgba(5, 20, 54, .61)),
+    #061b50 url('./assets/medical/knowledge-graph-backdrop.jpeg') center / cover no-repeat;
+}
+
+.graph-canvas-scroll {
+  height: var(--graph-canvas-height);
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+}
+
+.graph-canvas-scroll > svg {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: var(--graph-canvas-height);
+  user-select: none;
+}
+
+.anatomy-graph-stage .kg-node { touch-action: none; }
+.graph-stage.anatomy-graph-stage .kg-edge { stroke: rgba(176, 213, 255, .68); }
+.graph-stage.anatomy-graph-stage .kg-edge.virtual { stroke: rgba(245, 206, 131, .72); }
+.graph-stage.anatomy-graph-stage .kg-edge.active { stroke: #e2f3ff; }
+.anatomy-graph-stage .kg-edge-label { fill: #eff7ff; stroke: #102848; }
+.anatomy-graph-stage .kg-node-title { paint-order: stroke; stroke: rgba(13, 35, 76, .58); stroke-width: 1.4px; }
+.anatomy-graph-stage :is(.graph-legend, .graph-motion-state, .graph-stage-actions .icon-button) { background: rgba(6, 24, 59, .86); }
+
+@media (max-width: 1120px) {
+  .graph-workbench.anatomy-graph-workbench { grid-template-columns: minmax(0, 1fr); }
+  .anatomy-graph-workbench .graph-detail { height: auto; max-height: none; min-height: 0; }
+  .graph-stage.anatomy-graph-stage { --graph-canvas-height: 520px; }
+}
+
+@media (max-width: 900px) {
+  .anatomy-graph-stage .graph-legend { top: auto; bottom: 12px; max-width: calc(100% - 24px); }
+  .anatomy-graph-stage .graph-stage-actions { right: auto; left: 12px; max-width: calc(100% - 24px); flex-wrap: wrap; }
+}
+
+@media (max-width: 760px) {
+  .graph-stage.anatomy-graph-stage { --graph-canvas-height: 460px; }
+  .graph-canvas-scroll > svg { min-width: 640px; max-width: none; touch-action: pan-x pan-y; }
+  .anatomy-graph-stage .graph-stage-actions { display: grid; grid-template-columns: repeat(4, 34px); }
+  .anatomy-graph-stage .graph-motion-state { grid-column: 1 / -1; width: max-content; }
+}

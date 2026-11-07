@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { ArrowRight, LoaderCircle, Sparkles } from '@lucide/vue';
+import { ArrowRight, LoaderCircle, Search, Sparkles } from '@lucide/vue';
 import { sendAgentMessage } from '../api';
 import { trainingStore } from '../stores/training';
 
-const props = defineProps<{ compact?: boolean }>();
+defineProps<{ compact?: boolean; searchIcon?: boolean }>();
 const router = useRouter();
 const command = ref('');
 const loading = ref(false);
@@ -60,8 +60,9 @@ async function execute() {
       placeholder="告诉智能体你想训练、复盘或查看什么"
       @keydown.enter.prevent="execute"
     />
-    <button type="button" :disabled="loading || !command.trim()" title="执行指令" @click="execute">
+    <button type="button" :disabled="loading || !command.trim()" title="执行指令" aria-label="执行指令" @click="execute">
       <LoaderCircle v-if="loading" class="spin" :size="17" />
+      <Search v-else-if="searchIcon" :size="18" />
       <ArrowRight v-else :size="17" />
     </button>
     <span v-if="feedback" class="agent-feedback">{{ feedback }}</span>

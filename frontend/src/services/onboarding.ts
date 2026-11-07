@@ -22,7 +22,7 @@ export const tourSteps: Record<WorkspaceRole, TourStepConfig[]> = {
       target: '[data-tour="today-task"]',
       eyebrow: '学习总览',
       title: '从今日任务开始',
-      body: '这里汇总八大系统入口、今日推荐任务与学习进度。第一次使用可以先按推荐路径进入虚拟解剖室。',
+      body: '学习总览汇总教学系统、今日任务与近期作答。可以从学习路径选择一个层级，进入虚拟解剖室。',
       placement: 'bottom'
     },
     {

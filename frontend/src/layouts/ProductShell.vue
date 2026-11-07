@@ -1,85 +1,70 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import type { Component } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
-  BarChart3,
-  Bell,
-  BookOpen,
-  ChartNetwork,
-  ChevronDown,
-  CircleHelp,
-  FileChartColumn,
-  History,
-  LayoutDashboard,
-  Library,
-  LogOut,
-  Mail,
-  ScanLine,
-  Search,
-  Settings2,
-  SlidersHorizontal,
-  Users
+  BarChart3, ChartNetwork, ChevronDown, CircleHelp, History, LayoutDashboard, Library, LogOut, ScanLine,
+  Settings2, SlidersHorizontal, Users
 } from '@lucide/vue';
 import AgentCommand from '../components/AgentCommand.vue';
 import BrandLogo from '../components/BrandLogo.vue';
 import OnboardingTour from '../components/onboarding/OnboardingTour.vue';
 import SafetyNotice from '../components/SafetyNotice.vue';
-import { trainingStore } from '../stores/training';
+import { trainingStore, type WorkspaceRole } from '../stores/training';
 import { logout } from '../api';
 
 const route = useRoute();
 const router = useRouter();
 const role = computed(() => trainingStore.state.profile.role);
+const isStudentOverview = computed(() => route.path === '/student/dashboard');
+const profileMenu = ref<HTMLDetailsElement>();
 
-type NavItem = {
-  label: string;
-  path: string;
-  icon: Component;
-  tour?: string;
-  hash?: string;
+type NavItem = { label: string; path: string; icon: Component };
+
+const workspaces: Record<WorkspaceRole, { title: string; links: NavItem[] }> = {
+  student: {
+    title: '学生工作台',
+    links: [
+      { label: '学习总览', path: '/student/dashboard', icon: LayoutDashboard },
+      { label: '虚拟解剖室', path: '/student/anatomy', icon: ScanLine },
+      { label: '知识图谱', path: '/knowledge-graph', icon: ChartNetwork },
+      { label: '学习档案', path: '/student/archive', icon: History }
+    ]
+  },
+  teacher: {
+    title: '教师工作台',
+    links: [
+      { label: '教学总览', path: '/teacher/dashboard', icon: BarChart3 },
+      { label: '班级管理', path: '/teacher/classrooms', icon: Users },
+      { label: '教学知识库', path: '/teacher/knowledge', icon: Library },
+      { label: '题型与提示词', path: '/teacher/exam-settings', icon: SlidersHorizontal },
+      { label: '知识图谱', path: '/knowledge-graph', icon: ChartNetwork }
+    ]
+  },
+  admin: {
+    title: '管理员工作台',
+    links: [
+      { label: '系统控制台', path: '/admin/dashboard', icon: Settings2 },
+      { label: 'Skill 管理', path: '/admin/skills', icon: SlidersHorizontal },
+      { label: '教学知识库', path: '/admin/knowledge', icon: Library },
+      { label: '知识图谱', path: '/knowledge-graph', icon: ChartNetwork }
+    ]
+  }
 };
 
-const studentNav: NavItem[] = [
-  { label: '学习总览', path: '/student/dashboard', icon: LayoutDashboard, tour: 'today-task' },
-  { label: '虚拟解剖室', path: '/student/anatomy', icon: ScanLine, tour: 'anatomy-lab' },
-  { label: '知识图谱', path: '/knowledge-graph', icon: ChartNetwork, tour: 'knowledge-graph' },
-  { label: '学习档案', path: '/student/archive', icon: History, tour: 'daily-review' }
-];
-const teacherNav: NavItem[] = [
-  { label: '教学总览', path: '/teacher/dashboard', icon: BarChart3, tour: 'teacher-dashboard' },
-  { label: '班级管理', path: '/teacher/classrooms', icon: Users },
-  { label: '教学知识库', path: '/teacher/knowledge', icon: Library, tour: 'case-management' },
-  { label: '题型与提示词', path: '/teacher/exam-settings', icon: SlidersHorizontal, tour: 'exam-settings' },
-  { label: '知识图谱', path: '/knowledge-graph', icon: BookOpen, tour: 'teacher-graph' }
-];
-const adminNav: NavItem[] = [
-  { label: '系统控制台', path: '/admin/dashboard', hash: '#admin-console', icon: Settings2, tour: 'admin-review-policy' },
-  { label: 'Skill 管理', path: '/admin/skills', icon: SlidersHorizontal },
-  { label: '教学知识库', path: '/admin/knowledge', icon: Library, tour: 'admin-knowledge-library' },
-  { label: '知识图谱', path: '/knowledge-graph', icon: ChartNetwork, tour: 'admin-graph' }
-];
-const nav = computed(() => role.value === 'teacher' ? teacherNav : role.value === 'admin' ? adminNav : studentNav);
-const roleMeta = computed(() => {
-  if (role.value === 'teacher') return { title: '教师工作台', subtitle: '复核与教学分析', space: '教师教学空间', progress: '6 份待复核', note: '预计节省 48 分钟' };
-  if (role.value === 'admin') return { title: '超级管理员', subtitle: '策略与系统控制', space: '系统控制台', progress: '7 类数据源', note: 'Mock 索引可用' };
-  return { title: '学生工作台', subtitle: '训练与能力提升', space: '学生训练空间', progress: '本周完成 3 次', note: '连续训练第 4 周' };
-});
-const currentNavLabel = computed(() => nav.value.find((item) => active(item))?.label ?? roleMeta.value.title);
+const workspace = computed(() => workspaces[role.value]);
+const currentPage = computed(() => route.path === '/help'
+  ? '帮助中心'
+  : workspace.value.links.find(item => item.path === route.path)?.label ?? workspace.value.title);
 
-function homePath() {
-  if (role.value === 'teacher') return '/teacher/dashboard';
-  if (role.value === 'admin') return '/admin/dashboard';
-  return '/student/dashboard';
+function closeProfileMenu() {
+  if (profileMenu.value) profileMenu.value.open = false;
 }
 
-function active(item: NavItem) {
-  if (route.path !== item.path) return false;
-  if (item.hash) return route.hash === item.hash || (item.hash === '#admin-console' && !route.hash);
-  return role.value !== 'admin' || item.path !== '/admin/dashboard' || !route.hash;
-}
+watch(() => route.fullPath, closeProfileMenu);
 
 async function signOut() {
+  closeProfileMenu();
   try {
     await logout();
   } finally {
@@ -90,52 +75,43 @@ async function signOut() {
 </script>
 
 <template>
-  <div class="product-shell" :class="`role-${role}`">
+  <div class="product-shell" :class="['role-' + role, { 'student-dashboard-shell': isStudentOverview }]">
     <aside class="product-sidebar">
-      <button class="sidebar-brand" type="button" @click="router.push(homePath())">
-        <BrandLogo variant="compact" subtitle="虚拟解剖学习平台" />
-      </button>
-      <label class="sidebar-search">
-        <Search :size="16" />
-        <input type="search" placeholder="搜索知识、结构与任务" aria-label="全局搜索" />
-      </label>
+      <RouterLink class="sidebar-brand" :to="workspace.links[0].path">
+        <BrandLogo variant="compact" subtitle="智能学习平台" />
+      </RouterLink>
       <nav aria-label="主导航">
-        <span class="nav-section-label">学习工具</span>
-        <RouterLink v-for="item in nav" :key="`${item.path}-${item.label}`" :to="{ path: item.path, hash: item.hash }" :class="{ active: active(item) }" :data-tour="item.tour">
-          <component :is="item.icon" :size="18" />
+        <RouterLink v-for="item in workspace.links" :key="item.path" :to="item.path" exact-active-class="active"
+          :data-tour="item.path === '/student/dashboard' ? 'today-task' : undefined">
+          <component :is="item.icon" :size="19" />
           <span>{{ item.label }}</span>
         </RouterLink>
       </nav>
-      <div class="sidebar-progress">
-        <FileChartColumn :size="18" />
-        <span><strong>{{ roleMeta.progress }}</strong><small>{{ roleMeta.note }}</small></span>
-      </div>
       <div class="sidebar-support">
-        <button type="button" @click="router.push('/help')"><CircleHelp :size="16" />帮助中心</button>
+        <RouterLink class="sidebar-help" to="/help" exact-active-class="active"><CircleHelp :size="17" />帮助中心</RouterLink>
         <SafetyNotice compact />
-      </div>
-      <div class="sidebar-user">
-        <span class="user-avatar">{{ trainingStore.state.profile.name.slice(0, 1) }}</span>
-        <span><strong>{{ trainingStore.state.profile.name }}</strong><small>{{ trainingStore.state.profile.grade || trainingStore.state.profile.className || roleMeta.title }}</small></span>
-        <button type="button" title="退出登录" aria-label="退出登录" @click="signOut"><LogOut :size="17" /></button>
       </div>
     </aside>
 
     <header class="product-topbar">
       <div class="topbar-title">
-        <strong>{{ currentNavLabel }}</strong>
-        <small>{{ roleMeta.space }}</small>
+        <RouterLink class="mobile-brand" :to="workspace.links[0].path" aria-label="临思智训工作台">
+          <BrandLogo alt="" />
+        </RouterLink>
+        <strong>{{ currentPage }}</strong>
       </div>
-      <AgentCommand compact />
-      <div class="topbar-actions">
-        <button class="topbar-icon-button" type="button" title="消息" aria-label="消息"><Mail :size="17" /></button>
-        <button class="topbar-icon-button" type="button" title="通知" aria-label="通知"><Bell :size="17" /></button>
-        <button class="topbar-profile" type="button" @click="router.push('/help')">
+      <AgentCommand compact search-icon />
+      <details ref="profileMenu" class="workspace-profile-menu" @keydown.esc="closeProfileMenu">
+        <summary class="topbar-profile" aria-label="账户菜单">
           <span class="user-avatar">{{ trainingStore.state.profile.name.slice(0, 1) }}</span>
-          <span><strong>{{ trainingStore.state.profile.name }}</strong><small>{{ roleMeta.title }}</small></span>
+          <span><strong>{{ trainingStore.state.profile.name }}</strong><small>{{ workspace.title }}</small></span>
           <ChevronDown :size="15" />
-        </button>
-      </div>
+        </summary>
+        <div class="workspace-profile-links">
+          <RouterLink class="profile-help" to="/help" @click="closeProfileMenu"><CircleHelp :size="16" />帮助中心</RouterLink>
+          <button type="button" @click="signOut"><LogOut :size="16" />退出登录</button>
+        </div>
+      </details>
     </header>
 
     <main class="product-content">
@@ -148,3 +124,118 @@ async function signOut() {
     <OnboardingTour :role="role" />
   </div>
 </template>
+
+<style scoped>
+.product-shell {
+  grid-template-columns: clamp(180px, 14vw, 238px) minmax(0, 1fr);
+  grid-template-rows: 70px minmax(calc(100vh - 70px), auto);
+  background: var(--ui-canvas);
+}
+
+.product-shell .product-sidebar {
+  padding: 16px 14px 14px;
+  overflow-y: auto;
+  border-right: 0;
+  border-radius: 0 0 var(--ui-radius) 0;
+  background:
+    linear-gradient(180deg, rgba(99, 145, 208, .48), rgba(119, 162, 218, .50) 58%, rgba(71, 116, 181, .43)),
+    #34558a url('../assets/brand/sidebar-medical.webp') center bottom / cover no-repeat;
+}
+
+.sidebar-brand { min-height: 55px; margin-bottom: 28px; border-radius: 10px; }
+.product-shell .product-sidebar nav { gap: 7px; }
+.product-shell .product-sidebar nav a, .sidebar-help {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 45px;
+  padding-inline: clamp(10px, 1.45vw, 22px);
+  border: 1px solid transparent;
+  border-radius: 11px;
+  color: #eef4ff;
+  font-size: 14px;
+  font-weight: 750;
+}
+.product-shell .product-sidebar nav a svg, .sidebar-help svg { flex: none; }
+.product-shell .product-sidebar nav a:hover, .sidebar-help:hover { background: rgba(145, 181, 255, .18); color: #fff; }
+.product-shell .product-sidebar nav a.active, .sidebar-help.active {
+  border-color: rgba(144, 193, 255, .48);
+  background: var(--ui-primary);
+  color: #fff;
+  box-shadow: inset 0 -4px 12px rgba(134, 183, 255, .24), 0 5px 15px rgba(8, 21, 66, .27);
+}
+
+.sidebar-support { display: grid; gap: 5px; margin-top: auto; }
+.sidebar-help { padding-inline: 10px; }
+.product-sidebar :is(a, button):focus-visible { outline-color: #b7d5ff; }
+
+.product-shell .product-topbar {
+  grid-template-columns: minmax(108px, .36fr) minmax(0, 1fr) auto;
+  min-height: 70px;
+  gap: clamp(10px, 1.4vw, 22px);
+  padding: 8px clamp(12px, 1.6vw, 28px);
+  border: 0;
+  background: rgba(232, 239, 253, .96) !important;
+  box-shadow: none !important;
+}
+.student-dashboard-shell .product-topbar { grid-template-columns: minmax(0, 1fr) auto; }
+.student-dashboard-shell .topbar-title { display: none; }
+.mobile-brand { display: none; }
+.topbar-title strong { color: var(--ink); font-size: 16px; }
+.product-topbar :deep(.agent-command) {
+  justify-self: center;
+  width: min(100%, 720px);
+  min-height: 42px;
+  grid-template-columns: 20px minmax(0, 1fr) 53px;
+  border-color: #d4e2ff;
+  border-radius: 999px;
+  background: #f9fbff;
+  box-shadow: 0 3px 8px rgba(47, 98, 216, .14);
+}
+.product-topbar :deep(.agent-command input) { height: 32px; font-size: 14px; }
+.product-topbar :deep(.agent-command button) {
+  width: 53px;
+  height: 31px;
+  border-radius: 999px;
+  background: var(--ui-primary);
+}
+.product-shell .product-content { background: var(--ui-canvas); }
+
+.workspace-profile-menu { position: relative; min-width: 0; }
+.product-shell .topbar-profile { display: grid; border: 0; background: transparent; cursor: pointer; list-style: none; }
+.topbar-profile::-webkit-details-marker { display: none; }
+.topbar-profile strong { overflow: hidden; max-width: 11em; text-overflow: ellipsis; white-space: nowrap; }
+.workspace-profile-links {
+  position: absolute;
+  z-index: 1;
+  top: calc(100% + 5px);
+  right: 0;
+  display: grid;
+  min-width: 145px;
+  gap: 2px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+.workspace-profile-links :is(a, button) { display: flex; align-items: center; gap: 7px; padding: 7px 8px; border: 0; border-radius: 6px; background: transparent; color: var(--ink); font-size: 13px; text-align: left; }
+.workspace-profile-links :is(a, button):hover { background: var(--soft); }
+.workspace-profile-links .profile-help { display: none; }
+
+@media (max-width: 760px) {
+  .product-shell .product-topbar { grid-template-columns: minmax(0, 1fr) auto; gap: 5px 12px; }
+  .product-shell .topbar-title { display: flex; align-items: center; gap: 8px; }
+  .mobile-brand { display: inline-flex; flex: none; }
+  .mobile-brand :deep(.brand-logo) { --brand-mark-size: 30px; --brand-mark-padding: 2px; }
+  .topbar-title strong { font-size: 15px; }
+  .product-shell .topbar-profile { grid-template-columns: 30px 14px; gap: 3px; min-height: 34px; }
+  .topbar-profile > span:not(.user-avatar) { display: none; }
+  .workspace-profile-links .profile-help { display: flex; }
+  .product-shell .product-sidebar { overflow: hidden; padding: 8px 10px 2px; border-radius: 0; background-position: center 74%; }
+  .sidebar-brand, .sidebar-support { display: none; }
+  .product-shell .product-sidebar nav { gap: 5px; }
+  .product-shell .product-sidebar nav a { min-width: 0; min-height: 35px; padding-inline: 10px; gap: 5px; font-size: 12px; }
+  .product-shell .product-sidebar nav a svg { width: 15px; height: 15px; }
+}
+</style>

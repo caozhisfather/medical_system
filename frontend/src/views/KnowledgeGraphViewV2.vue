@@ -54,6 +54,8 @@ const stageVisible = ref(true);
 const zoom = ref(1);
 const svgRef = ref<SVGSVGElement | null>(null);
 const stageRef = ref<HTMLElement | null>(null);
+const canvasScrollRef = ref<HTMLElement | null>(null);
+let canvasObserver: ResizeObserver | undefined;
 const draggingId = ref<string | null>(null);
 let animationFrame = 0;
 let previousFrame = 0;
@@ -202,6 +204,11 @@ const viewportTransform = computed(() => `translate(${VIEWBOX_WIDTH / 2} ${VIEWB
 const graphStatus = computed(() => `${graphMode.value === 'mindmap' ? '层级脑图' : isMotionPaused.value ? '动态已暂停' : '力导向运行中'} · ${sourceNodes.value.length} 节点 / ${displayEdges.value.length} 关系`);
 
 onMounted(async () => {
+  alignCanvas();
+  if (canvasScrollRef.value && 'ResizeObserver' in window) {
+    canvasObserver = new ResizeObserver(alignCanvas);
+    canvasObserver.observe(canvasScrollRef.value);
+  }
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) isMotionPaused.value = true;
   try {
     const graph = await getKnowledgeGraph('zh', 'anatomy');
@@ -230,6 +237,7 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   cancelAnimationFrame(animationFrame);
   intersectionObserver?.disconnect();
+  canvasObserver?.disconnect();
 });
 
 watch(() => route.query.q, async (value) => {
@@ -237,8 +245,17 @@ watch(() => route.query.q, async (value) => {
   if (query.value.trim()) await retrieveEvidence();
 });
 watch(sourceSignature, () => resetLayout());
-watch(graphMode, () => resetLayout());
+watch(graphMode, () => {
+  resetLayout();
+  alignCanvas();
+});
 watch([query, type], () => { focusedNodeId.value = ''; });
+
+function alignCanvas() {
+  const canvas = canvasScrollRef.value;
+  if (!canvas) return;
+  canvas.scrollLeft = graphMode.value === 'network' ? (canvas.scrollWidth - canvas.clientWidth) / 2 : 0;
+}
 
 function retrieveEvidence() {
   if (!query.value.trim()) {
@@ -507,13 +524,12 @@ function zoomBy(amount: number) {
 }
 
 function pointerCoordinates(event: PointerEvent) {
-  const bounds = svgRef.value?.getBoundingClientRect();
-  if (!bounds) return { x: 0, y: 0 };
-  const rawX = (event.clientX - bounds.left) * VIEWBOX_WIDTH / bounds.width;
-  const rawY = (event.clientY - bounds.top) * VIEWBOX_HEIGHT / bounds.height;
+  const matrix = svgRef.value?.getScreenCTM();
+  if (!matrix) return { x: 0, y: 0 };
+  const { x, y } = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
   return {
-    x: VIEWBOX_WIDTH / 2 + (rawX - VIEWBOX_WIDTH / 2) / zoom.value,
-    y: VIEWBOX_HEIGHT / 2 + (rawY - VIEWBOX_HEIGHT / 2) / zoom.value
+    x: VIEWBOX_WIDTH / 2 + (x - VIEWBOX_WIDTH / 2) / zoom.value,
+    y: VIEWBOX_HEIGHT / 2 + (y - VIEWBOX_HEIGHT / 2) / zoom.value
   };
 }
 
@@ -575,8 +591,8 @@ function endDrag() {
       </button>
     </section>
 
-    <div class="graph-workbench">
-      <section ref="stageRef" class="graph-stage" data-tour="graph-stage" :class="`mode-${graphMode}`">
+    <div class="graph-workbench anatomy-graph-workbench">
+      <section ref="stageRef" class="graph-stage anatomy-graph-stage" data-tour="graph-stage" :class="`mode-${graphMode}`">
         <div class="graph-legend">
           <span v-for="(text, key) in typeLabels" :key="key"><i :class="`node-${key}`"></i>{{ text }}</span>
         </div>
@@ -590,53 +606,55 @@ function endDrag() {
           <button class="icon-button" type="button" title="放大图谱" aria-label="放大图谱" @click="zoomBy(0.1)"><ZoomIn :size="17" /></button>
         </div>
 
-        <svg
-          ref="svgRef"
-          :viewBox="`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`"
-          role="img"
-          aria-label="可拖拽的医学教育知识图谱"
-          @pointermove="dragNode"
-          @pointerup="endDrag"
-          @pointercancel="endDrag"
-        >
-          <g :transform="viewportTransform">
-            <path
-              v-for="edge in displayEdges"
-              :key="`${edge.source}-${edge.target}-${edge.relation}`"
-              class="kg-edge"
-              :class="{ active: isActiveEdge(edge), virtual: edge.relation === 'learning_stage' }"
-              :d="edgePath(edge)"
-            />
-            <template v-if="graphMode === 'network'">
-              <text
-                v-for="edge in labeledEdges"
-              :key="`label-${edge.source}-${edge.target}-${edge.relation}`"
-              class="kg-edge-label"
-              text-anchor="middle"
-              :x="edgeLabelX(edge)"
-              :y="edgeLabelY(edge)"
-              >{{ edge.relation_zh || edge.relation }}</text>
-            </template>
-            <g
-              v-for="node in positionedNodes"
-              :key="node.id"
-              class="kg-node"
-              :class="[{ selected: selected?.id === node.id, dragging: draggingId === node.id }, `node-shape-${node.group || node.type}`]"
-              :transform="`translate(${node.x} ${node.y})`"
-              tabindex="0"
-              role="button"
-              :aria-label="`${groupLabel(node)}：${label(node)}`"
-              @pointerdown="startDrag($event, node)"
-              @click="selectNode(node)"
-              @keydown.enter="selectNode(node)"
-            >
-              <circle v-if="graphMode === 'network'" :class="`node-${node.group || node.type}`" :r="selected?.id === node.id ? 34 : node.id === rootNodeId ? 31 : 27" />
-              <rect v-else :class="`node-${node.group || node.type}`" x="-67" y="-23" width="134" height="46" rx="8" />
-              <text class="kg-node-title" text-anchor="middle" :y="graphMode === 'mindmap' ? -2 : 4">{{ label(node).slice(0, graphMode === 'mindmap' ? 10 : 7) }}</text>
-              <text v-if="graphMode === 'mindmap'" class="kg-node-type" text-anchor="middle" y="14">{{ groupLabel(node) }}</text>
+        <div ref="canvasScrollRef" class="graph-canvas-scroll">
+          <svg
+            ref="svgRef"
+            :viewBox="`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`"
+            role="img"
+            aria-label="可拖拽的医学教育知识图谱"
+            @pointermove="dragNode"
+            @pointerup="endDrag"
+            @pointercancel="endDrag"
+          >
+            <g :transform="viewportTransform">
+              <path
+                v-for="edge in displayEdges"
+                :key="`${edge.source}-${edge.target}-${edge.relation}`"
+                class="kg-edge"
+                :class="{ active: isActiveEdge(edge), virtual: edge.relation === 'learning_stage' }"
+                :d="edgePath(edge)"
+              />
+              <template v-if="graphMode === 'network'">
+                <text
+                  v-for="edge in labeledEdges"
+                :key="`label-${edge.source}-${edge.target}-${edge.relation}`"
+                class="kg-edge-label"
+                text-anchor="middle"
+                :x="edgeLabelX(edge)"
+                :y="edgeLabelY(edge)"
+                >{{ edge.relation_zh || edge.relation }}</text>
+              </template>
+              <g
+                v-for="node in positionedNodes"
+                :key="node.id"
+                class="kg-node"
+                :class="[{ selected: selected?.id === node.id, dragging: draggingId === node.id }, `node-shape-${node.group || node.type}`]"
+                :transform="`translate(${node.x} ${node.y})`"
+                tabindex="0"
+                role="button"
+                :aria-label="`${groupLabel(node)}：${label(node)}`"
+                @pointerdown="startDrag($event, node)"
+                @click="selectNode(node)"
+                @keydown.enter="selectNode(node)"
+              >
+                <circle v-if="graphMode === 'network'" :class="`node-${node.group || node.type}`" :r="selected?.id === node.id ? 34 : node.id === rootNodeId ? 31 : 27" />
+                <rect v-else :class="`node-${node.group || node.type}`" x="-67" y="-23" width="134" height="46" rx="8" />
+                <text class="kg-node-title" text-anchor="middle" :y="graphMode === 'mindmap' ? -2 : 4">{{ label(node).slice(0, graphMode === 'mindmap' ? 10 : 7) }}</text>
+                <text v-if="graphMode === 'mindmap'" class="kg-node-type" text-anchor="middle" y="14">{{ groupLabel(node) }}</text>
+              </g>
             </g>
-          </g>
-        </svg>
+          </svg>
+        </div>
       </section>
 
       <aside class="graph-detail">

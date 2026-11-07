@@ -5,7 +5,7 @@ import { getCurrentUser } from '../api';
 
 const router = createRouter({
   history: createWebHistory(),
-  scrollBehavior: () => ({ top: 0 }),
+  scrollBehavior: (to) => to.path === '/student/dashboard' && to.hash ? { el: to.hash } : { top: 0 },
   routes: [
     { path: '/', redirect: () => trainingStore.state.authenticated ? (trainingStore.state.profile.role === 'teacher' ? '/teacher/dashboard' : trainingStore.state.profile.role === 'admin' ? '/admin/dashboard' : '/student/dashboard') : '/landing' },
     { path: '/landing', component: () => import('../views/LandingView.vue'), meta: { public: true } },

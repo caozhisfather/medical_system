@@ -1,16 +1,24 @@
 :root {
-  --ink: #13264a;
-  --muted: #66758f;
+  --ink: #111e4d;
+  --muted: #4b5a7c;
   --line: #dbe5f2;
   --paper: #ffffff;
   --soft: #f3f7ff;
-  --teal: #0b46df;
+  --teal: var(--blue);
   --teal-dark: #0737b5;
-  --blue: #0b46df;
-  --role-accent: #0b46df;
+  --blue: #1655ee;
+  --role-accent: var(--blue);
   --role-accent-dark: #0737b5;
   --role-soft: #edf3ff;
   --shadow: 0 16px 42px rgba(20, 50, 112, .09);
+  --ui-navy: #101e48;
+  --ui-radius: 16px;
+  --ui-canvas: radial-gradient(ellipse at 66% 0%, #e3ebfc, #f0f4fe 73%);
+  --ui-panel: linear-gradient(155deg, #fff, #f6f8fd);
+  --ui-panel-line: #e3ebfa;
+  --ui-panel-shadow: 0 4px 14px rgba(31, 64, 147, .07);
+  --ui-hero: linear-gradient(110deg, #d6eafa, #f2f6ff 65%, #e4eeff);
+  --ui-primary: linear-gradient(115deg, #236be3, #1c56ee 70%, #134be0);
   --text-caption: 15px;
   --text-compact: 17px;
   --text-control: 18px;
@@ -33,7 +41,8 @@ body {
 
 .button-primary,
 .product-shell .button-primary {
-  background: #0b46df !important;
+  border-radius: 10px;
+  background: var(--ui-primary) !important;
   box-shadow: 0 10px 24px rgba(11, 70, 223, .2);
 }
 
@@ -43,6 +52,7 @@ body {
 }
 
 .button-secondary {
+  border-radius: 10px;
   border-color: #cfdaeb;
   color: #15346f;
   background: #fff;
@@ -403,92 +413,6 @@ body {
   color: #fff;
 }
 
-.sidebar-search {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  margin: 18px 0;
-  padding: 0 12px;
-  border: 1px solid #d8e1ef;
-  border-radius: 8px;
-  background: #fff;
-  color: #7382a0;
-}
-
-.sidebar-search input {
-  min-width: 0;
-  width: 100%;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: #1a315f;
-  font-size: 15px;
-}
-
-.nav-section-label {
-  display: block;
-  margin: 8px 10px 6px;
-  color: #8b97ac;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.product-sidebar nav {
-  gap: 5px;
-}
-
-.product-sidebar nav a {
-  min-height: 44px;
-  border-radius: 8px;
-  color: #51627e;
-  font-size: 16px;
-}
-
-.product-sidebar nav a:hover {
-  background: #f3f6fc;
-  color: #0b46df;
-}
-
-.product-sidebar nav a.active {
-  background: #eaf1ff;
-  color: #0b46df;
-  box-shadow: none;
-}
-
-.sidebar-search:focus-within {
-  border-color: #0b46df;
-  box-shadow: 0 0 0 3px rgba(11, 70, 223, .1);
-}
-
-.sidebar-progress {
-  margin-top: auto;
-  margin-bottom: 10px;
-  border: 1px solid #dfe7f3;
-  border-radius: 9px;
-  background: #f5f8fd;
-  color: #0b46df;
-}
-
-.sidebar-support {
-  display: grid;
-  gap: 8px;
-}
-
-.sidebar-support > button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 0 10px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: #62718c;
-  font-size: 15px;
-  font-weight: 700;
-}
-
 .product-sidebar .safety-notice {
   width: 100%;
   min-height: 34px;
@@ -496,45 +420,6 @@ body {
   background: #f5f8fd;
   color: #65748f;
   font-size: 13px;
-}
-
-.sidebar-user {
-  display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) 30px;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  padding: 12px 4px 0;
-  border-top: 1px solid #e2e8f2;
-}
-
-.sidebar-user > span:not(.user-avatar) {
-  display: grid;
-  min-width: 0;
-}
-
-.sidebar-user strong {
-  overflow: hidden;
-  color: #19325f;
-  font-size: 14px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.sidebar-user small {
-  color: #7b89a1;
-  font-size: 12px;
-}
-
-.sidebar-user button {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border: 0;
-  border-radius: 7px;
-  background: #f3f6fb;
-  color: #66758f;
 }
 
 .user-avatar {
@@ -590,24 +475,6 @@ body {
   background: #0b46df;
 }
 
-.topbar-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 9px;
-}
-
-.topbar-icon-button {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border: 1px solid #dbe4f2;
-  border-radius: 8px;
-  background: #fff;
-  color: #50627e;
-}
-
 .topbar-profile {
   display: grid;
   grid-template-columns: 34px minmax(70px, auto) 16px;
@@ -644,7 +511,7 @@ body {
 .product-shell.role-teacher,
 .product-shell.role-admin,
 .product-shell.role-student {
-  --role-accent: #0b46df;
+  --role-accent: var(--blue);
   --role-accent-dark: #0737b5;
   --role-soft: #edf3ff;
 }
@@ -888,7 +755,7 @@ body {
 }
 
 .login-header .brand-mark,
-.auth-account-screen .brand-mark {
+.account-screen .brand-mark {
   background: #0b46df !important;
 }
 
@@ -943,8 +810,8 @@ body {
 }
 
 .login-submit,
-.auth-account-screen .primary,
-.auth-account-screen .status-panel button {
+.account-screen .primary,
+.account-screen .status-panel button {
   background: #0b46df !important;
   box-shadow: 0 14px 30px rgba(11, 70, 223, .18) !important;
 }
@@ -958,33 +825,16 @@ body {
   outline-color: rgba(11, 70, 223, .25) !important;
 }
 
-.auth-account-screen {
+.account-screen {
   background: #f4f7fd !important;
 }
 
-.auth-account-screen .role-switch button.active,
-.auth-account-screen .status-panel.success {
+.account-screen .role-switch button.active,
+.account-screen .status-panel.success {
   color: #0b46df !important;
 }
 
 /* Teacher workspace */
-.teacher-dashboard-hero,
-.classroom-hero {
-  border: 1px solid #dce5f2 !important;
-  border-radius: 10px !important;
-  background: linear-gradient(105deg, #edf4ff, #fff) !important;
-}
-
-.teacher-dashboard-hero h1,
-.classroom-hero h1 {
-  color: #0b3fb5 !important;
-}
-
-.teacher-dashboard-hero p,
-.classroom-hero p {
-  color: #687791 !important;
-}
-
 .teacher-config-list li,
 .teacher-type-row {
   background: #f5f8fd !important;
@@ -1125,6 +975,8 @@ body {
 
 /* Official brand logo */
 span.brand-logo {
+  --brand-mark-size: clamp(38px, 4vw, 50px);
+  --brand-mark-padding: 3px;
   display: inline-flex;
   align-items: center;
   max-width: 100%;
@@ -1137,34 +989,29 @@ span.brand-logo {
   display: inline-flex !important;
 }
 
-.brand-logo-full {
-  display: block;
-  width: auto;
-  max-width: 100%;
-  height: 56px;
-  object-fit: contain;
-}
-
 .brand-logo-compact {
-  gap: 10px;
+  gap: clamp(8px, 1vw, 11px);
 }
 
 .brand-logo-mark {
-  position: relative;
-  display: block;
-  flex: 0 0 44px;
-  width: 44px;
-  height: 44px;
-  overflow: hidden;
+  display: grid;
+  place-items: center;
+  flex: 0 0 var(--brand-mark-size);
+  width: var(--brand-mark-size);
+  height: var(--brand-mark-size);
+  padding: var(--brand-mark-padding);
+  border: 1px solid #d5e8fa;
+  border-radius: calc(var(--brand-mark-size) * .23);
+  background: linear-gradient(145deg, #f7fcff, #e2f2fd);
 }
 
 .brand-logo-mark img {
-  position: absolute;
-  top: -7px;
-  left: -7px;
-  width: auto;
-  max-width: none;
-  height: 58px;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: contain;
 }
 
 .brand-logo-copy {
@@ -1192,13 +1039,12 @@ span.brand-logo {
   white-space: nowrap;
 }
 
-.landing-v2 .landing-nav .brand-logo-full,
-.login-header .brand-logo-full {
-  height: 60px;
+.sidebar-brand .brand-logo {
+  --brand-mark-size: clamp(40px, 3.2vw, 48px);
 }
 
-.account-brand-lockup .brand-logo-full {
-  height: 58px;
+.account-brand-lockup .brand-logo {
+  --brand-mark-size: clamp(38px, 4vw, 46px);
 }
 
 .product-sidebar .brand-logo-copy strong {
@@ -1209,10 +1055,9 @@ span.brand-logo {
   color: #c8d8f5;
 }
 
-.onboarding-intro .brand-logo-mark,
-.landing-footer .brand-logo-mark {
-  border-radius: 8px;
-  background: #fff;
+.onboarding-intro .brand-logo,
+.landing-footer .brand-logo {
+  --brand-mark-size: 46px;
 }
 
 .onboarding-intro .brand-logo-copy strong,
@@ -1223,6 +1068,11 @@ span.brand-logo {
 .onboarding-intro .brand-logo-copy small,
 .landing-footer .brand-logo-copy small {
   color: #c7d8e4 !important;
+}
+
+@media (max-width: 480px) {
+  .account-brand-lockup .brand-logo-copy small,
+  .login-header .brand-logo-copy small { display: none; }
 }
 
 /* Readability: keep secondary text visible without relying on low opacity. */
@@ -1424,115 +1274,118 @@ textarea::placeholder {
   }
 }
 
-/* Sidebar refresh: soft clinical pattern replaces the navy rail. */
-.product-sidebar {
-  background: #eef5ff url('./assets/brand/sidebar-medical.webp') center top / cover no-repeat !important;
-  border-right: 1px solid #cfe0f5 !important;
+/* Shared visual treatment for the routed workspaces and account screens. */
+.product-shell .product-content > :is(.workspace-page, .case-library-panel) {
+  width: 100%;
+  max-width: 1780px;
+  margin-inline: auto;
+  padding: 10px clamp(12px, 1.2vw, 22px) 28px;
 }
 
-.product-sidebar .brand-logo-copy strong,
-.sidebar-brand strong {
-  color: #0b2a63 !important;
+.product-shell .product-content :is(
+  .page-title-row, .teacher-dashboard-hero, .classroom-hero, .archive-heading,
+  .skill-page-heading, .case-library-heading
+) {
+  min-width: 0;
+  padding: 18px clamp(14px, 1.8vw, 28px);
+  border: 1px solid var(--ui-panel-line);
+  border-radius: var(--ui-radius);
+  background: var(--ui-hero);
+  box-shadow: var(--ui-panel-shadow);
 }
 
-.product-sidebar .brand-logo-copy small,
-.sidebar-brand small {
-  color: #5b7099 !important;
+.product-shell .product-content :is(
+  .page-title-row, .teacher-dashboard-hero, .classroom-hero, .archive-heading,
+  .skill-page-heading, .case-library-heading
+) h1 {
+  margin-block: 4px 6px;
+  color: var(--ink);
+  font-size: clamp(25px, 2.2vw, 39px);
+  font-weight: 900;
+  letter-spacing: -.025em;
+  line-height: 1.2;
 }
 
-.product-sidebar .brand-mark {
-  background: #0b46df !important;
-  color: #fff !important;
-  box-shadow: 0 8px 18px rgba(11, 70, 223, .22) !important;
+.product-shell .product-content :is(
+  .page-title-row, .teacher-dashboard-hero, .classroom-hero, .archive-heading,
+  .skill-page-heading, .case-library-heading
+) p {
+  color: var(--muted);
+  font-size: 14px;
 }
 
-.sidebar-search {
-  border-color: rgba(255, 255, 255, .92) !important;
-  background: rgba(255, 255, 255, .76) !important;
-  color: #4d6392 !important;
-  backdrop-filter: blur(6px);
+.product-shell .product-content .teacher-dashboard-hero {
+  min-height: 148px;
+}
+.product-shell .product-content .teacher-dashboard-hero::after { display: none; }
+.product-shell .product-content .teacher-dashboard-hero > div { padding: 0; }
+
+.product-shell .product-content :is(
+  .surface-panel, .surface-section, .case-management-list, .case-editor,
+  .case-library-stats article, .metric-strip article, .classroom-list, .classroom-detail-head,
+  .exam-card, .exam-panel, .graph-toolbar, .graph-workbench, .archive-classroom, .archive-coverage,
+  .archive-content, .skill-table-scroll, .skill-call-section, .skill-test-section, .help-grid article
+) {
+  border: 1px solid var(--ui-panel-line);
+  border-radius: var(--ui-radius);
+  background: var(--ui-panel);
+  box-shadow: var(--ui-panel-shadow);
 }
 
-.sidebar-search input {
-  color: #12315f !important;
+.product-shell .product-content :is(.button-primary, .button-secondary) {
+  font-size: 14px;
 }
 
-.nav-section-label {
-  color: #4d6691 !important;
+.product-shell .product-content :is(.classroom-list, .case-management-scroll) button.active,
+.product-shell .product-content .case-management-scroll button.entry-selected {
+  border-color: #a7c4fa;
+  background: var(--role-soft);
 }
 
-.product-sidebar nav a {
-  color: #23406f !important;
+:is(.login-screen, .account-screen, .onboarding-screen) {
+  color: var(--ink);
+  background: var(--ui-canvas) !important;
 }
 
-.product-sidebar nav a:hover {
-  background: rgba(255, 255, 255, .78) !important;
-  color: #0b46df !important;
-  transform: none !important;
+:is(.login-stage, .account-layout, .onboarding-card) {
+  border: 1px solid var(--ui-panel-line);
+  border-radius: var(--ui-radius) !important;
+  box-shadow: var(--shadow) !important;
 }
 
-.product-sidebar nav a.active {
-  background: rgba(255, 255, 255, .94) !important;
-  color: #0b46df !important;
-  box-shadow: 0 8px 18px rgba(23, 72, 168, .12), inset 3px 0 0 #0b46df !important;
+.login-screen .login-context,
+.account-screen .account-layout > aside,
+.onboarding-screen .onboarding-intro {
+  background: linear-gradient(140deg, var(--ui-navy), #204985) !important;
 }
 
-.sidebar-progress {
-  border-color: rgba(255, 255, 255, .92) !important;
-  background: rgba(255, 255, 255, .84) !important;
-  color: #0b46df !important;
+.login-screen .login-context::after {
+  background: linear-gradient(180deg, transparent, rgba(13, 26, 68, .96)) !important;
 }
 
-.sidebar-progress strong {
-  color: #123a7f !important;
+.account-screen .account-heading h1 { color: var(--ink); }
+.account-screen .account-heading p { color: var(--muted); }
+.account-screen .account-layout :is(.account-panel, .status-panel) { background: var(--ui-panel); }
+.account-screen .account-layout :is(.field, .role-switch) { border-color: var(--line); }
+.account-screen .account-layout aside p,
+.account-screen .account-layout aside ul { color: #dae7ff; }
+
+:is(.login-screen .login-submit, .account-screen .primary, .account-screen .status-panel button) {
+  border-radius: 10px;
+  background: var(--ui-primary) !important;
 }
 
-.sidebar-progress small {
-  color: #56688c !important;
-}
-
-.sidebar-support > button {
-  color: #37517f !important;
-}
-
-.sidebar-support > button:hover {
-  background: rgba(255, 255, 255, .76) !important;
-  color: #0b46df !important;
-}
-
-.product-sidebar .safety-notice {
-  background: rgba(255, 255, 255, .86) !important;
-  color: #4a5f86 !important;
-}
-
-.product-sidebar .safety-notice svg {
-  color: #0b46df !important;
-}
-
-.sidebar-user {
-  border-top-color: rgba(126, 156, 205, .4) !important;
-}
-
-.sidebar-user strong {
-  color: #10305f !important;
-}
-
-.sidebar-user small {
-  color: #5c6f92 !important;
-}
-
-.sidebar-user button {
-  background: rgba(255, 255, 255, .84) !important;
-  color: #3b5580 !important;
-}
-
-.sidebar-user button:hover {
-  background: #fff !important;
-  color: #0b46df !important;
+:is(.login-screen .login-submit, .account-screen .primary, .account-screen .status-panel button):hover:not(:disabled) {
+  background: var(--teal-dark) !important;
 }
 
 @media (max-width: 760px) {
-  .product-sidebar {
-    background-position: center 12% !important;
+  .product-shell .product-content :is(
+    .page-title-row, .teacher-dashboard-hero, .classroom-hero, .archive-heading,
+    .skill-page-heading, .case-library-heading
+  ) {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 12px;
   }
 }

@@ -1,13 +1,13 @@
-/* Landing refresh: light clinical-blue system that matches the sidebar pattern. */
+/* Public landing uses the same palette as the workspaces. */
 
 .landing-v2 {
-  --lp-ink: #0b254f;
-  --lp-ink-soft: #4c6088;
-  --lp-blue: #0b46df;
+  --lp-ink: var(--ink);
+  --lp-ink-soft: var(--muted);
+  --lp-blue: var(--blue);
   --lp-blue-deep: #0a2f96;
-  --lp-line: #dbe6f7;
-  --lp-surface: #f2f7ff;
-  background: #fff;
+  --lp-line: var(--ui-panel-line);
+  --lp-surface: var(--soft);
+  background: var(--ui-canvas);
   color: var(--lp-ink);
 }
 
@@ -28,6 +28,7 @@
 }
 
 .landing-nav-action {
+  background: var(--ui-primary);
   min-height: 44px;
   padding: 0 22px;
   border-radius: 10px;
@@ -43,7 +44,7 @@
 /* Hero */
 .landing-v2 .landing-hero {
   min-height: clamp(560px, 64vh, 700px);
-  background: #061a3f;
+  background: var(--ui-navy);
 }
 
 .landing-v2 .landing-hero::after {
@@ -100,7 +101,7 @@
 }
 
 .landing-primary {
-  background: var(--lp-blue);
+  background: var(--ui-primary);
   color: #fff;
   box-shadow: 0 12px 26px rgba(11, 70, 223, .32);
 }

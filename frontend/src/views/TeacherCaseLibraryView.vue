@@ -311,8 +311,13 @@ onUnmounted(() => { if (processingTimer) window.clearInterval(processingTimer); 
 
 <template>
   <div class="case-library-panel">
-    <header v-if="isAdmin" class="admin-library-heading">
-      <div><span class="section-kicker">管理员资料中心</span><h1>教学知识库管理</h1><p>统一维护病例、教材和权威临床资料，导入前完成脱敏与来源审核。</p></div>
+    <header class="case-library-heading">
+      <div>
+        <span class="section-kicker">{{ isAdmin ? '管理员资料中心' : '教师工作台' }}</span>
+        <h1>{{ isAdmin ? '教学知识库管理' : '教学知识库' }}</h1>
+        <p v-if="isAdmin">统一维护病例、教材和权威临床资料，导入前完成脱敏与来源审核。</p>
+        <p v-else>查阅与维护教学资料，为解剖学习和测验提供依据。</p>
+      </div>
     </header>
     <div class="case-library-toolbar" data-tour="knowledge-library-toolbar">
       <div class="case-library-actions">
@@ -479,9 +484,9 @@ onUnmounted(() => { if (processingTimer) window.clearInterval(processingTimer); 
 .upload-button { cursor: pointer; }
 .upload-group { display: inline-flex; align-items: center; gap: 8px; }
 .upload-group select { height: 40px; padding: 0 10px; border: 1px solid var(--line, #e1e9ea); border-radius: 7px; background: #fff; color: #24515a; }
-.admin-library-heading { margin: 0 0 18px; }
-.admin-library-heading h1 { margin: 0 0 6px; font-size: clamp(1.7rem, 2.8vw, 2.35rem); }
-.admin-library-heading p { margin: 0; max-width: 68ch; }
+.case-library-heading { margin: 0 0 18px; }
+.case-library-heading h1 { margin: 0 0 6px; font-size: clamp(1.7rem, 2.8vw, 2.35rem); }
+.case-library-heading p { margin: 0; max-width: 68ch; }
 .case-library-compile { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .compile-publish-toggle { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted, #64748b); font-size: 13px; cursor: pointer; }
 .compile-publish-toggle input { width: 15px; height: 15px; accent-color: #2f7d6c; }
