@@ -156,10 +156,10 @@ watch(role, () => {
 .login-context { position: relative; min-height: 620px; margin: 0; overflow: hidden; background: #12342f; }
 .login-context::after { content: ""; position: absolute; inset: 35% 0 0; background: linear-gradient(180deg, transparent, rgba(4, 24, 21, .92)); }
 .login-context img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 58% center; filter: saturate(.76) contrast(1.04); }
-.login-context figcaption { position: absolute; z-index: 1; right: clamp(28px, 5vw, 62px); bottom: clamp(30px, 5vw, 58px); left: clamp(28px, 5vw, 62px); display: grid; gap: 13px; color: #fff; }
-.login-context figcaption strong { max-width: 10em; font-size: clamp(2rem, 3.6vw, 3.6rem); line-height: 1.08; letter-spacing: -.035em; }
+.login-context figcaption { position: absolute; z-index: 1; right: clamp(28px, 5vw, 62px); bottom: clamp(30px, 5vw, 58px); left: clamp(28px, 5vw, 62px); display: grid; gap: 10px; color: #fff; }
+.login-context figcaption strong { font-size: clamp(1.25rem, 1rem + 1.35vw, 2.25rem); line-height: 1.2; letter-spacing: -.025em; text-wrap: balance; }
 .login-context figcaption p { max-width: 34em; margin: 0; color: #c5d8d3; line-height: 1.7; }
-.login-context figcaption span { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; color: #83e2c7; font-size: 13px; font-weight: 800; }
+.login-context figcaption span { display: inline-flex; align-items: center; gap: 8px; color: #dbeafe; font-size: .9375rem; font-weight: 600; line-height: 1.45; }
 .login-panel { display: flex; flex-direction: column; justify-content: center; padding: clamp(42px, 6vw, 76px); }
 .login-heading h1 { margin: 0; color: #102f33; font-size: clamp(2rem, 3.2vw, 3rem); line-height: 1.12; letter-spacing: -.035em; }
 .login-heading p { margin: 14px 0 0; color: #71888b; }
@@ -193,7 +193,6 @@ watch(role, () => {
   .login-screen { padding: 0 18px 24px; }
   .login-stage { grid-template-columns: 1fr; margin-top: 22px; }
   .login-context { min-height: 260px; }
-  .login-context figcaption strong { font-size: 2.3rem; }
   .login-context figcaption p { display: none; }
   .login-panel { padding: 40px; }
 }
@@ -205,8 +204,6 @@ watch(role, () => {
   .login-stage { border-radius: 14px; }
   .login-context { min-height: 200px; }
   .login-context figcaption { right: 22px; bottom: 22px; left: 22px; }
-  .login-context figcaption strong { font-size: 1.8rem; }
-  .login-context figcaption span { margin-top: 0; }
   .login-panel { padding: 32px 20px 24px; }
   .login-role-tabs button { gap: 5px; font-size: 12px; }
   .demo-account { align-items: flex-start; }
