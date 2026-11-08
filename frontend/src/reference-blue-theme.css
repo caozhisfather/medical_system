@@ -1048,11 +1048,11 @@ span.brand-logo {
 }
 
 .product-sidebar .brand-logo-copy strong {
-  color: #fff;
+  color: #152e62;
 }
 
 .product-sidebar .brand-logo-copy small {
-  color: #c8d8f5;
+  color: #3e5984;
 }
 
 .onboarding-intro .brand-logo,
@@ -1114,13 +1114,13 @@ textarea::placeholder {
 }
 
 .product-sidebar .safety-notice {
-  border-color: rgba(255, 255, 255, .13) !important;
-  background: rgba(255, 255, 255, .08) !important;
-  color: #d7e4fb !important;
+  border-color: rgba(255, 255, 255, .66) !important;
+  background: rgba(249, 252, 255, .53) !important;
+  color: #25416c !important;
 }
 
 .product-sidebar .safety-notice svg {
-  color: #a9c6ff;
+  color: #3068bd;
 }
 
 @media (max-width: 1100px) {

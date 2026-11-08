@@ -68,7 +68,7 @@ from .rag import RagPipeline
 from .workflow import build_trace, load_workflow
 
 DATA_DIR = ROOT_DIR / "data"
-app = FastAPI(title="AI标准化病人临床思维训练平台", version="0.4.0")
+app = FastAPI(title="芯聆知医", version="0.4.0")
 app.add_middleware(CORSMiddleware, allow_origins=[settings.frontend_origin, "http://localhost:5173", "http://127.0.0.1:5173"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.mount("/flask", WSGIMiddleware(create_flask_app()))
 app.include_router(daily_review_router)
@@ -525,7 +525,7 @@ def health() -> dict:
 
 @app.get("/api/site/overview")
 def site_overview() -> dict:
-    return {"name": "临思智训", "subtitle": "AI标准化病人临床思维训练平台", "contest_track": "AI+医学教育交叉", "positioning": "整合AI标准化病人、教材学习路径、ModelScope 数据源规划、Hybrid RAG、双语知识图谱和超级管理员闭环。", "metrics": [{"label": "虚拟病例", "value": "41个", "trend": "差异化脚本"}, {"label": "知识条目", "value": "85条", "trend": "双语mock"}, {"label": "图谱规模", "value": "177/162", "trend": "节点/关系"}, {"label": "数据源", "value": "7类", "trend": "含ModelScope"}], "scenarios": ["学生端", "教师端", "超级管理员"]}
+    return {"name": "芯聆知医", "subtitle": "AI标准化病人临床思维训练平台", "contest_track": "AI+医学教育交叉", "positioning": "整合AI标准化病人、教材学习路径、ModelScope 数据源规划、Hybrid RAG、双语知识图谱和超级管理员闭环。", "metrics": [{"label": "虚拟病例", "value": "41个", "trend": "差异化脚本"}, {"label": "知识条目", "value": "85条", "trend": "双语mock"}, {"label": "图谱规模", "value": "177/162", "trend": "节点/关系"}, {"label": "数据源", "value": "7类", "trend": "含ModelScope"}], "scenarios": ["学生端", "教师端", "超级管理员"]}
 
 
 @app.post("/api/auth/login", response_model=AuthLoginResponse)

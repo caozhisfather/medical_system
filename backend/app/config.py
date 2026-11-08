@@ -22,7 +22,7 @@ def env_bool(name: str, default: str = "false") -> bool:
 
 @dataclass(frozen=True)
 class Settings:
-    app_name: str = "AI标准化病人临床思维训练平台"
+    app_name: str = "芯聆知医"
     environment: str = env_value("FASTAPI_ENV", env_value("ENVIRONMENT", "development"))
     demo_mode: bool = env_bool("DEMO_MODE")
     backend_reload: bool = env_bool("BACKEND_RELOAD")
@@ -69,7 +69,7 @@ class Settings:
     mail_port: int = int(env_value("MAIL_PORT", "465"))
     mail_username: str = env_value("MAIL_USERNAME", "")
     mail_password: str = env_value("MAIL_PASSWORD", "")
-    mail_from_name: str = env_value("MAIL_FROM_NAME", "临思智训")
+    mail_from_name: str = env_value("MAIL_FROM_NAME", "芯聆知医")
     public_frontend_url: str = env_value("PUBLIC_FRONTEND_URL", env_value("FRONTEND_ORIGIN", "http://127.0.0.1:5173"))
 
     @property

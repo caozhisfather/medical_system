@@ -95,7 +95,7 @@ async function signOut() {
 
     <header class="product-topbar">
       <div class="topbar-title">
-        <RouterLink class="mobile-brand" :to="workspace.links[0].path" aria-label="临思智训工作台">
+        <RouterLink class="mobile-brand" :to="workspace.links[0].path" aria-label="芯聆知医工作台">
           <BrandLogo alt="" />
         </RouterLink>
         <strong>{{ currentPage }}</strong>
@@ -138,8 +138,8 @@ async function signOut() {
   border-right: 0;
   border-radius: 0 0 var(--ui-radius) 0;
   background:
-    linear-gradient(180deg, rgba(99, 145, 208, .48), rgba(119, 162, 218, .50) 58%, rgba(71, 116, 181, .43)),
-    #34558a url('../assets/brand/sidebar-medical.webp') center bottom / cover no-repeat;
+    linear-gradient(178deg, rgba(236, 244, 255, .93), rgba(218, 233, 255, .88) 57%, rgba(188, 213, 249, .83)),
+    #dbe8fc url('../assets/brand/sidebar-medical.webp') center bottom / cover no-repeat;
 }
 
 .sidebar-brand { min-height: 55px; margin-bottom: 28px; border-radius: 10px; }
@@ -152,12 +152,12 @@ async function signOut() {
   padding-inline: clamp(10px, 1.45vw, 22px);
   border: 1px solid transparent;
   border-radius: 11px;
-  color: #eef4ff;
+  color: #1b3968;
   font-size: 14px;
   font-weight: 750;
 }
 .product-shell .product-sidebar nav a svg, .sidebar-help svg { flex: none; }
-.product-shell .product-sidebar nav a:hover, .sidebar-help:hover { background: rgba(145, 181, 255, .18); color: #fff; }
+.product-shell .product-sidebar nav a:hover, .sidebar-help:hover { background: rgba(255, 255, 255, .55); color: #124cca; }
 .product-shell .product-sidebar nav a.active, .sidebar-help.active {
   border-color: rgba(144, 193, 255, .48);
   background: var(--ui-primary);
@@ -167,7 +167,7 @@ async function signOut() {
 
 .sidebar-support { display: grid; gap: 5px; margin-top: auto; }
 .sidebar-help { padding-inline: 10px; }
-.product-sidebar :is(a, button):focus-visible { outline-color: #b7d5ff; }
+.product-sidebar :is(a, button):focus-visible { outline-color: #1d5cf1; }
 
 .product-shell .product-topbar {
   grid-template-columns: minmax(108px, .36fr) minmax(0, 1fr) auto;

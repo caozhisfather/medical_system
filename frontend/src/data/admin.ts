@@ -135,7 +135,7 @@ export const mockAdminData = {
     },
     {
       "id": "virtual_cases",
-      "name": "临思智训虚拟教学病例库",
+      "name": "芯聆知医虚拟教学病例库",
       "platform": "自建病例",
       "type": "虚拟教学病例",
       "modules": [

@@ -1,5 +1,5 @@
 ---
-name: "临思智训"
+name: "芯聆知医"
 description: "面向医学教育的AI标准化病人临床思维训练平台"
 colors:
   clinical-ink: "#102326"
@@ -37,7 +37,7 @@ components:
     padding: "12px 18px"
 ---
 
-# Design System: 临思智训
+# Design System: 芯聆知医
 
 ## Overview
 

@@ -2,26 +2,33 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import {
+  BarChart3,
   BookOpenCheck,
   BrainCircuit,
   ChevronRight,
   ExternalLink,
+  GraduationCap,
+  Layers3,
+  Link2,
+  List,
   LocateFixed,
+  Minus,
   Network,
   Orbit,
   Pause,
   Play,
+  Plus,
   RotateCcw,
   Search,
-  Sparkles,
-  ZoomIn,
-  ZoomOut
+  ScanLine
 } from '@lucide/vue';
 import { getDataSources, getKnowledgeGraph, searchKnowledge } from '../api';
+import AnatomyGraphIcon from '../components/AnatomyGraphIcon.vue';
 import { mockGraph } from '../data/graph';
+import { trainingStore } from '../stores/training';
 import type { DataSourceItem, KnowledgeEdge, KnowledgeNode } from '../types';
 
-type GraphViewMode = 'network' | 'mindmap';
+type GraphViewMode = 'network' | 'mindmap' | 'list';
 interface PositionedNode extends KnowledgeNode {
   x: number;
   y: number;
@@ -35,10 +42,14 @@ const VIEWBOX_HEIGHT = 620;
 const MAX_VISIBLE_NODES = 46;
 const MAX_ANCHOR_NODES = 14;
 const OVERVIEW_ROOT_ID = 'anatomy_root';
+const OVERVIEW_SYSTEM_ORDER = [
+  'endocrine', 'digestive', 'reproductive', 'urinary', 'nervous',
+  'respiratory', 'locomotor', 'lymphatic', 'circulatory'
+].map(id => 'anatomy_system_' + id);
 const route = useRoute();
 const query = ref(String(route.query.q || ''));
 const type = ref(String(route.query.type || '全部类型'));
-const graphMode = ref<GraphViewMode>(route.query.view === 'mindmap' ? 'mindmap' : 'network');
+const graphMode = ref<GraphViewMode>(route.query.view === 'mindmap' || route.query.view === 'list' ? route.query.view : 'network');
 const nodes = ref<KnowledgeNode[]>([]);
 const edges = ref<KnowledgeEdge[]>([]);
 const positionedNodes = ref<PositionedNode[]>([]);
@@ -151,6 +162,25 @@ function expandNeighborhood(anchors: KnowledgeNode[], depth = 2, limit = MAX_VIS
     .filter((node): node is KnowledgeNode => Boolean(node));
 }
 
+const isOverview = computed(() => !query.value.trim() && type.value === '全部类型' && !focusedNodeId.value);
+const graphGroups = computed(() => Object.entries(typeLabels).map(([key, title]) => ({
+  key, title, count: nodes.value.filter(node => nodeGroup(node) === key).length
+})));
+const systemCount = computed(() => graphGroups.value.find(group => group.key === 'AnatomySystem')?.count ?? 0);
+const graphTotals = computed(() => [
+  { icon: Network, value: nodes.value.length, label: '节点数' },
+  { icon: Link2, value: edges.value.length, label: '关联关系' },
+  { icon: Layers3, value: systemCount.value, label: '覆盖系统' }
+]);
+const maxGroupCount = computed(() => Math.max(1, ...graphGroups.value.map(group => group.count)));
+const showAllRelations = ref(false);
+const learningSteps = [
+  { label: '人体解剖概览', type: '全部类型', icon: BookOpenCheck },
+  { label: '系统结构', type: 'AnatomySystem', icon: Layers3 },
+  { label: '器官功能', type: 'AnatomyOrgan', icon: Orbit },
+  { label: '精细结构', type: 'AnatomyStructure', icon: Network }
+];
+
 const sourceNodes = computed<KnowledgeNode[]>(() => {
   const keyword = query.value.trim().toLowerCase();
   if (focusedNodeId.value) {
@@ -190,18 +220,33 @@ const visibleIds = computed(() => new Set(positionedNodes.value.map((node) => no
 const nodeMap = computed<Record<string, PositionedNode>>(() => Object.fromEntries(positionedNodes.value.map((node) => [node.id, node])));
 const displayEdges = computed(() => {
   const available = sourceEdges.value.filter((edge) => visibleIds.value.has(edge.source) && visibleIds.value.has(edge.target));
-  if (graphMode.value === 'network') return available;
+  if (graphMode.value !== 'mindmap') return available;
   return available.filter((edge) => treeParents.value[edge.target] === edge.source || treeParents.value[edge.source] === edge.target);
 });
 const labeledEdges = computed(() => {
   const active = displayEdges.value.filter((edge) => isActiveEdge(edge));
   return active.length ? active.slice(0, 12) : displayEdges.value.filter((edge) => (edge.weight ?? 0) >= 0.9).slice(0, 8);
 });
-const neighbors = computed(() => selected.value
-  ? sourceEdges.value.filter((edge) => edge.source === selected.value?.id || edge.target === selected.value?.id).slice(0, 12)
-  : []);
+const neighbors = computed(() => {
+  const id = selected.value?.id;
+  return id ? edges.value.filter(edge => edge.source === id || edge.target === id) : [];
+});
+const visibleNeighbors = computed(() => showAllRelations.value ? neighbors.value : neighbors.value.slice(0, 4));
+const nodeLookup = computed(() => new Map(nodes.value.map(node => [node.id, node])));
+const degreeByNode = computed(() => {
+  const counts = new Map<string, number>();
+  for (const edge of edges.value) {
+    counts.set(edge.source, (counts.get(edge.source) ?? 0) + 1);
+    counts.set(edge.target, (counts.get(edge.target) ?? 0) + 1);
+  }
+  return counts;
+});
+watch(() => selected.value?.id, () => {
+  showAllRelations.value = false;
+  activeSource.value = null;
+}, { flush: 'sync' });
 const viewportTransform = computed(() => `translate(${VIEWBOX_WIDTH / 2} ${VIEWBOX_HEIGHT / 2}) scale(${zoom.value}) translate(${-VIEWBOX_WIDTH / 2} ${-VIEWBOX_HEIGHT / 2})`);
-const graphStatus = computed(() => `${graphMode.value === 'mindmap' ? '层级脑图' : isMotionPaused.value ? '动态已暂停' : '力导向运行中'} · ${sourceNodes.value.length} 节点 / ${displayEdges.value.length} 关系`);
+const graphStatus = computed(() => `${graphMode.value === 'mindmap' ? '层级脑图' : isOverview.value ? '系统总览' : isMotionPaused.value ? '动态已暂停' : '力导向运行中'} · ${sourceNodes.value.length} 节点 / ${displayEdges.value.length} 关系`);
 
 onMounted(async () => {
   alignCanvas();
@@ -223,8 +268,8 @@ onMounted(async () => {
   } catch {
     dataSources.value = Object.values(sourceFallbacks);
   }
-  if (route.query.source) activeSource.value = sourceDetail(String(route.query.source));
   resetLayout();
+  if (route.query.source) activeSource.value = sourceDetail(String(route.query.source));
   if (query.value.trim()) await retrieveEvidence();
 
   if (stageRef.value && 'IntersectionObserver' in window) {
@@ -308,7 +353,27 @@ function groupLabel(node?: KnowledgeNode | null) {
 
 function relatedNode(edge: KnowledgeEdge) {
   const id = edge.source === selected.value?.id ? edge.target : edge.source;
-  return nodeMap.value[id];
+  return nodeMap.value[id] ?? nodeLookup.value.get(id);
+}
+
+function selectRelated(edge: KnowledgeEdge) {
+  const node = relatedNode(edge);
+  if (!node) return;
+  if (nodeMap.value[node.id]) selectNode(nodeMap.value[node.id]);
+  else {
+    focusedNodeId.value = node.id;
+    rootNodeId.value = node.id;
+    zoom.value = 1;
+    resetLayout();
+  }
+}
+
+function chooseLearningStep(step: string) {
+  query.value = '';
+  evidenceResults.value = [];
+  type.value = step;
+  clearFocus();
+  stageRef.value?.scrollIntoView({ block: 'nearest' });
 }
 
 function deterministicOffset(id: string) {
@@ -324,6 +389,21 @@ function networkLayout(source: KnowledgeNode[]) {
       ? OVERVIEW_ROOT_ID
       : selected.value?.id || source[0]?.id || '';
   rootNodeId.value = preferredRoot;
+  if (isOverview.value && preferredRoot === OVERVIEW_ROOT_ID) {
+    const root = source.find(node => node.id === preferredRoot)!;
+    const systems = source.filter(node => node.id !== preferredRoot);
+    const ordered = [
+      ...OVERVIEW_SYSTEM_ORDER.flatMap(id => systems.filter(node => node.id === id)),
+      ...systems.filter(node => !OVERVIEW_SYSTEM_ORDER.includes(node.id))
+    ];
+    return [
+      { ...root, x: VIEWBOX_WIDTH / 2, y: 255, vx: 0, vy: 0 },
+      ...ordered.map((node, index) => {
+        const angle = index / ordered.length * 2 * Math.PI - Math.PI / 2;
+        return { ...node, x: VIEWBOX_WIDTH / 2 + 331 * Math.cos(angle), y: 317 + 190 * Math.sin(angle), vx: 0, vy: 0 };
+      })
+    ];
+  }
   return source.map((node, index) => {
     if (node.id === preferredRoot) return { ...node, x: VIEWBOX_WIDTH / 2, y: VIEWBOX_HEIGHT / 2, vx: 0, vy: 0 };
     const orbitIndex = index > 0 ? index - 1 : index;
@@ -422,7 +502,7 @@ function resetLayout() {
 
 function simulate(timestamp: number) {
   animationFrame = requestAnimationFrame(simulate);
-  if (graphMode.value !== 'network' || isMotionPaused.value || document.hidden || !stageVisible.value || !positionedNodes.value.length) {
+  if (graphMode.value !== 'network' || isOverview.value || isMotionPaused.value || document.hidden || !stageVisible.value || !positionedNodes.value.length) {
     previousFrame = timestamp;
     return;
   }
@@ -557,56 +637,53 @@ function endDrag() {
 
 <template>
   <div class="workspace-page graph-page">
-    <section class="page-title-row">
-      <div>
-        <span class="section-kicker">系统 · 器官 · 精细结构</span>
-        <h1>人体解剖知识图谱</h1>
+    <section class="kg-banner" aria-labelledby="kg-title">
+      <div class="kg-banner-copy">
+        <span>知识图谱 <ChevronRight /> 系统 <ChevronRight /> 器官 <ChevronRight /> 精细结构</span>
+        <h1 id="kg-title">人体解剖知识图谱</h1>
         <p>从人体系统进入器官和精细结构，建立与三维模型一致的解剖学习路径。</p>
       </div>
-      <div class="graph-stat">
-        <Network :size="19" />
-        <span><strong>{{ nodes.length }} 个节点</strong><small>{{ edges.length }} 条证据关系</small></span>
+      <div class="kg-banner-totals" aria-label="全图概况">
+        <div v-for="stat in graphTotals" :key="stat.label">
+          <component :is="stat.icon" :size="23" /><strong>{{ stat.value }}</strong><small>{{ stat.label }}</small>
+        </div>
       </div>
     </section>
 
-    <section class="graph-toolbar">
+    <form class="graph-toolbar kg-toolbar" @submit.prevent="retrieveEvidence">
       <label class="search-control">
-        <Search :size="17" />
-        <input v-model="query" placeholder="检索人体系统、器官或精细结构" @keydown.enter="retrieveEvidence" />
+        <Search :size="18" />
+        <input v-model="query" aria-label="检索人体系统、器官或精细结构" placeholder="检索人体系统、器官或精细结构…" />
       </label>
       <select v-model="type" aria-label="筛选知识类型">
         <option value="全部类型">全部类型</option>
         <option v-for="(text, key) in typeLabels" :key="key" :value="key">{{ text }}</option>
       </select>
-      <div class="graph-view-switch" aria-label="图谱视图">
-        <button type="button" :class="{ active: graphMode === 'network' }" @click="graphMode = 'network'">
-          <Orbit :size="16" />知识网络
-        </button>
-        <button type="button" :class="{ active: graphMode === 'mindmap' }" @click="graphMode = 'mindmap'">
-          <BrainCircuit :size="16" />脑图
-        </button>
+      <div class="graph-view-switch" role="group" aria-label="图谱视图">
+        <button type="button" :class="{ active: graphMode === 'network' }" :aria-pressed="graphMode === 'network'" @click="graphMode = 'network'"><Network :size="16" />知识网络</button>
+        <button type="button" :class="{ active: graphMode === 'mindmap' }" :aria-pressed="graphMode === 'mindmap'" @click="graphMode = 'mindmap'"><BrainCircuit :size="16" />脑图</button>
+        <button type="button" :class="{ active: graphMode === 'list' }" :aria-pressed="graphMode === 'list'" @click="graphMode = 'list'"><List :size="16" />列表视图</button>
+        <RouterLink v-if="trainingStore.state.profile.role === 'student'" class="kg-3d-link" to="/student/anatomy"><Layers3 :size="16" />三维模型</RouterLink>
       </div>
-      <button class="button-primary" type="button" @click="retrieveEvidence">
-        <Sparkles :size="16" />检索证据
-      </button>
-    </section>
+      <button class="button-primary" type="submit"><Search :size="16" />检索匹配</button>
+    </form>
 
     <div class="graph-workbench anatomy-graph-workbench">
-      <section ref="stageRef" class="graph-stage anatomy-graph-stage" data-tour="graph-stage" :class="`mode-${graphMode}`">
-        <div class="graph-legend">
+      <section ref="stageRef" class="graph-stage anatomy-graph-stage" data-tour="graph-stage" :class="[`mode-${graphMode}`, { 'kg-overview': isOverview && graphMode === 'network' }]">
+        <div v-show="graphMode !== 'list'" class="graph-legend">
           <span v-for="(text, key) in typeLabels" :key="key"><i :class="`node-${key}`"></i>{{ text }}</span>
         </div>
-        <div class="graph-stage-actions">
+        <div v-show="graphMode !== 'list'" class="graph-stage-actions">
           <span class="graph-motion-state"><i :class="{ paused: isMotionPaused }"></i>{{ graphStatus }}</span>
-          <button v-if="graphMode === 'network'" class="icon-button" type="button" :title="isMotionPaused ? '继续动态布局' : '暂停动态布局'" :aria-label="isMotionPaused ? '继续动态布局' : '暂停动态布局'" @click="isMotionPaused = !isMotionPaused">
+          <button v-if="graphMode === 'network' && !isOverview" class="icon-button" type="button" :title="isMotionPaused ? '继续动态布局' : '暂停动态布局'" :aria-label="isMotionPaused ? '继续动态布局' : '暂停动态布局'" @click="isMotionPaused = !isMotionPaused">
             <Play v-if="isMotionPaused" :size="17" /><Pause v-else :size="17" />
           </button>
-          <button class="icon-button" type="button" title="缩小图谱" aria-label="缩小图谱" @click="zoomBy(-0.1)"><ZoomOut :size="17" /></button>
+          <button class="icon-button" type="button" title="放大图谱" aria-label="放大图谱" @click="zoomBy(0.1)"><Plus :size="17" /></button>
+          <button class="icon-button" type="button" title="缩小图谱" aria-label="缩小图谱" @click="zoomBy(-0.1)"><Minus :size="17" /></button>
           <button class="icon-button" type="button" title="重置布局" aria-label="重置布局" @click="zoom = 1; resetLayout()"><RotateCcw :size="17" /></button>
-          <button class="icon-button" type="button" title="放大图谱" aria-label="放大图谱" @click="zoomBy(0.1)"><ZoomIn :size="17" /></button>
         </div>
 
-        <div ref="canvasScrollRef" class="graph-canvas-scroll">
+        <div v-show="graphMode !== 'list'" ref="canvasScrollRef" class="graph-canvas-scroll">
           <svg
             ref="svgRef"
             :viewBox="`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`"
@@ -617,6 +694,14 @@ function endDrag() {
             @pointercancel="endDrag"
           >
             <g :transform="viewportTransform">
+              <g v-if="isOverview && graphMode === 'network'" class="kg-overview-decoration" aria-hidden="true">
+                <ellipse class="kg-orbit" cx="460" cy="317" rx="331" ry="190" />
+                <g class="kg-body-outline" transform="translate(402 327)">
+                  <path class="kg-body-fill" d="M42 29C37 20 39 1 58 1s21 19 16 28c-2 5-5 8-9 11v10l14 6c8 3 13 8 15 17l10 39 11 35-9 4-15-33-9-25-4 28 7 29-8 34H39l-8-34 7-29-4-28-9 25-15 33-9-4 11-35 10-39c2-9 7-14 15-17l14-6V40c-4-3-7-6-9-11Z" />
+                  <path d="M58 52v23m0-6-9 9m9-9 9 9M49 73c-9 5-13 14-13 25 0 5 7 7 12 3 4-3 4-9 4-15m15-13c9 5 13 14 13 25 0 5-7 7-12 3-4-3-4-9-4-15M58 103v53m-17-34c6 4 12 6 17 6s11-2 17-6m-36 15c7 4 13 6 19 6s12-2 19-6m-37 15c5 6 12 10 18 10s13-4 18-10" />
+                  <path d="M58 91c-6-7-13 1-7 8l7 7 7-7c6-7-1-15-7-8Z" />
+                </g>
+              </g>
               <path
                 v-for="edge in displayEdges"
                 :key="`${edge.source}-${edge.target}-${edge.relation}`"
@@ -624,7 +709,7 @@ function endDrag() {
                 :class="{ active: isActiveEdge(edge), virtual: edge.relation === 'learning_stage' }"
                 :d="edgePath(edge)"
               />
-              <template v-if="graphMode === 'network'">
+              <template v-if="graphMode === 'network' && !isOverview">
                 <text
                   v-for="edge in labeledEdges"
                 :key="`label-${edge.source}-${edge.target}-${edge.relation}`"
@@ -646,29 +731,43 @@ function endDrag() {
                 @pointerdown="startDrag($event, node)"
                 @click="selectNode(node)"
                 @keydown.enter="selectNode(node)"
+                @keydown.space.prevent="selectNode(node)"
               >
-                <circle v-if="graphMode === 'network'" :class="`node-${node.group || node.type}`" :r="selected?.id === node.id ? 34 : node.id === rootNodeId ? 31 : 27" />
-                <rect v-else :class="`node-${node.group || node.type}`" x="-67" y="-23" width="134" height="46" rx="8" />
-                <text class="kg-node-title" text-anchor="middle" :y="graphMode === 'mindmap' ? -2 : 4">{{ label(node).slice(0, graphMode === 'mindmap' ? 10 : 7) }}</text>
-                <text v-if="graphMode === 'mindmap'" class="kg-node-type" text-anchor="middle" y="14">{{ groupLabel(node) }}</text>
+                <template v-if="isOverview && graphMode === 'network'">
+                  <circle class="kg-overview-node" :r="node.id === OVERVIEW_ROOT_ID ? 61 : 50" />
+                  <AnatomyGraphIcon class="kg-overview-icon" :node-id="node.id" x="-16" y="-34" width="32" height="32" />
+                  <text class="kg-node-title" text-anchor="middle" y="23">{{ label(node) }}</text>
+                </template>
+                <template v-else>
+                  <circle v-if="graphMode === 'network'" :class="`node-${node.group || node.type}`" :r="selected?.id === node.id ? 34 : node.id === rootNodeId ? 31 : 27" />
+                  <rect v-else :class="`node-${node.group || node.type}`" x="-67" y="-23" width="134" height="46" rx="8" />
+                  <text class="kg-node-title" text-anchor="middle" :y="graphMode === 'mindmap' ? -2 : 4">{{ label(node).slice(0, graphMode === 'mindmap' ? 10 : 7) }}</text>
+                  <text v-if="graphMode === 'mindmap'" class="kg-node-type" text-anchor="middle" y="14">{{ groupLabel(node) }}</text>
+                </template>
               </g>
             </g>
           </svg>
         </div>
+        <small v-show="graphMode !== 'list'" class="kg-scroll-hint">左右滑动查看图谱</small>
+        <p v-if="!sourceNodes.length && graphMode !== 'list'" class="kg-empty-canvas">没有匹配的节点</p>
+        <div v-if="graphMode === 'list'" class="kg-node-list">
+          <header><h2><List :size="19" />列表视图</h2><span>{{ sourceNodes.length }} 个当前节点</span></header>
+          <button v-for="node in positionedNodes" :key="node.id" type="button" :aria-pressed="selected?.id === node.id" @click="selectNode(node)">
+            <i :class="'node-' + nodeGroup(node)"></i><strong>{{ label(node) }}</strong><span>{{ groupLabel(node) }}</span><ChevronRight :size="15" />
+          </button>
+          <p v-if="!positionedNodes.length">没有匹配的节点</p>
+        </div>
       </section>
 
-      <aside class="graph-detail">
-        <span class="section-kicker">{{ groupLabel(selected) }}</span>
-        <h2>{{ label(selected) }}</h2>
-        <p>{{ selected?.description_zh || selected?.summary || '该节点用于连接人体系统、器官与精细结构。' }}</p>
-        <div class="graph-focus-actions">
-          <button class="graph-focus-button" type="button" @click="focusSelected">
-            <LocateFixed :size="16" />展开两跳关系
-          </button>
-          <button v-if="focusedNodeId" class="graph-back-button" type="button" @click="clearFocus">
-            <RotateCcw :size="15" />返回筛选网络
-          </button>
-        </div>
+      <aside class="kg-side" aria-label="节点与关联详情">
+        <section class="kg-card kg-summary">
+          <h2><BookOpenCheck />图谱概览</h2>
+          <strong class="kg-selected-name">{{ selected ? label(selected) : '未选择节点' }}</strong>
+          <p>{{ selected ? (selected.description_zh || selected.summary || '该节点用于连接人体系统、器官与精细结构。') : '选择图谱中的节点以查看详情。' }}</p>
+          <div class="graph-focus-actions">
+            <button class="button-primary" type="button" :disabled="!selected" @click="focusSelected"><LocateFixed :size="15" />展开两跳关系</button>
+            <button v-if="focusedNodeId" class="graph-back-button" type="button" @click="clearFocus"><RotateCcw :size="14" />返回筛选网络</button>
+          </div>
         <div class="graph-source-tags">
           <button v-for="source in selected?.source_ids ?? []" :key="source" type="button" @click="openSource(source)">
             <BookOpenCheck :size="13" /><span>{{ sourceName(source) }}</span><ChevronRight :size="13" />
@@ -683,29 +782,59 @@ function endDrag() {
             访问公开来源 <ExternalLink :size="14" />
           </a>
         </section>
-        <h3>直接关联</h3>
-        <button v-for="edge in neighbors" :key="`${edge.source}-${edge.target}`" type="button" @click="selected = relatedNode(edge)">
-          <span><small>{{ edge.relation_zh || edge.relation }}</small><strong>{{ label(relatedNode(edge)) }}</strong><em v-if="edge.evidence_source">依据：{{ sourceName(edge.evidence_source) }}</em></span>
-          <ChevronRight :size="16" />
-        </button>
-        <h3>推荐观察顺序</h3>
-        <ol>
-          <li><span>1</span>确认所属人体系统</li>
-          <li><span>2</span>观察器官位置与毗邻</li>
-          <li><span>3</span>下钻精细结构与教材依据</li>
-        </ol>
+        </section>
+        <section class="kg-card kg-relations">
+          <header>
+            <h2><Link2 />直接关联</h2>
+            <button v-if="neighbors.length > 4" class="kg-text-button" type="button" :aria-expanded="showAllRelations" @click="showAllRelations = !showAllRelations">{{ showAllRelations ? '收起' : '查看全部' }}<ChevronRight :size="15" /></button>
+          </header>
+          <button v-for="edge in visibleNeighbors" :key="`${edge.source}-${edge.target}-${edge.relation}`" class="kg-relation-row" type="button" @click="selectRelated(edge)">
+            <span class="kg-relation-icon"><AnatomyGraphIcon :node-id="relatedNode(edge)?.id" width="17" height="17" /></span>
+            <span><strong>{{ label(relatedNode(edge)) }}</strong><small>{{ edge.relation_zh || edge.relation }}<template v-if="edge.evidence_source"> · {{ sourceName(edge.evidence_source) }}</template></small></span>
+            <small v-if="relatedNode(edge)" class="kg-relation-count">{{ degreeByNode.get(relatedNode(edge)?.id ?? '') }} 条</small>
+            <ChevronRight :size="15" />
+          </button>
+          <p v-if="!neighbors.length" class="kg-quiet">暂无直接关联。</p>
+        </section>
       </aside>
     </div>
 
-    <section class="evidence-results">
+    <div class="kg-lower">
+      <section class="kg-card kg-statistics">
+        <h2><BarChart3 />图谱统计</h2>
+        <div>
+          <article v-for="stat in graphTotals" :key="stat.label">
+            <component :is="stat.icon" :size="21" /><strong>{{ stat.value }}</strong><small>{{ stat.label }}</small>
+          </article>
+        </div>
+      </section>
+      <section class="kg-card kg-path">
+        <h2><GraduationCap />学习路径推荐</h2>
+        <div>
+          <button v-for="step in learningSteps" :key="step.type" type="button" @click="chooseLearningStep(step.type)">
+            <component :is="step.icon" :size="22" />{{ step.label }}
+          </button>
+        </div>
+      </section>
+      <section class="kg-card kg-distribution">
+        <h2><ScanLine />节点类型分布</h2>
+        <ul>
+          <li v-for="group in graphGroups" :key="group.key">
+            <span>{{ group.title }}</span><span aria-hidden="true" class="kg-bar-track"><i :style="{ width: group.count / maxGroupCount * 100 + '%' }"></i></span><strong>{{ group.count }}</strong>
+          </li>
+        </ul>
+      </section>
+    </div>
+
+    <section v-if="evidenceResults.length" class="evidence-results">
       <div class="section-heading">
         <div><span class="section-kicker">检索结果</span><h2>{{ query ? `“${query}”的可追溯依据` : '可追溯医学证据' }}</h2></div>
       </div>
       <article v-for="item in evidenceResults" :key="item.title">
         <span>{{ item.kind }}</span><strong>{{ item.title }}</strong><p>{{ item.summary }}</p>
-        <button type="button">查看依据 <ChevronRight :size="15" /></button>
       </article>
-      <div v-if="!evidenceResults.length" class="evidence-empty"><BookOpenCheck :size="20" /><strong>尚未选择检索主题</strong></div>
     </section>
   </div>
 </template>
+
+<style scoped src="../knowledge-graph-dashboard.css"></style>

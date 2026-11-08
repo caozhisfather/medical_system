@@ -20,7 +20,7 @@ MAIL_HOST=smtp.163.com
 MAIL_PORT=465
 MAIL_USERNAME=your-account@example.com
 MAIL_PASSWORD=your-smtp-authorization-code
-MAIL_FROM_NAME=临思智训
+MAIL_FROM_NAME=芯聆知医
 PUBLIC_FRONTEND_URL=http://127.0.0.1:5173
 ```
 

@@ -4,7 +4,7 @@ withDefaults(defineProps<{
   variant?: 'full' | 'compact';
   subtitle?: string;
 }>(), {
-  alt: '临思智训：教材可追溯的解剖学习平台',
+  alt: '芯聆知医：教材可追溯的解剖学习平台',
   variant: 'full',
   subtitle: '教材可追溯的解剖学习平台'
 });
@@ -13,10 +13,10 @@ withDefaults(defineProps<{
 <template>
   <span class="brand-logo" :class="`brand-logo-${variant}`">
     <span class="brand-logo-mark" :aria-hidden="variant === 'compact' ? true : undefined">
-      <img src="../assets/brand/lin-si-zhi-xun-logo.png" :alt="variant === 'compact' ? '' : alt" width="256" height="256" />
+      <img src="../assets/brand/xin-ling-zhi-yi-logo.png" :alt="variant === 'compact' ? '' : alt" width="256" height="256" />
     </span>
     <span v-if="variant === 'compact'" class="brand-logo-copy">
-      <strong>临思智训</strong>
+      <strong>芯聆知医</strong>
       <small>{{ subtitle }}</small>
     </span>
   </span>

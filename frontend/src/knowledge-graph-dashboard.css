@@ -1,0 +1,176 @@
+.graph-page {
+  --kg-blue: #165bf3;
+  --kg-ink: #10204d;
+  --kg-muted: #465c85;
+  --kg-stage-height: clamp(430px, 34vw, 520px);
+  display: grid;
+  gap: 12px;
+  color: var(--kg-ink);
+}
+.kg-banner {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 128px;
+  padding: 14px clamp(13px, 1.7vw, 25px);
+  overflow: hidden;
+  border-radius: 17px;
+  background: linear-gradient(112deg, #e3edff 5%, #c8dfff 60%, #dbe9ff);
+}
+.kg-banner::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0 auto 0 52%;
+  width: min(47%, 560px);
+  transform: translateX(-50%);
+  background: url('./assets/medical/dashboard-anatomy-hero.png') 73% top / cover no-repeat;
+  mask-image: linear-gradient(90deg, transparent, #000 44%, #000 75%, transparent);
+  content: '';
+}
+.kg-banner-copy { max-width: 57%; }
+.kg-banner-copy > span { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; font-size: 12px; font-weight: 750; }
+.kg-banner-copy svg { width: 13px; height: 13px; }
+.kg-banner h1 { margin: 5px 0; font-size: clamp(25px, 2.6vw, 40px); line-height: 1.16; }
+.kg-banner p { margin: 0; color: var(--kg-muted); font-size: 13px; }
+.kg-banner-totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  flex: 0 0 min(36%, 410px);
+  padding: 11px;
+  border: 1px solid #fff;
+  border-radius: 15px;
+  background: #f8fbffde;
+}
+.kg-banner-totals > div { display: grid; grid-template-columns: auto auto; justify-content: center; align-items: center; column-gap: 6px; padding: 3px; }
+.kg-banner-totals > div + div { border-left: 1px solid #dbe6fc; }
+.kg-banner-totals strong { color: #1446cc; font-size: clamp(18px, 1.8vw, 29px); line-height: 1.2; }
+.kg-banner-totals svg { grid-row: span 2; color: var(--kg-blue); }
+.kg-banner-totals small { color: var(--kg-muted); font-size: 11px; }
+
+.graph-page .kg-toolbar { flex-wrap: wrap; margin: 0; padding: 8px; border-radius: 15px; }
+.graph-page .kg-toolbar .search-control { flex: 1 1 240px; }
+.kg-toolbar input { width: 100%; font-size: 14px; }
+.graph-page .kg-toolbar select { color: var(--kg-ink); }
+.graph-page .graph-view-switch { flex-wrap: wrap; background: #e7eefc; }
+.graph-page .graph-view-switch button, .kg-3d-link { color: #233c6b; font-size: 13px; white-space: nowrap; cursor: pointer; }
+.graph-page .graph-view-switch button.active { background: var(--ui-primary); color: #fff; }
+.kg-3d-link { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 10px; min-height: 34px; border-radius: 6px; text-decoration: none; font-weight: 800; }
+.kg-3d-link:hover { background: #f7faff; color: var(--kg-blue); }
+
+.graph-page .anatomy-graph-workbench {
+  grid-template-columns: minmax(0, 2.65fr) minmax(240px, 1fr);
+  gap: 12px;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.graph-page .anatomy-graph-stage {
+  --graph-canvas-height: var(--kg-stage-height);
+  border: 1px solid #eef6ff;
+  border-radius: 17px;
+  background:
+    radial-gradient(ellipse at 50% 111%, #206bc782, transparent 65%),
+    linear-gradient(150deg, #071a4aaf, #0724519c 60%, #1061a371),
+    #061b50 url('./assets/medical/knowledge-graph-backdrop.jpeg') center / cover no-repeat;
+}
+.graph-page .anatomy-graph-stage::after { box-shadow: inset 0 0 72px #0519476b; }
+.graph-page .anatomy-graph-stage.kg-overview {
+  background:
+    linear-gradient(155deg, #0b214fed, #13365ada),
+    #102b52 url('./assets/medical/knowledge-graph-backdrop.jpeg') center / cover no-repeat;
+}
+.graph-page .kg-overview::after { box-shadow: none; }
+.kg-overview-decoration { pointer-events: none; }
+.kg-orbit { fill: none; stroke: #9bb8dc65; stroke-width: 1; stroke-dasharray: 3 5; }
+.kg-body-outline { fill: none; stroke: #abc8e9; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; opacity: .55; }
+.kg-body-fill { fill: #6b9bc518; }
+.graph-page .kg-overview .kg-overview-node { fill: #eaf2ff; stroke: #aac4e6; stroke-width: 1.5; filter: none; }
+.graph-page .kg-overview .node-shape-AnatomyRoot .kg-overview-node { fill: #fcf0da; stroke: #e2bb80; }
+.graph-page .kg-overview .kg-node:is(:hover, .selected, :focus-visible) .kg-overview-node { stroke: #fff; stroke-width: 3; }
+.kg-overview-icon { color: #285786; pointer-events: none; }
+.node-shape-AnatomyRoot .kg-overview-icon { color: #825121; }
+.graph-page .kg-overview .kg-node-title { fill: #173a60; font-size: 16px; font-weight: 750; stroke: none; }
+.graph-page .kg-overview .node-shape-AnatomyRoot .kg-node-title { fill: #573819; font-size: 20px; }
+.graph-page .kg-overview .kg-edge { stroke: #85a8cf8c; stroke-width: 1.15; }
+.graph-page .kg-overview .kg-edge.active { stroke: #b3cae5; stroke-width: 1.4; }
+.graph-page .graph-legend { border: 1px solid #b2d2ff56; border-radius: 12px; }
+.graph-page .graph-stage-actions .icon-button { border-radius: 9px; }
+.kg-empty-canvas { position: absolute; inset: 45% 0 auto; margin: 0; color: #eef6ff; text-align: center; pointer-events: none; }
+.kg-scroll-hint { display: none; }
+.kg-node-list { position: relative; z-index: 1; height: var(--graph-canvas-height); overflow: auto; padding: 14px; background: #f7faff; }
+.kg-node-list header { display: flex; justify-content: space-between; align-items: center; gap: 7px; padding: 8px 4px 14px; }
+.kg-node-list h2 { display: flex; gap: 8px; align-items: center; margin: 0; font-size: 17px; }
+.kg-node-list header span, .kg-node-list button > span { color: var(--kg-muted); font-size: 12px; }
+.kg-node-list button { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 9px; align-items: center; width: 100%; min-height: 40px; padding: 8px; border: 0; border-bottom: 1px solid #dce7fb; color: var(--kg-ink); background: transparent; text-align: left; cursor: pointer; }
+.kg-node-list button:hover, .kg-node-list button[aria-pressed="true"] { background: #e0ebff; }
+.kg-node-list i { width: 9px; height: 9px; border-radius: 50%; }
+
+.kg-side { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px; min-width: 0; max-height: calc(var(--kg-stage-height) + 2px); }
+.kg-card { min-width: 0; padding: 13px 15px; border: 1px solid #fff; border-radius: 15px; background: linear-gradient(145deg, #fdfdff, #eff4ff); box-shadow: 0 5px 14px #143b7a15; }
+.kg-card h2 { display: flex; align-items: center; gap: 7px; margin: 0; font-size: 16px; line-height: 1.35; }
+.kg-card h2 svg { width: 20px; height: 20px; color: var(--kg-blue); }
+.kg-summary {
+  background:
+    linear-gradient(90deg, #f8faff 28%, #e6efffeb 62%, #d8e6ff85),
+    url('./assets/medical/dashboard-anatomy-hero.png') right 20% / auto 155% no-repeat,
+    #edf4ff;
+}
+.kg-selected-name { display: block; margin-top: 8px; font-size: 19px; }
+.kg-summary p { margin: 2px 0; color: var(--kg-muted); font-size: 12px; line-height: 1.55; }
+.kg-summary .graph-focus-actions { margin: 8px 0 0; }
+.kg-summary .graph-focus-actions .button-primary { min-height: 32px; border-radius: 999px; background: var(--ui-primary); color: #fff; }
+.kg-summary .graph-source-tags { margin: 7px 0 0; }
+.kg-summary .graph-source-tags:empty { display: none; }
+.kg-summary .graph-source-detail { max-height: 110px; margin: 7px 0 0; overflow: auto; }
+.kg-relations { overflow: auto; }
+.kg-relations header { display: flex; align-items: center; justify-content: space-between; gap: 7px; margin-bottom: 5px; }
+.kg-text-button { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border: 0; background: transparent; color: #254d96; font-size: 11px; white-space: nowrap; cursor: pointer; }
+.kg-relation-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 8px; width: 100%; padding: 6px 0; border: 0; border-bottom: 1px solid #dce6f8; background: transparent; color: var(--kg-ink); text-align: left; cursor: pointer; }
+.kg-relation-row:hover { background: #e7efff; }
+.kg-relation-row strong, .kg-relation-row small { display: block; }
+.kg-relation-row strong { font-size: 13px; }
+.kg-relation-row small, .kg-quiet { color: var(--kg-muted); font-size: 11px; }
+.kg-relation-row .kg-relation-count { color: #1446cc; font-weight: 750; white-space: nowrap; }
+.kg-relation-icon { display: grid; width: 31px; aspect-ratio: 1; place-items: center; border-radius: 9px; color: var(--kg-blue); background: #e1ebff; }
+
+.kg-lower { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.15fr) minmax(0, 1fr); gap: 12px; }
+.kg-statistics > div, .kg-path > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-top: 10px; }
+.kg-statistics article, .kg-path button { display: grid; align-content: center; justify-items: center; gap: 3px; min-height: 73px; padding: 6px 3px; border: 0; border-radius: 10px; background: #e3ecfc; color: var(--kg-ink); text-align: center; }
+.kg-statistics svg, .kg-path button svg { color: var(--kg-blue); }
+.kg-statistics article strong { font-size: 20px; line-height: 1; }
+.kg-statistics small { color: var(--kg-muted); font-size: 11px; }
+.kg-path > div { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.kg-path button { font-size: 11px; font-weight: 750; cursor: pointer; }
+.kg-path button:nth-child(odd) { background: #e9e8ff; }
+.kg-path button:hover { background: #d6e4ff; }
+.kg-distribution ul { display: grid; gap: 5px; margin: 10px 0 0; padding: 0; list-style: none; }
+.kg-distribution li { display: grid; grid-template-columns: 5em minmax(0, 1fr) 3em; align-items: center; gap: 6px; color: var(--kg-muted); font-size: 11px; }
+.kg-distribution strong { color: var(--kg-ink); text-align: right; }
+.kg-bar-track { height: 6px; overflow: hidden; border-radius: 999px; background: #dce8fb; }
+.kg-bar-track i { display: block; height: 100%; border-radius: inherit; background: #4788ff; }
+@media (max-width: 1000px) {
+  .graph-page .anatomy-graph-workbench { grid-template-columns: 1fr; }
+  .kg-side { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto; max-height: none; align-items: start; }
+  .kg-relations { max-height: 360px; }
+}
+@media (max-width: 760px) {
+  .graph-page { --kg-stage-height: 410px; }
+  .kg-banner { align-items: stretch; flex-direction: column; }
+  .kg-banner::before { inset: 0 0 auto auto; width: 69%; height: 75%; transform: none; opacity: .55; }
+  .kg-banner-copy { max-width: 100%; }
+  .kg-banner-totals { flex: auto; }
+  .graph-page .kg-toolbar { grid-template-columns: minmax(0, 1fr) auto; }
+  .graph-page .kg-toolbar .graph-view-switch { grid-column: 1 / -1; grid-row: 2; }
+  .graph-page .kg-toolbar > .button-primary { grid-column: 2; grid-row: 3; }
+  .graph-page .anatomy-graph-stage .graph-stage-actions { display: flex; }
+  .kg-lower { grid-template-columns: 1fr; }
+}
+@media (max-width: 490px) {
+  .kg-side { grid-template-columns: 1fr; }
+  .kg-banner-totals svg { width: 17px; }
+  .kg-scroll-hint { position: absolute; z-index: 3; right: 12px; bottom: 54px; display: block; padding: 3px 6px; border-radius: 5px; background: #071d49d9; color: #edf7ff; font-size: 10px; pointer-events: none; }
+}

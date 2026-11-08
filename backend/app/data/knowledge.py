@@ -3093,9 +3093,9 @@ KNOWLEDGE_ITEMS = [
       "emergency_chest_pain"
     ],
     "source_type": "虚拟病例",
-    "source_name": "临思智训病例库",
+    "source_name": "芯聆知医病例库",
     "data_source": "自建病例",
-    "source": "临思智训病例库",
+    "source": "芯聆知医病例库",
     "citation": "急诊医学 自建病例 prototype citation",
     "graph_node_ids": [
       "case_emergency_chest_pain"
@@ -3139,9 +3139,9 @@ KNOWLEDGE_ITEMS = [
       "acute_abdominal_pain"
     ],
     "source_type": "虚拟病例",
-    "source_name": "临思智训病例库",
+    "source_name": "芯聆知医病例库",
     "data_source": "自建病例",
-    "source": "临思智训病例库",
+    "source": "芯聆知医病例库",
     "citation": "消化与急诊 自建病例 prototype citation",
     "graph_node_ids": [
       "case_acute_abdominal_pain"
@@ -3188,9 +3188,9 @@ KNOWLEDGE_ITEMS = [
       "fever_unknown"
     ],
     "source_type": "虚拟病例",
-    "source_name": "临思智训病例库",
+    "source_name": "芯聆知医病例库",
     "data_source": "自建病例",
-    "source": "临思智训病例库",
+    "source": "芯聆知医病例库",
     "citation": "感染与内科 自建病例 prototype citation",
     "graph_node_ids": [
       "case_fever_unknown"
@@ -3236,9 +3236,9 @@ KNOWLEDGE_ITEMS = [
       "dyspnea"
     ],
     "source_type": "虚拟病例",
-    "source_name": "临思智训病例库",
+    "source_name": "芯聆知医病例库",
     "data_source": "自建病例",
-    "source": "临思智训病例库",
+    "source": "芯聆知医病例库",
     "citation": "呼吸与急诊 自建病例 prototype citation",
     "graph_node_ids": [
       "case_dyspnea"
@@ -3282,9 +3282,9 @@ KNOWLEDGE_ITEMS = [
       "diabetes_education"
     ],
     "source_type": "虚拟病例",
-    "source_name": "临思智训病例库",
+    "source_name": "芯聆知医病例库",
     "data_source": "自建病例",
-    "source": "临思智训病例库",
+    "source": "芯聆知医病例库",
     "citation": "全科医学 自建病例 prototype citation",
     "graph_node_ids": [
       "case_diabetes_education"
@@ -3325,9 +3325,9 @@ KNOWLEDGE_ITEMS = [
       "headache_case"
     ],
     "source_type": "虚拟病例",
-    "source_name": "临思智训病例库",
+    "source_name": "芯聆知医病例库",
     "data_source": "自建病例",
-    "source": "临思智训病例库",
+    "source": "芯聆知医病例库",
     "citation": "神经内科 自建病例 prototype citation",
     "graph_node_ids": [
       "case_headache_case"
@@ -3371,9 +3371,9 @@ KNOWLEDGE_ITEMS = [
       "anemia_case"
     ],
     "source_type": "虚拟病例",
-    "source_name": "临思智训病例库",
+    "source_name": "芯聆知医病例库",
     "data_source": "自建病例",
-    "source": "临思智训病例库",
+    "source": "芯聆知医病例库",
     "citation": "血液内科 自建病例 prototype citation",
     "graph_node_ids": [
       "case_anemia_case"
@@ -3420,9 +3420,9 @@ KNOWLEDGE_ITEMS = [
       "jaundice_case"
     ],
     "source_type": "虚拟病例",
-    "source_name": "临思智训病例库",
+    "source_name": "芯聆知医病例库",
     "data_source": "自建病例",
-    "source": "临思智训病例库",
+    "source": "芯聆知医病例库",
     "citation": "消化内科 自建病例 prototype citation",
     "graph_node_ids": [
       "case_jaundice_case"

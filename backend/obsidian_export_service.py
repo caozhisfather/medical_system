@@ -42,7 +42,7 @@ class ObsidianGraphExportService:
         return {
             "status": "mock_ready",
             "note_count": len(notes),
-            "vault_name": "临思智训医学教育图谱",
+            "vault_name": "芯聆知医医学教育图谱",
             "notes": notes,
             "message": "已生成 Obsidian Markdown 预览，真实导出时可写入本地 vault 或对象存储。",
         }

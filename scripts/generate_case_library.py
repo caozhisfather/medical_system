@@ -169,7 +169,7 @@ def seed(
         "case_variants": variants,
         "source": {
             "type": "synthetic",
-            "name": "临思智训虚拟教学病例库",
+            "name": "芯聆知医虚拟教学病例库",
             "license_review_required": False,
             "contains_real_patient_data": False,
         },

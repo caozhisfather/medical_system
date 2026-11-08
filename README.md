@@ -1,4 +1,4 @@
-# 临思智训：AI 医学解剖与教学知识平台
+# 芯聆知医：AI 医学解剖与教学知识平台
 
 > 面向医学教育的三维解剖学习、AI 测验与教学知识管理演示系统。
 
@@ -245,7 +245,7 @@ MAIL_HOST=smtp.163.com
 MAIL_PORT=465
 MAIL_USERNAME=
 MAIL_PASSWORD=
-MAIL_FROM_NAME=临思智训
+MAIL_FROM_NAME=芯聆知医
 PUBLIC_FRONTEND_URL=http://127.0.0.1:5173
 AUTH_DATABASE_PATH=./data/auth.sqlite3
 ```

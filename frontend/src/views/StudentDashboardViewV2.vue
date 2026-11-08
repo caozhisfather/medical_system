@@ -258,7 +258,7 @@ onBeforeUnmount(() => {
         <img v-for="(slide, index) in heroSlides" :key="slide.art" class="hero-illustration"
           :class="{ 'is-active': index === slideIndex }" :src="slide.art" alt="" :fetchpriority="index === 0 ? 'high' : 'low'" />
         <div class="hero-copy" :aria-live="canRotate ? 'off' : 'polite'">
-          <p class="hero-eyebrow">临思智训 <span>·</span> 个性化智能学习平台</p>
+          <p class="hero-eyebrow">芯聆知医 <span>·</span> 个性化智能学习平台</p>
           <h1>{{ currentSlide.title }}</h1>
           <p class="hero-description">{{ currentSlide.description }}</p>
           <div class="dashboard-actions" @mouseenter="actionsHovered = true" @mouseleave="actionsHovered = false"

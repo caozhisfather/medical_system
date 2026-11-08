@@ -12,7 +12,7 @@ Medical students study 3D anatomy, identify structures and complete quizzes. Tea
 
 ## Product Purpose
 
-“临思智训” focuses on 3D anatomy observation, traceable textbook evidence, knowledge relationships and practice feedback. It is for education and competition demonstrations, not diagnosis, treatment or clinical decision support.
+“芯聆知医” focuses on 3D anatomy observation, traceable textbook evidence, knowledge relationships and practice feedback. It is for education and competition demonstrations, not diagnosis, treatment or clinical decision support.
 
 ## Positioning
 
