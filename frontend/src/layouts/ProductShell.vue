@@ -138,8 +138,8 @@ async function signOut() {
   border-right: 0;
   border-radius: 0 0 var(--ui-radius) 0;
   background:
-    linear-gradient(178deg, rgba(236, 244, 255, .93), rgba(218, 233, 255, .88) 57%, rgba(188, 213, 249, .83)),
-    #dbe8fc url('../assets/brand/sidebar-medical.webp') center bottom / cover no-repeat;
+    linear-gradient(180deg, #edf5ff33, #edf5ff0d 55%, #edf5ff33),
+    #dbe8fc url('../assets/brand/sidebar-medical.webp') 8% center / cover no-repeat;
 }
 
 .sidebar-brand { min-height: 55px; margin-bottom: 28px; border-radius: 10px; }
@@ -232,7 +232,7 @@ async function signOut() {
   .product-shell .topbar-profile { grid-template-columns: 30px 14px; gap: 3px; min-height: 34px; }
   .topbar-profile > span:not(.user-avatar) { display: none; }
   .workspace-profile-links .profile-help { display: flex; }
-  .product-shell .product-sidebar { overflow: hidden; padding: 8px 10px 2px; border-radius: 0; background-position: center 74%; }
+  .product-shell .product-sidebar { overflow: hidden; padding: 8px 10px 2px; border-radius: 0; background-position: center 56%; }
   .sidebar-brand, .sidebar-support { display: none; }
   .product-shell .product-sidebar nav { gap: 5px; }
   .product-shell .product-sidebar nav a { min-width: 0; min-height: 35px; padding-inline: 10px; gap: 5px; font-size: 12px; }

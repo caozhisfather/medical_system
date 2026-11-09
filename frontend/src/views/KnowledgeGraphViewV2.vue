@@ -23,6 +23,7 @@ import {
   ScanLine
 } from '@lucide/vue';
 import { getDataSources, getKnowledgeGraph, searchKnowledge } from '../api';
+import anatomyModel from '../assets/medical/knowledge-graph-anatomy.webp';
 import AnatomyGraphIcon from '../components/AnatomyGraphIcon.vue';
 import { mockGraph } from '../data/graph';
 import { trainingStore } from '../stores/training';
@@ -116,6 +117,30 @@ function nodeText(node: KnowledgeNode) {
 
 function nodeGroup(node: KnowledgeNode) {
   return node.group || node.type || 'LearningObjective';
+}
+
+function hasAnatomyMedallion(node: KnowledgeNode) {
+  const group = nodeGroup(node);
+  return group === 'AnatomyRoot' || group === 'AnatomySystem';
+}
+
+function networkNodeRadius(node: KnowledgeNode) {
+  if (nodeGroup(node) === 'AnatomyRoot') return 35;
+  if (nodeGroup(node) === 'AnatomySystem') return 31;
+  if (nodeGroup(node) === 'AnatomyOrgan') return 29;
+  return selected.value?.id === node.id ? 34 : node.id === rootNodeId.value ? 31 : 27;
+}
+
+function branchLabelLines(node: KnowledgeNode) {
+  const title = label(node);
+  const name = Array.from(title);
+  const limit = /\p{Script=Han}/u.test(title) ? 5 : 8;
+  const lines = name.length <= limit ? [title] : [
+    name.slice(0, limit).join(''),
+    name.length > limit * 2 ? name.slice(limit, limit * 2 - 1).join('') + '…' : name.slice(limit).join('')
+  ];
+  const firstLineY = nodeGroup(node) === 'AnatomyOrgan' ? 10 : lines.length === 1 ? 0 : -5;
+  return lines.map((text, index) => ({ text, y: firstLineY + index * 10 }));
 }
 
 function nodeDegree(nodeId: string) {
@@ -510,6 +535,7 @@ function simulate(timestamp: number) {
   previousFrame = timestamp;
   const items = positionedNodes.value;
   const lookup = new Map(items.map((node) => [node.id, node]));
+  const radii = items.map(networkNodeRadius);
 
   for (let first = 0; first < items.length; first += 1) {
     for (let second = first + 1; second < items.length; second += 1) {
@@ -521,7 +547,8 @@ function simulate(timestamp: number) {
       const distance = Math.sqrt(distanceSquared);
       dx /= distance;
       dy /= distance;
-      const force = Math.min(1.2, 1700 / distanceSquared) * delta;
+      const overlap = Math.max(0, radii[first] + radii[second] + 4 - distance);
+      const force = (Math.min(1.2, 1700 / distanceSquared) + overlap * 0.055) * delta;
       if (draggingId.value !== a.id) { a.vx -= dx * force; a.vy -= dy * force; }
       if (draggingId.value !== b.id) { b.vx += dx * force; b.vy += dy * force; }
     }
@@ -696,11 +723,7 @@ function endDrag() {
             <g :transform="viewportTransform">
               <g v-if="isOverview && graphMode === 'network'" class="kg-overview-decoration" aria-hidden="true">
                 <ellipse class="kg-orbit" cx="460" cy="317" rx="331" ry="190" />
-                <g class="kg-body-outline" transform="translate(402 327)">
-                  <path class="kg-body-fill" d="M42 29C37 20 39 1 58 1s21 19 16 28c-2 5-5 8-9 11v10l14 6c8 3 13 8 15 17l10 39 11 35-9 4-15-33-9-25-4 28 7 29-8 34H39l-8-34 7-29-4-28-9 25-15 33-9-4 11-35 10-39c2-9 7-14 15-17l14-6V40c-4-3-7-6-9-11Z" />
-                  <path d="M58 52v23m0-6-9 9m9-9 9 9M49 73c-9 5-13 14-13 25 0 5 7 7 12 3 4-3 4-9 4-15m15-13c9 5 13 14 13 25 0 5-7 7-12 3-4-3-4-9-4-15M58 103v53m-17-34c6 4 12 6 17 6s11-2 17-6m-36 15c7 4 13 6 19 6s12-2 19-6m-37 15c5 6 12 10 18 10s13-4 18-10" />
-                  <path d="M58 91c-6-7-13 1-7 8l7 7 7-7c6-7-1-15-7-8Z" />
-                </g>
+                <image class="kg-body-model" :href="anatomyModel" x="382" y="318" width="156" height="208" />
               </g>
               <path
                 v-for="edge in displayEdges"
@@ -733,13 +756,21 @@ function endDrag() {
                 @keydown.enter="selectNode(node)"
                 @keydown.space.prevent="selectNode(node)"
               >
-                <template v-if="isOverview && graphMode === 'network'">
-                  <circle class="kg-overview-node" :r="node.id === OVERVIEW_ROOT_ID ? 61 : 50" />
-                  <AnatomyGraphIcon class="kg-overview-icon" :node-id="node.id" x="-16" y="-34" width="32" height="32" />
-                  <text class="kg-node-title" text-anchor="middle" y="23">{{ label(node) }}</text>
+                <template v-if="graphMode === 'network' && (nodeGroup(node) === 'AnatomyOrgan' || nodeGroup(node) === 'AnatomyStructure')">
+                  <title>{{ label(node) }}</title>
+                  <circle class="kg-branch-node" :r="networkNodeRadius(node)" />
+                  <AnatomyGraphIcon v-if="nodeGroup(node) === 'AnatomyOrgan'" class="kg-organ-icon" :node-id="node.id" light x="-10" y="-20" width="20" height="20" />
+                  <text class="kg-node-title kg-branch-title" text-anchor="middle" :dominant-baseline="nodeGroup(node) === 'AnatomyStructure' ? 'central' : undefined">
+                    <tspan v-for="line in branchLabelLines(node)" :key="line.y" x="0" :y="line.y">{{ line.text }}</tspan>
+                  </text>
+                </template>
+                <template v-else-if="graphMode === 'network' && (isOverview || hasAnatomyMedallion(node))">
+                  <circle class="kg-overview-node" :r="isOverview ? (node.id === OVERVIEW_ROOT_ID ? 61 : 50) : networkNodeRadius(node)" />
+                  <AnatomyGraphIcon class="kg-overview-icon" :node-id="node.id" :x="isOverview ? -21 : -12" :y="isOverview ? -37 : -23" :width="isOverview ? 42 : 24" :height="isOverview ? 42 : 24" />
+                  <text class="kg-node-title kg-medallion-title" text-anchor="middle" :y="isOverview ? 23 : 15">{{ label(node) }}</text>
                 </template>
                 <template v-else>
-                  <circle v-if="graphMode === 'network'" :class="`node-${node.group || node.type}`" :r="selected?.id === node.id ? 34 : node.id === rootNodeId ? 31 : 27" />
+                  <circle v-if="graphMode === 'network'" :class="`node-${node.group || node.type}`" :r="networkNodeRadius(node)" />
                   <rect v-else :class="`node-${node.group || node.type}`" x="-67" y="-23" width="134" height="46" rx="8" />
                   <text class="kg-node-title" text-anchor="middle" :y="graphMode === 'mindmap' ? -2 : 4">{{ label(node).slice(0, graphMode === 'mindmap' ? 10 : 7) }}</text>
                   <text v-if="graphMode === 'mindmap'" class="kg-node-type" text-anchor="middle" y="14">{{ groupLabel(node) }}</text>
@@ -789,7 +820,7 @@ function endDrag() {
             <button v-if="neighbors.length > 4" class="kg-text-button" type="button" :aria-expanded="showAllRelations" @click="showAllRelations = !showAllRelations">{{ showAllRelations ? '收起' : '查看全部' }}<ChevronRight :size="15" /></button>
           </header>
           <button v-for="edge in visibleNeighbors" :key="`${edge.source}-${edge.target}-${edge.relation}`" class="kg-relation-row" type="button" @click="selectRelated(edge)">
-            <span class="kg-relation-icon"><AnatomyGraphIcon :node-id="relatedNode(edge)?.id" width="17" height="17" /></span>
+            <span class="kg-relation-icon"><AnatomyGraphIcon :node-id="relatedNode(edge)?.id" width="27" height="27" /></span>
             <span><strong>{{ label(relatedNode(edge)) }}</strong><small>{{ edge.relation_zh || edge.relation }}<template v-if="edge.evidence_source"> · {{ sourceName(edge.evidence_source) }}</template></small></span>
             <small v-if="relatedNode(edge)" class="kg-relation-count">{{ degreeByNode.get(relatedNode(edge)?.id ?? '') }} 条</small>
             <ChevronRight :size="15" />

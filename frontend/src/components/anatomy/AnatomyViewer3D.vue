@@ -380,6 +380,17 @@ function resetView() {
   frameBox(activeBounds(), true);
 }
 
+function zoomView(factor: number) {
+  const view = camera.value;
+  const orbit = controls.value;
+  if (!view || !orbit || cameraTween) return;
+  const offset = view.position.clone().sub(orbit.target);
+  const distance = THREE.MathUtils.clamp(offset.length() * factor, orbit.minDistance, orbit.maxDistance);
+  view.position.copy(orbit.target).add(offset.setLength(distance));
+  orbit.update();
+  markDirty();
+}
+
 /**
  * Show a single organ in isolation. Other organs stay cached in the scene but
  * hidden, so switching between them is instant after the first build.
@@ -487,10 +498,9 @@ onMounted(async () => {
     }
 
     const active = new THREE.Scene();
-    active.background = new THREE.Color('#101a1d');
 
     const activeCamera = new THREE.PerspectiveCamera(38, 1, 0.01, 100);
-    const activeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    const activeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     activeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     activeRenderer.outputColorSpace = THREE.SRGBColorSpace;
     element.appendChild(activeRenderer.domElement);
@@ -631,7 +641,7 @@ watch(() => props.autoRotate, (value) => {
   markDirty();
 });
 
-defineExpose({ resetView });
+defineExpose({ resetView, zoomView });
 </script>
 
 <template>

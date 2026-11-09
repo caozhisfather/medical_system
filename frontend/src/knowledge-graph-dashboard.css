@@ -2,6 +2,7 @@
   --kg-blue: #165bf3;
   --kg-ink: #10204d;
   --kg-muted: #465c85;
+  --kg-branch-outline: #ffe4a3;
   --kg-stage-height: clamp(430px, 34vw, 520px);
   display: grid;
   gap: 12px;
@@ -72,29 +73,33 @@
   --graph-canvas-height: var(--kg-stage-height);
   border: 1px solid #eef6ff;
   border-radius: 17px;
-  background:
-    radial-gradient(ellipse at 50% 111%, #206bc782, transparent 65%),
-    linear-gradient(150deg, #071a4aaf, #0724519c 60%, #1061a371),
-    #061b50 url('./assets/medical/knowledge-graph-backdrop.jpeg') center / cover no-repeat;
 }
-.graph-page .anatomy-graph-stage::after { box-shadow: inset 0 0 72px #0519476b; }
+.graph-page .anatomy-graph-stage::after { box-shadow: inset 0 0 55px #05194738; }
 .graph-page .anatomy-graph-stage.kg-overview {
-  background:
-    linear-gradient(155deg, #0b214fed, #13365ada),
-    #102b52 url('./assets/medical/knowledge-graph-backdrop.jpeg') center / cover no-repeat;
+  --graph-backdrop-shade: linear-gradient(180deg, #071d4c1c, #06214b23 62%, #082a4929);
 }
 .graph-page .kg-overview::after { box-shadow: none; }
 .kg-overview-decoration { pointer-events: none; }
 .kg-orbit { fill: none; stroke: #9bb8dc65; stroke-width: 1; stroke-dasharray: 3 5; }
-.kg-body-outline { fill: none; stroke: #abc8e9; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; opacity: .55; }
-.kg-body-fill { fill: #6b9bc518; }
-.graph-page .kg-overview .kg-overview-node { fill: #eaf2ff; stroke: #aac4e6; stroke-width: 1.5; filter: none; }
-.graph-page .kg-overview .node-shape-AnatomyRoot .kg-overview-node { fill: #fcf0da; stroke: #e2bb80; }
-.graph-page .kg-overview .kg-node:is(:hover, .selected, :focus-visible) .kg-overview-node { stroke: #fff; stroke-width: 3; }
-.kg-overview-icon { color: #285786; pointer-events: none; }
-.node-shape-AnatomyRoot .kg-overview-icon { color: #825121; }
-.graph-page .kg-overview .kg-node-title { fill: #173a60; font-size: 16px; font-weight: 750; stroke: none; }
-.graph-page .kg-overview .node-shape-AnatomyRoot .kg-node-title { fill: #573819; font-size: 20px; }
+.kg-body-model { opacity: .94; mask-image: linear-gradient(#000 81%, transparent); }
+.graph-page .kg-node .kg-overview-node { fill: #eaf2ff; stroke: #aac4e6; stroke-width: 1.5; filter: none; }
+.graph-page .node-shape-AnatomyRoot .kg-overview-node { fill: #fcf0da; stroke: #e2bb80; }
+.graph-page .kg-node:is(:hover, .selected, :focus-visible) .kg-overview-node { stroke: #fff; stroke-width: 3; }
+.kg-overview-icon { pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .kg-overview-icon { transition: translate .18s ease; }
+  .kg-node:is(:hover, :focus-visible) .kg-overview-icon { translate: 0 -3px; }
+}
+.graph-page .kg-medallion-title { fill: #173a60; font-size: 10px; font-weight: 750; stroke: none; }
+.graph-page .node-shape-AnatomyRoot .kg-medallion-title { fill: #573819; }
+.graph-page .kg-overview .kg-medallion-title { font-size: 16px; }
+.graph-page .kg-overview .node-shape-AnatomyRoot .kg-medallion-title { font-size: 20px; }
+.graph-page .kg-node .kg-branch-node { fill: #123b78; stroke: var(--kg-branch-outline); stroke-width: 1.6; filter: drop-shadow(0 0 3px #ffe4a34d); }
+.graph-page .kg-node:is(:hover, .selected, :focus-visible) .kg-branch-node { fill: #1c5195; stroke: #fff2cb; stroke-width: 2.3; }
+.kg-organ-icon { pointer-events: none; }
+.graph-page .kg-branch-title { fill: #fff; font-size: 9px; font-weight: 750; stroke: none; }
+.graph-page .mode-network .graph-legend .node-AnatomyOrgan { background: #78daff; }
+.graph-page .mode-network .graph-legend .node-AnatomyStructure { background: #123b78; border: 1px solid var(--kg-branch-outline); }
 .graph-page .kg-overview .kg-edge { stroke: #85a8cf8c; stroke-width: 1.15; }
 .graph-page .kg-overview .kg-edge.active { stroke: #b3cae5; stroke-width: 1.4; }
 .graph-page .graph-legend { border: 1px solid #b2d2ff56; border-radius: 12px; }
@@ -173,4 +178,7 @@
   .kg-side { grid-template-columns: 1fr; }
   .kg-banner-totals svg { width: 17px; }
   .kg-scroll-hint { position: absolute; z-index: 3; right: 12px; bottom: 54px; display: block; padding: 3px 6px; border-radius: 5px; background: #071d49d9; color: #edf7ff; font-size: 10px; pointer-events: none; }
+}
+@media (min-width: 370px) and (max-width: 490px) {
+  .kg-scroll-hint { bottom: 15px; }
 }

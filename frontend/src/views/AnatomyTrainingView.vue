@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Activity, ArrowLeft, ArrowRight, BookOpenCheck, Brain, Check, ChevronDown, ChevronRight, CircleAlert, Crosshair, ExternalLink, Eye, EyeOff, Layers3, LoaderCircle, LocateFixed, Maximize2, Minimize2, MousePointer2, PanelLeftClose, PanelLeftOpen, RotateCcw, ScanLine, Target, Video, X, ZoomIn } from '@lucide/vue';
+import { Activity, ArrowLeft, ArrowRight, BarChart3, BookOpenCheck, Brain, Check, ChevronDown, ChevronRight, CircleAlert, CircleCheck, Crosshair, ExternalLink, Eye, EyeOff, GraduationCap, House, Layers3, LoaderCircle, LocateFixed, Maximize2, Minimize2, Minus, MousePointer2, Network, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, ScanLine, Search, Target, Video, X, Zap, ZoomIn } from '@lucide/vue';
 import { getAnatomyExercises, getAnatomyGlossary, getAnatomyEvidence, getAnatomyNotes, getAnatomyTextbook, saveAnatomyNote, sendAgentMessage, speakDigitalHuman, submitAnatomy } from '../api';
 import anatomyImage from '../assets/medical/anatomy-organs.png';
+import AnatomyGraphIcon from '../components/AnatomyGraphIcon.vue';
 import AnatomyViewer3D from '../components/anatomy/AnatomyViewer3D.vue';
 import AnatomyQuizPanel from '../components/anatomy/AnatomyQuizPanel.vue';
 import DigitalHumanLecture from '../components/anatomy/DigitalHumanLecture.vue';
@@ -55,8 +56,14 @@ const atlasResourcesExpanded = ref(false);
 const imageFrame = ref<HTMLElement | null>(null);
 const isDraggingImage = ref(false);
 const imageDragStartX = ref(0);
+const imageDragStartY = ref(0);
 const imageScrollStart = ref(0);
+const imageScrollTop = ref(0);
 const imageMoved = ref(false);
+const practiceZoom = ref(1);
+const practiceInfoTab = ref<'structure' | 'clinical'>('structure');
+const practiceWorkbench = ref<HTMLElement | null>(null);
+const isPracticeFullscreen = ref(false);
 const textbook = ref<AnatomyTextbookResult | null>(null);
 const textbookLoading = ref(false);
 const showTextbook = ref(false);
@@ -87,7 +94,11 @@ const bodySelection = ref<{ id: string; name: string; system: string; systemName
 const hiddenSystems = ref<string[]>([]);
 const hiddenOrganIds = ref<string[]>([]);
 const hiddenPartIds = ref<string[]>([]);
-const bodyAutoRotate = ref(true);
+const bodyAutoRotate = ref(false);
+const viewedParts = ref(new Set<string>());
+const structureSearch = ref('');
+const showStructureSearch = ref(false);
+const structureSearchInput = ref<HTMLInputElement | null>(null);
 const bodyStats = ref({ parts: 0, triangles: 0 });
 const quizTarget = ref<{ en: string; cn: string; system: string } | null>(null);
 const bodyWorkbench = ref<HTMLElement | null>(null);
@@ -98,6 +109,15 @@ const organPayload = ref<AnatomyOrganPayload | null>(null);
 const partInfo = ref<Map<string, { name: string; system: string }>>(new Map());
 const bodySystemCounts = ref<Record<string, number>>({});
 const glossary = ref<Record<string, string>>({});
+const viewingProgress = computed(() => bodyStats.value.parts
+  ? Math.round(viewedParts.value.size / bodyStats.value.parts * 1000) / 10
+  : 0);
+const structureMatches = computed(() => {
+  const keyword = structureSearch.value.trim().toLocaleLowerCase();
+  if (!keyword) return [];
+  return [...partInfo.value].filter(([, info]) => info.name.toLocaleLowerCase().includes(keyword)
+    || (glossary.value[info.name] ?? '').includes(keyword)).slice(0, 8);
+});
 const bodyDisplayName = computed(() => {
   const selected = bodySelection.value;
   if (!selected) return '';
@@ -169,6 +189,12 @@ const practiceZone = computed<Zone | undefined>(() => {
 const covered = computed(() => Boolean(practiceZone.value));
 const practiceImageUrl = computed(() => practiceTarget.value?.node.image || anatomyImage);
 const practiceImageAspect = ref('1086 / 1448');
+const practiceStageStyle = computed(() => {
+  const [width, height] = practiceImageAspect.value.split('/').map(Number);
+  const zoom = practiceZoom.value;
+  const ratio = width / height;
+  return { aspectRatio: practiceImageAspect.value, width: `min(${zoom * 100}%, ${ratio * zoom * 100}cqh, ${ratio * zoom * 540}px)` };
+});
 const practicePrompt = computed(() => practiceTarget.value
   ? `请在《${practiceTarget.value.node.title}》中点击：${practiceTarget.value.label}`
   : active.value.prompt);
@@ -187,13 +213,18 @@ const zoneStyle = computed(() => practiceZone.value ? {
 const visibleSystems = computed(() => viewMode.value === 'atlas' ? [...anatomyAtlasSystems] : systems);
 const atlasNode = computed(() => anatomyAtlasNodes.find((item) => item.id === atlasNodeId.value) ?? anatomyAtlasNodes[0]);
 const atlasNodesForSystem = computed(() => anatomyAtlasNodes.filter((item) => item.system === activeSystem.value));
+const atlasRoot = computed(() => atlasNodesForSystem.value.find(node => node.level === 'system'));
+const atlasStageStyle = computed(() => {
+  const aspectRatio = atlasImageAspect.value || atlasNode.value.image_aspect;
+  const [width, height] = aspectRatio.split('/').map(Number);
+  return { aspectRatio, maxWidth: width > 0 && height > 0 ? (width / height * 560) + 'px' : undefined };
+});
+const atlasSystemIconIds = Object.fromEntries(ANATOMY_SYSTEMS_3D.map(system => [system.name, 'anatomy_system_' + system.id]));
 const atlasParent = computed(() => anatomyAtlasNodes.find((item) => item.id === atlasNode.value.parent_id));
 const atlasStructure = computed(() => atlasNode.value.structures.find((item) => item.id === atlasStructureId.value));
 const atlasTargets = computed(() => atlasNode.value.hotspots.filter((item) => item.target_id));
 const systemVideos = computed(() => anatomyVideos.filter((item) => item.system === activeSystem.value));
 const systemImageSources = computed(() => anatomyImageSources.filter((item) => item.system === activeSystem.value));
-const verifiedImageCount = computed(() => systemImageSources.value.filter((item) => item.status === '可接入').length);
-const pendingImageCount = computed(() => systemImageSources.value.length - verifiedImageCount.value);
 const atlasLevelLabel = (level: 'system' | 'organ' | 'detail') => level === 'system' ? '系统总览' : level === 'organ' ? '器官精细图' : '精细结构图';
 const atlasLevelStatus = (level: 'system' | 'organ' | 'detail') => level === 'system' ? '第 1 层 · 系统总览' : level === 'organ' ? '第 2 层 · 器官精细图' : '第 3 层 · 精细结构图';
 
@@ -334,10 +365,54 @@ async function toggleBodyFullscreen() {
 }
 
 function syncFullscreenState() {
-  isBodyFullscreen.value = document.fullscreenElement === bodyWorkbench.value;
+  const element = document.fullscreenElement;
+  isBodyFullscreen.value = Boolean(element && element === bodyWorkbench.value);
+  isPracticeFullscreen.value = Boolean(element && element === practiceWorkbench.value);
+}
+
+async function togglePracticeFullscreen() {
+  const element = practiceWorkbench.value;
+  if (!element) return;
+  try {
+    if (document.fullscreenElement === element) await document.exitFullscreen();
+    else await element.requestFullscreen();
+  } catch {
+    message.value = '当前浏览器无法进入全屏，可以继续使用放大和缩小。';
+  }
+}
+
+async function adjustPracticeZoom(amount: number) {
+  const frame = imageFrame.value;
+  if (!frame) return;
+  const x = (frame.scrollLeft + frame.clientWidth / 2) / frame.scrollWidth;
+  const y = (frame.scrollTop + frame.clientHeight / 2) / frame.scrollHeight;
+  practiceZoom.value = Math.max(1, Math.min(2, practiceZoom.value + amount));
+  await nextTick();
+  frame.scrollTo(x * frame.scrollWidth - frame.clientWidth / 2, y * frame.scrollHeight - frame.clientHeight / 2);
+}
+
+function resetPracticeView() {
+  practiceZoom.value = 1;
+  imageFrame.value?.scrollTo(0, 0);
+}
+
+async function openStructureSearch() {
+  showStructureSearch.value = !showStructureSearch.value;
+  if (showStructureSearch.value) {
+    await nextTick();
+    structureSearchInput.value?.focus();
+  }
+}
+
+function selectSearchResult(partId: string, dataSystem: string) {
+  const group = ANATOMY_SYSTEMS_3D.find(system => system.members.includes(dataSystem));
+  focusOnSystem(group?.id ?? '');
+  selectOrganPart(partId);
+  showStructureSearch.value = false;
 }
 
 function onBodySelect(payload: { id: string; name: string; system: string; systemName: string }) {
+  viewedParts.value.add(payload.id);
   bodySelection.value = payload;
   agentReply.value = '';
   agentPrompt.value = '';
@@ -682,6 +757,18 @@ function choose(id: string) {
   result.value = null;
   message.value = '';
   selectedStructure.value = '';
+  practiceInfoTab.value = 'structure';
+  resetPracticeView();
+}
+
+function choosePracticeStructure(name: string) {
+  if (name === activeStructure.value?.name || loading.value) return;
+  selectedStructure.value = name;
+  point.value = null;
+  selectedZone.value = '';
+  result.value = null;
+  message.value = '';
+  resetPracticeView();
 }
 
 function changeSystem(system: string) {
@@ -712,20 +799,26 @@ function locate(event: MouseEvent) {
 }
 
 function startImageDrag(event: PointerEvent) {
-  if (!imageFrame.value) return;
-  isDraggingImage.value = true;
+  const frame = imageFrame.value;
   imageMoved.value = false;
+  if (!frame || event.pointerType !== 'mouse' || event.button !== 0
+    || (frame.scrollWidth <= frame.clientWidth && frame.scrollHeight <= frame.clientHeight)) return;
+  isDraggingImage.value = true;
   imageDragStartX.value = event.clientX;
-  imageScrollStart.value = imageFrame.value.scrollLeft;
+  imageDragStartY.value = event.clientY;
+  imageScrollStart.value = frame.scrollLeft;
+  imageScrollTop.value = frame.scrollTop;
 }
 
 function dragImage(event: PointerEvent) {
   if (!isDraggingImage.value || !imageFrame.value) return;
-  const delta = event.clientX - imageDragStartX.value;
-  if (Math.abs(delta) > 4) {
+  const dx = event.clientX - imageDragStartX.value;
+  const dy = event.clientY - imageDragStartY.value;
+  if (Math.hypot(dx, dy) > 4 || imageMoved.value) {
     imageMoved.value = true;
     imageFrame.value.setPointerCapture?.(event.pointerId);
-    imageFrame.value.scrollLeft = imageScrollStart.value - delta;
+    imageFrame.value.scrollLeft = imageScrollStart.value - dx;
+    imageFrame.value.scrollTop = imageScrollTop.value - dy;
   }
 }
 
@@ -830,17 +923,17 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="workspace-page anatomy-page">
-    <header class="page-title-row anatomy-page-heading">
+  <div class="workspace-page anatomy-page" :class="{ 'is-atlas-mode': viewMode === 'atlas', 'is-practice-mode': viewMode === 'practice' }">
+    <header class="lab-hero">
       <div>
-        <span class="section-kicker">虚拟解剖实验室 · 观察与定位</span>
+        <span class="section-kicker">虚拟解剖室</span>
         <h1>在三维结构中学习人体</h1>
         <p>从系统总览进入器官和精细结构，点击热点获取教材依据，再用定位练习检验空间认知。</p>
       </div>
-      <div class="anatomy-summary">
-        <span><strong>{{ exercises.length }}</strong><small>练习项目</small></span>
-        <span><strong>{{ anatomyAtlasSystems.length }}</strong><small>人体系统</small></span>
-        <span><strong>{{ completed }}</strong><small>本次完成</small></span>
+      <div v-if="viewMode !== 'atlas'" class="lab-summary" aria-label="解剖室概览">
+        <span><Layers3 /><strong>{{ exercises.length }}</strong><small>练习项目</small></span>
+        <span><Network /><strong>{{ ANATOMY_SYSTEMS_3D.length }}</strong><small>人体系统</small></span>
+        <span><CircleCheck /><strong>{{ completed }}</strong><small>本次完成</small></span>
       </div>
     </header>
 
@@ -849,11 +942,9 @@ onBeforeUnmount(() => {
       <button type="button" role="tab" :aria-selected="viewMode === 'atlas'" :class="{ active: viewMode === 'atlas' }" @click="switchMode('atlas')"><Layers3 :size="18" /><span><strong>图谱分层浏览</strong><small>系统 → 器官 → 精细结构</small></span></button>
       <button type="button" role="tab" :aria-selected="viewMode === 'practice'" :class="{ active: viewMode === 'practice' }" @click="switchMode('practice')"><Crosshair :size="18" /><span><strong>空间定位测验</strong><small>点击结构并获得即时反馈</small></span></button>
     </div>
-    <p class="anatomy-flow-note"><MousePointer2 :size="15" /><template v-if="viewMode === 'body'">拖动旋转三维人体，滚轮缩放，点击任意结构进入 AI 讲解与教材溯源。</template><template v-else-if="viewMode === 'atlas'">建议先点击图中热点完成结构探索，再切换到"空间定位测验"检验学习结果。</template><template v-else>在二维器官或精细结构图中点击目标区域，提交后显示标准结构区与评分。</template></p>
-
     <div v-if="viewMode !== 'body'" class="anatomy-system-tabs" role="tablist" aria-label="选择人体系统">
-      <button v-for="system in visibleSystems" :key="system" type="button" role="tab" :aria-selected="activeSystem === system" :class="{ active: activeSystem === system }" @click="changeSystem(system)">
-        <Brain v-if="system === '神经系统'" :size="17" /><Activity v-else :size="17" />{{ system }}
+      <button v-for="system in visibleSystems" :key="system" type="button" role="tab" :disabled="viewMode === 'practice' && loading" :aria-selected="activeSystem === system" :class="{ active: activeSystem === system }" @click="changeSystem(system)">
+        <AnatomyGraphIcon v-if="atlasSystemIconIds[system]" :node-id="atlasSystemIconIds[system]" width="24" height="24" /><ScanLine v-else :size="17" />{{ system }}
       </button>
     </div>
 
@@ -862,15 +953,15 @@ onBeforeUnmount(() => {
         <header><span><Layers3 :size="18" /><b>人体系统</b></span><small>{{ ANATOMY_SYSTEMS_3D.length }} 个系统</small></header>
         <div class="body-system-list">
           <div class="body-system-row" :class="{ active: !focusedSystem }">
-            <button type="button" class="body-system-focus" @click="focusOnSystem('')">
-              <i class="body-system-all" />
-              <span><strong>整体人体</strong><small>{{ bodyStats.parts }} 个结构 · 观察系统之间的位置关系</small></span>
+            <button type="button" class="body-system-focus" :aria-pressed="!focusedSystem" @click="focusOnSystem('')">
+              <AnatomyGraphIcon node-id="anatomy_root" width="29" height="29" />
+              <span><strong>整体人体</strong><small>{{ bodyStats.parts }} 个结构</small></span>
             </button>
           </div>
           <div v-for="system in ANATOMY_SYSTEMS_3D" :key="system.id" class="body-system-row" :class="{ active: focusedSystem === system.id, muted: hiddenSystems.includes(system.id) }">
-            <button type="button" class="body-system-focus" :title="system.summary" @click="focusOnSystem(system.id)">
-              <i :style="{ background: system.color }" />
-              <span><strong>{{ system.name }}</strong><small>{{ groupCount(system.id) }} 个结构 · {{ focusedSystem === system.id ? '正在单独查看' : '点击单独查看' }}</small></span>
+            <button type="button" class="body-system-focus" :aria-pressed="focusedSystem === system.id" :title="system.summary" @click="focusOnSystem(system.id)">
+              <AnatomyGraphIcon :node-id="'anatomy_system_' + system.id" width="29" height="29" />
+              <span><strong>{{ system.name }}</strong><small>{{ groupCount(system.id) }} 个结构</small></span>
             </button>
             <button type="button" class="body-system-eye" :title="(hiddenSystems.includes(system.id) ? '显示' : '隐藏') + system.name" :aria-label="(hiddenSystems.includes(system.id) ? '显示' : '隐藏') + system.name" :aria-pressed="!hiddenSystems.includes(system.id)" @click="toggleSystem(system.id)">
               <EyeOff v-if="hiddenSystems.includes(system.id)" :size="15" /><Eye v-else :size="15" />
@@ -886,21 +977,23 @@ onBeforeUnmount(() => {
             </div>
           </div>
         </div>
-        <div class="body-viewer-tools">
-          <button type="button" :class="{ active: bodyAutoRotate }" @click="bodyAutoRotate = !bodyAutoRotate"><RotateCcw :size="15" />自动旋转</button>
-          <button type="button" @click="bodyViewer?.resetView()"><LocateFixed :size="15" />复位</button>
-          <button type="button" class="body-fullscreen-button" :aria-pressed="isBodyFullscreen" :title="isBodyFullscreen ? '退出全屏（Esc）' : '全屏查看三维人体（Esc 退出）'" @click="toggleBodyFullscreen">
-            <Minimize2 v-if="isBodyFullscreen" :size="15" /><Maximize2 v-else :size="15" />{{ isBodyFullscreen ? '退出全屏' : '全屏查看' }}
-          </button>
-        </div>
-        <div class="body-viewer-meta">
-          <span><strong>{{ bodyStats.parts }}</strong><small>可选中结构</small></span>
-          <span><strong>{{ Math.round(bodyStats.triangles / 1000) }}k</strong><small>三角面</small></span>
-        </div>
         <p class="body-attribution">模型：BodyParts3D 4.0 · CC BY 4.0</p>
       </aside>
 
-      <main class="body-stage">
+      <div class="body-stage">
+        <header class="lab-stage-bar">
+          <div class="lab-stage-modes">
+            <span><ScanLine :size="15" />3D 模型</span>
+            <button type="button" @click="switchMode('atlas')"><Layers3 :size="15" />分层查看</button>
+          </div>
+          <div class="lab-stage-controls" role="group" aria-label="三维模型控制">
+            <button type="button" :aria-label="isBodyFullscreen ? '退出全屏' : '全屏查看'" :title="isBodyFullscreen ? '退出全屏' : '全屏查看'" @click="toggleBodyFullscreen"><Minimize2 v-if="isBodyFullscreen" :size="16" /><Maximize2 v-else :size="16" /></button>
+            <button type="button" aria-label="复位视角" title="复位视角" @click="bodyViewer?.resetView()"><LocateFixed :size="16" /></button>
+            <button type="button" aria-label="放大模型" title="放大模型" @click="bodyViewer?.zoomView(.8)"><Plus :size="17" /></button>
+            <button type="button" aria-label="缩小模型" title="缩小模型" @click="bodyViewer?.zoomView(1.25)"><Minus :size="17" /></button>
+            <button type="button" aria-label="自动旋转" title="自动旋转" :aria-pressed="bodyAutoRotate" @click="bodyAutoRotate = !bodyAutoRotate"><RotateCcw :size="16" /></button>
+          </div>
+        </header>
         <AnatomyViewer3D
           ref="bodyViewer"
           :hidden-systems="hiddenDataSystems"
@@ -920,9 +1013,37 @@ onBeforeUnmount(() => {
           <small v-else-if="focusedSystem">{{ ANATOMY_SYSTEM_3D_BY_ID[focusedSystem]?.name }} · 单独查看中</small>
           <small v-else>整体人体 · 尚未选中结构</small>
         </footer>
-      </main>
+      </div>
 
-      <aside class="body-detail-panel">
+      <aside class="body-detail-panel" aria-label="结构信息与学习工具">
+        <section class="lab-detail-overview">
+          <h2><BookOpenCheck :size="18" />结构信息</h2>
+          <strong>{{ bodyDisplayName || focusedOrgan?.name || focusedSystemName || '人体解剖（整体）' }}</strong>
+          <p v-if="bodySelection">{{ bodySelection.systemName }} · 点击下方操作查看教材或练习。</p>
+          <p v-else-if="focusedSystem">{{ ANATOMY_SYSTEM_3D_BY_ID[focusedSystem]?.summary }}。点击模型查看具体结构。</p>
+          <p v-else>从整体人体进入各个系统和器官。拖动旋转模型，点击结构查看教材依据、空间关系与 AI 讲解。</p>
+        </section>
+        <section class="lab-quick">
+          <h2><Zap :size="18" />快捷操作</h2>
+          <div class="lab-quick-actions">
+            <button type="button" :aria-expanded="showStructureSearch" @click="openStructureSearch"><Search :size="19" />结构检索</button>
+            <button type="button" @click="switchMode('atlas')"><Target :size="19" />热点浏览</button>
+            <button type="button" @click="switchMode('practice')"><Crosshair :size="19" />定位练习</button>
+          </div>
+          <div v-if="showStructureSearch" class="lab-structure-search">
+            <input ref="structureSearchInput" v-model="structureSearch" aria-label="搜索解剖结构" placeholder="输入中文或英文结构名" />
+            <div v-if="structureMatches.length" class="lab-structure-results">
+              <button v-for="[id, item] in structureMatches" :key="id" type="button" @click="selectSearchResult(id, item.system)">{{ glossary[item.name] || item.name }}<ChevronRight :size="14" /></button>
+            </div>
+            <small v-else-if="structureSearch.trim()">没有找到匹配的结构</small>
+          </div>
+        </section>
+        <section class="lab-progress">
+          <h2><BarChart3 :size="18" />学习进度</h2>
+          <div><span>本次浏览进度</span><strong>{{ viewingProgress }}%</strong></div>
+          <progress :value="viewedParts.size" :max="bodyStats.parts || 1" aria-label="本次结构浏览进度"></progress>
+          <small>已查看结构 <strong>{{ viewedParts.size }} / {{ bodyStats.parts }}</strong></small>
+        </section>
         <div v-if="quizTarget" class="body-quiz-drawer">
           <button class="text-button" type="button" @click="quizTarget = null">关闭测验</button>
           <AnatomyQuizPanel :structure-en="quizTarget.en" :structure-cn="quizTarget.cn" :system="quizTarget.system" />
@@ -977,46 +1098,56 @@ onBeforeUnmount(() => {
             <button class="text-button" type="button" @click="router.push({ path: '/knowledge-graph', query: { q: bodyDisplayName } })">知识图谱 <ArrowRight :size="15" /></button>
           </div>
         </template>
-        <div v-else class="body-empty-detail">
-          <MousePointer2 :size="26" />
-          <strong>{{ focusedSystem ? ANATOMY_SYSTEM_3D_BY_ID[focusedSystem]?.name + ' · 等待选择' : '点击模型中的结构' }}</strong>
-          <p v-if="focusedSystem">{{ ANATOMY_SYSTEM_3D_BY_ID[focusedSystem]?.summary }} 点击图中任意结构查看 AI 讲解、教材依据和知识图谱入口。</p>
-          <p v-else>左侧可以单独查看某个系统，也可以按系统显示或隐藏结构。点击任意结构后，这里会给出 AI 讲解、教材依据和知识图谱入口。</p>
-        </div>
       </aside>
     </section>
 
     <section v-else-if="viewMode === 'atlas'" class="anatomy-atlas-workbench" :class="{ 'nav-collapsed': atlasNavCollapsed }">
       <aside class="atlas-layer-nav">
-        <header><span><Layers3 :size="18" /><b>图谱层级</b></span><div><small>{{ atlasNodesForSystem.length }} 张图</small><button type="button" :title="atlasNavCollapsed ? '展开图谱层级' : '收起图谱层级'" @click="atlasNavCollapsed = !atlasNavCollapsed"><PanelLeftOpen v-if="atlasNavCollapsed" :size="17" /><PanelLeftClose v-else :size="17" /></button></div></header>
+        <header>
+          <span><Layers3 :size="19" /><b>图谱层级</b></span>
+          <div>
+            <select :value="activeSystem" aria-label="切换图谱系统" @change="changeSystem(($event.target as HTMLSelectElement).value)">
+              <option v-for="system in visibleSystems" :key="system" :value="system">{{ system }}</option>
+            </select>
+            <button type="button" :aria-label="atlasNavCollapsed ? '展开图谱层级' : '收起图谱层级'" :aria-expanded="!atlasNavCollapsed" @click="atlasNavCollapsed = !atlasNavCollapsed"><PanelLeftOpen v-if="atlasNavCollapsed" :size="17" /><PanelLeftClose v-else :size="17" /></button>
+          </div>
+        </header>
         <div class="atlas-layer-tree">
-          <button v-for="node in atlasNodesForSystem" :key="node.id" type="button" :class="[{ active: node.id === atlasNode.id }, `level-${node.level}`]" @click="chooseAtlasNode(node.id)">
-            <span><Activity v-if="node.level === 'system'" :size="16" /><ZoomIn v-else :size="15" /></span><span><strong>{{ node.title }}</strong><small>{{ atlasLevelLabel(node.level) }}</small></span><ChevronRight :size="15" />
+          <button v-for="node in atlasNodesForSystem" :key="node.id" type="button" :class="{ active: node.id === atlasNode.id }" :aria-current="node.id === atlasNode.id ? 'page' : undefined" @click="chooseAtlasNode(node.id)">
+            <span><Activity v-if="node.level === 'system'" :size="16" /><ZoomIn v-else :size="15" /></span>
+            <span><strong>{{ node.title }}</strong><small>{{ atlasLevelLabel(node.level) }}</small></span>
+            <ChevronRight :size="15" />
           </button>
         </div>
-        <div class="atlas-learning-tip"><MousePointer2 :size="17" /><p><strong>点击图中热点</strong>带边框区域可以进入下一层或查看结构说明。</p></div>
       </aside>
 
-      <main class="atlas-image-lab">
+      <div class="atlas-image-lab">
         <header>
-          <div class="atlas-breadcrumb"><button v-if="atlasParent" type="button" @click="chooseAtlasNode(atlasParent.id)"><ArrowLeft :size="15" />{{ atlasParent.title }}</button><span v-else>{{ atlasNode.system }}</span><ChevronRight :size="14" /><strong>{{ atlasNode.title }}</strong></div>
-          <span><Eye :size="15" />{{ atlasNode.instruction }}</span>
+          <nav class="atlas-breadcrumb" aria-label="图谱当前位置">
+            <button v-if="atlasRoot" type="button" :aria-label="'返回' + atlasNode.system + '总览'" @click="chooseAtlasNode(atlasRoot.id)"><House :size="16" /></button>
+            <ChevronRight v-if="atlasRoot" :size="13" />
+            <span>{{ atlasNode.system }}</span><ChevronRight :size="13" />
+            <template v-if="atlasParent && atlasParent.id !== atlasRoot?.id">
+              <button type="button" @click="chooseAtlasNode(atlasParent.id)">{{ atlasParent.title }}</button><ChevronRight :size="13" />
+            </template>
+            <strong aria-current="page">{{ atlasNode.title }}</strong>
+          </nav>
+          <b class="atlas-level-chip">{{ atlasLevelStatus(atlasNode.level) }}</b>
         </header>
+        <p class="atlas-image-instruction"><MousePointer2 :size="16" />{{ atlasNode.instruction }}</p>
         <div class="atlas-image-canvas">
-          <div class="atlas-image-stage" :style="{ aspectRatio: atlasImageAspect || atlasNode.image_aspect }">
+          <div class="atlas-image-stage" :style="atlasStageStyle">
             <img :src="atlasNode.image" :alt="atlasNode.title" @load="syncAtlasImageAspect" />
             <button v-for="(hotspot, index) in atlasNode.hotspots" :key="hotspot.id" type="button" class="atlas-hotspot" :class="{ selected: hotspot.structure_id === atlasStructureId, 'is-full-image': hotspot.width === 100 && hotspot.height === 100 }" :style="hotspotStyle(hotspot)" :aria-label="`查看${hotspot.label}`" @click="openAtlasHotspot(hotspot)"><span>{{ index + 1 }}<b>{{ hotspot.label }}</b></span></button>
           </div>
         </div>
         <footer><span><MousePointer2 :size="15" />{{ atlasNode.hotspots.length }} 个可交互热点</span><small>{{ atlasNode.source_label }} · 仅用于医学教学</small></footer>
-      </main>
+      </div>
 
       <aside class="atlas-detail-panel">
-        <div class="atlas-level-status"><span>{{ atlasNode.system }}</span><b>{{ atlasLevelStatus(atlasNode.level) }}</b></div>
-        <span class="section-kicker">当前图谱</span><h2>{{ atlasNode.title }}</h2><p>{{ atlasNode.description }}</p>
+        <h2 class="atlas-detail-title"><AnatomyGraphIcon :node-id="atlasSystemIconIds[atlasNode.system]" width="30" height="30" />{{ atlasNode.title }}</h2><p>{{ atlasNode.description }}</p>
         <section v-if="atlasTargets.length" class="atlas-drilldown-list">
-          <strong><ZoomIn :size="17" />点击下钻</strong>
-          <button v-for="target in atlasTargets" :key="target.id" type="button" @click="openAtlasHotspot(target)"><span><b>{{ target.label }}</b><small>进入{{ atlasNode.level === 'organ' ? '精细结构图' : '器官精细图' }}</small></span><ArrowRight :size="16" /></button>
+                    <button v-for="target in atlasTargets" :key="target.id" type="button" @click="openAtlasHotspot(target)"><span class="atlas-drilldown-icon"><ScanLine :size="17" /></span><span><b>{{ target.label }}</b><small>进入{{ atlasNode.level === 'organ' ? '精细结构图' : '器官精细图' }}</small></span><ChevronRight :size="16" /></button>
         </section>
         <section v-if="atlasNode.structures.length" class="atlas-structure-list">
           <strong><Layers3 :size="17" />本图结构</strong>
@@ -1057,9 +1188,16 @@ onBeforeUnmount(() => {
           </DigitalHumanLecture>
         </article>
         <div v-else class="atlas-empty-detail"><MousePointer2 :size="25" /><strong>选择一个热点</strong><p>点击图中带编号区域，查看该结构的中文说明与临床关联。</p></div>
-        <section class="atlas-resource-panel">
-          <button class="atlas-resource-toggle" type="button" :aria-expanded="atlasResourcesExpanded" @click="atlasResourcesExpanded = !atlasResourcesExpanded"><strong><Video :size="17" />配套学习资源</strong><span><small>{{ systemVideos.length }} 个视频 · {{ verifiedImageCount }} 个可接入图源 · {{ pendingImageCount }} 个待核对</small><ChevronDown :size="16" /></span></button>
-          <div v-show="atlasResourcesExpanded" class="atlas-resource-content">
+        <button class="text-button atlas-graph-link" type="button" @click="router.push({ path: '/knowledge-graph', query: { q: atlasStructure?.name || atlasNode.title } })">查看相关知识图谱 <ArrowRight :size="15" /></button>
+      </aside>
+      <section class="atlas-study-strip" aria-label="学习建议与图谱资源">
+        <div class="atlas-study-summary">
+          <div><GraduationCap :size="20" /><strong>学习建议</strong><small>{{ atlasTargets.length ? '先观察总览，再从热点进入下一层。' : '点击热点查看结构说明与临床关联。' }}</small></div>
+          <div><Layers3 :size="18" /><strong>已进入层级</strong><small>{{ atlasLevelStatus(atlasNode.level) }}</small></div>
+          <div><Crosshair :size="18" /><strong>热点数量</strong><small>{{ atlasNode.hotspots.length }} 个</small></div>
+          <button class="atlas-resource-toggle" type="button" aria-controls="atlas-resource-content" :aria-expanded="atlasResourcesExpanded" @click="atlasResourcesExpanded = !atlasResourcesExpanded"><Video :size="18" /><strong>配套学习资源</strong><small>{{ systemVideos.length }} 个视频 · {{ systemImageSources.length }} 个图源</small><ChevronDown :size="16" /></button>
+        </div>
+          <div v-show="atlasResourcesExpanded" id="atlas-resource-content" class="atlas-resource-content">
           <div class="atlas-resource-tabs" role="tablist" aria-label="选择资源类型">
             <button type="button" role="tab" :aria-selected="atlasResourceMode === 'videos'" :class="{ active: atlasResourceMode === 'videos' }" @click="atlasResourceMode = 'videos'">B站视频</button>
             <button type="button" role="tab" :aria-selected="atlasResourceMode === 'images'" :class="{ active: atlasResourceMode === 'images' }" @click="atlasResourceMode = 'images'">解剖图源</button>
@@ -1076,16 +1214,14 @@ onBeforeUnmount(() => {
           </div>
           <p>外部资源仅用于课程学习。OpenStax 图源采用 CC BY-NC-SA 4.0；Blausen 候选须以各 Wikimedia 文件页的最终授权为准，核对前不作为正式课程素材。</p>
           </div>
-        </section>
-        <button class="text-button atlas-graph-link" type="button" @click="router.push({ path: '/knowledge-graph', query: { q: atlasStructure?.name || atlasNode.title } })">查看相关知识图谱 <ArrowRight :size="15" /></button>
-      </aside>
+      </section>
     </section>
 
     <section v-else class="anatomy-workbench" data-tour="anatomy-practice-workspace">
       <aside class="anatomy-exercise-rail">
-        <header><span><ScanLine :size="18" />定位任务</span><small>{{ filtered.length }} 项</small></header>
+        <header><span><Crosshair :size="19" />定位任务</span><small>{{ filtered.length }} 项</small></header>
         <div class="anatomy-exercise-list">
-          <button v-for="(exercise, index) in filtered" :key="exercise.id" type="button" :class="{ active: exercise.id === active.id }" @click="choose(exercise.id)">
+          <button v-for="(exercise, index) in filtered" :key="exercise.id" type="button" :class="{ active: exercise.id === active.id }" :aria-current="exercise.id === active.id ? 'true' : undefined" :disabled="loading" @click="choose(exercise.id)">
             <span>{{ String(index + 1).padStart(2, '0') }}</span>
             <span><strong>{{ exercise.title }}</strong><small>{{ exercise.system }}<template v-if="exercise.organ"> · {{ exercise.organ }}</template></small></span>
             <CircleAlert v-if="zones[exercise.answer_zone]?.covered === false" :size="15" /><ArrowRight v-else :size="16" />
@@ -1093,28 +1229,42 @@ onBeforeUnmount(() => {
         </div>
       </aside>
 
-      <main class="anatomy-visual-lab">
+      <div ref="practiceWorkbench" class="anatomy-visual-lab">
         <header class="anatomy-lab-toolbar">
-          <div><LocateFixed :size="18" /><span><strong>{{ practiceTarget?.node.title || '二维解剖定位' }}</strong><small>点击二维器官或精细结构图完成定位</small></span></div>
-          <span class="orientation-mark">{{ practiceTarget?.node.instruction || '点击图中目标结构' }}</span>
+          <div><LocateFixed :size="18" /><span><strong>{{ practiceTarget?.node.title || '二维解剖定位' }}</strong><small>{{ covered ? '点击图中目标结构，提交后显示标准区域' : '当前任务暂无可用靶区' }}</small></span></div>
+          <div class="practice-view-controls" role="group" aria-label="定位图视图控制">
+            <button type="button" :aria-label="isPracticeFullscreen ? '退出全屏' : '全屏查看'" :title="isPracticeFullscreen ? '退出全屏' : '全屏查看'" @click="togglePracticeFullscreen"><Minimize2 v-if="isPracticeFullscreen" :size="16" /><Maximize2 v-else :size="16" /></button>
+            <button type="button" aria-label="放大定位图" title="放大定位图" :disabled="practiceZoom >= 2" @click="adjustPracticeZoom(.25)"><Plus :size="17" /></button>
+            <button type="button" aria-label="缩小定位图" title="缩小定位图" :disabled="practiceZoom <= 1" @click="adjustPracticeZoom(-.25)"><Minus :size="17" /></button>
+            <button type="button" aria-label="重置视图" title="重置视图" @click="resetPracticeView"><RotateCcw :size="16" /></button>
+          </div>
         </header>
         <div ref="imageFrame" class="anatomy-image-frame" :class="{ 'is-dragging': isDraggingImage }" @pointerdown="startImageDrag" @pointermove="dragImage" @pointerup="stopImageDrag" @pointercancel="stopImageDrag" @pointerleave="stopImageDrag">
-          <button class="anatomy-image-stage" :style="{ aspectRatio: practiceImageAspect }" type="button" :disabled="!covered" :aria-label="covered ? '在二维解剖图中定位' + practiceTarget?.label : '当前任务没有可用靶区'" @click="locate">
+          <button class="anatomy-image-stage" :style="practiceStageStyle" type="button" :disabled="!covered" :aria-label="covered ? '在二维解剖图中定位' + practiceTarget?.label : '当前任务没有可用靶区'" @click="locate">
             <img :src="practiceImageUrl" alt="二维器官与精细结构定位训练图" @load="syncPracticeImageAspect" />
             <span v-if="point" class="student-marker" :class="{ correct: result?.correct, wrong: result && !result.correct }" :style="markerStyle"><Crosshair :size="24" /></span>
             <span v-if="result && covered" class="standard-zone" :style="zoneStyle"><span>标准区域</span></span>
           </button>
         </div>
-        <footer class="anatomy-stage-note"><span><Target :size="16" />目标：{{ practiceTarget?.label || active.target }}</span><span><LocateFixed :size="16" />提交后显示标准结构区</span><small>{{ practiceCitation }}</small></footer>
-      </main>
+        <footer class="anatomy-stage-note"><span><Target :size="16" />目标：{{ practiceTarget?.label || active.target }}</span><small>{{ practiceCitation }}</small></footer>
+      </div>
 
       <aside class="anatomy-task-panel">
-        <div class="anatomy-task-status"><span>{{ active.system }}</span><b>{{ result ? '已评判' : '待定位' }}</b></div>
-        <span class="section-kicker">当前任务</span><h2>{{ practiceTarget?.node.title || active.title }}</h2><p class="anatomy-prompt">{{ practicePrompt }}</p>
-        <section v-if="active.substructures?.length" class="anatomy-structure-panel">
+        <section class="practice-task-overview">
+          <nav class="practice-detail-nav" aria-label="定位任务资料">
+            <button type="button" :aria-pressed="practiceInfoTab === 'structure'" @click="practiceInfoTab = 'structure'"><BookOpenCheck :size="15" />结构信息</button>
+            <RouterLink :to="{ path: '/knowledge-graph', query: { q: activeStructure?.name || active.target } }"><Network :size="15" />相关图谱</RouterLink>
+            <button type="button" :aria-pressed="practiceInfoTab === 'clinical'" @click="practiceInfoTab = 'clinical'"><Activity :size="15" />临床关联</button>
+          </nav>
+          <div class="anatomy-task-status"><span>{{ active.system }}</span><b>{{ result ? '已评判' : point ? '已标记' : '待定位' }}</b></div>
+          <h2>{{ practiceTarget?.node.title || active.title }}</h2>
+          <p v-if="practiceInfoTab === 'structure'" class="anatomy-prompt">{{ practicePrompt }}</p>
+          <p v-else class="anatomy-prompt">{{ result?.clinical_link || activeStructure?.clinical_note || active.clinical_link || '当前任务暂无临床关联说明。' }}</p>
+        </section>
+        <section v-if="practiceInfoTab === 'structure' && active.substructures?.length" class="anatomy-structure-panel">
           <header><strong><Layers3 :size="17" />{{ active.organ || active.target }}精细结构</strong><small>{{ active.substructures.length }} 项</small></header>
           <div class="anatomy-structure-tabs">
-            <button v-for="structure in active.substructures" :key="structure.name" type="button" :class="{ active: activeStructure?.name === structure.name }" @click="selectedStructure = structure.name">{{ structure.name }}</button>
+            <button v-for="structure in active.substructures" :key="structure.name" type="button" :class="{ active: activeStructure?.name === structure.name }" :aria-pressed="activeStructure?.name === structure.name" :disabled="loading" @click="choosePracticeStructure(structure.name)">{{ structure.name }}</button>
           </div>
           <article v-if="activeStructure">
             <span>{{ activeStructure.category }}</span><strong>{{ activeStructure.name }}</strong><p>{{ activeStructure.description }}</p><small v-if="activeStructure.clinical_note">临床提示：{{ activeStructure.clinical_note }}</small>
@@ -1123,7 +1273,7 @@ onBeforeUnmount(() => {
         <div v-if="!result" class="anatomy-instructions">
           <strong><Crosshair :size="17" />操作步骤</strong>
           <ol><li><span>1</span>观察器官相对位置</li><li><span>2</span>点击判断的中心位置</li><li><span>3</span>提交并查看临床关联</li></ol>
-          <p v-if="message" class="anatomy-message"><CircleAlert :size="16" />{{ message }}</p>
+          <p v-if="message" class="anatomy-message" :class="{ 'has-point': point }" role="status"><Check v-if="point" :size="16" /><CircleAlert v-else :size="16" />{{ message }}</p>
         </div>
         <div v-else class="anatomy-result" :class="result.correct ? 'is-correct' : 'is-wrong'">
           <header><span><Check v-if="result.correct" :size="20" /><CircleAlert v-else :size="20" /></span><div><small>{{ result.correct ? '定位正确' : '建议重新定位' }}</small><strong>综合得分 {{ score }}</strong></div></header>
@@ -1132,19 +1282,18 @@ onBeforeUnmount(() => {
           <section><strong><BookOpenCheck :size="17" />解剖解释</strong><p>{{ result.explanation }}</p></section>
           <section><strong><Activity :size="17" />临床关联</strong><p>{{ result.clinical_link }}</p></section>
         </div>
-        <section class="anatomy-video-panel">
-          <header><strong><Video :size="17" />B站讲解视频</strong><small>课程组审核后发布</small></header>
+        <div class="anatomy-actions">
+          <button v-if="!result" class="button-primary" type="button" :disabled="loading || !covered" @click="submit"><LoaderCircle v-if="loading" class="spin" :size="18" /><Target v-else :size="18" />{{ loading ? '正在评判' : '提交定位' }}</button>
+          <template v-else><button class="button-secondary" type="button" @click="choose(active.id)"><RotateCcw :size="17" />重新练习</button><button class="button-primary" type="button" @click="next">下一题<ArrowRight :size="17" /></button></template>
+        </div>
+        <details class="anatomy-video-panel">
+          <summary><Video :size="17" />B站讲解视频<ChevronDown :size="15" /></summary>
           <template v-if="active.video_resources?.length">
             <a v-for="video in active.video_resources.filter((item) => item.url)" :key="video.title" :href="video.url" target="_blank" rel="noopener noreferrer"><span><b>{{ video.title }}</b><small>{{ video.status }} · {{ video.contributor || '课程组' }}</small></span><ExternalLink :size="16" /></a>
             <p v-if="!active.video_resources.some((item) => item.url)">链接待负责同学收集，并由课程组审核内容与版权后开放。</p>
           </template>
           <p v-else>当前器官暂无已录入视频，链接采集清单可继续补充。</p>
-        </section>
-        <div class="anatomy-actions">
-          <button v-if="!result" class="button-primary" type="button" :disabled="loading || !covered" @click="submit"><LoaderCircle v-if="loading" class="spin" :size="18" /><Target v-else :size="18" />{{ loading ? '正在评判' : '提交定位' }}</button>
-          <template v-else><button class="button-secondary" type="button" @click="choose(active.id)"><RotateCcw :size="17" />重新练习</button><button class="button-primary" type="button" @click="next">下一题<ArrowRight :size="17" /></button></template>
-          <button class="text-button" type="button" @click="router.push({ path: '/knowledge-graph', query: { q: active.target } })">查看相关知识图谱</button>
-        </div>
+        </details>
       </aside>
     </section>
 
@@ -1191,3 +1340,614 @@ onBeforeUnmount(() => {
     </Teleport>
   </div>
 </template>
+
+<style scoped>
+.anatomy-page {
+  --lab-ink: #10244e;
+  --lab-muted: #455c81;
+  --lab-blue: #165def;
+  --lab-panel: linear-gradient(145deg, #f9fbff, #ecf3ff);
+  --lab-line: #dce8fb;
+  color: var(--lab-ink);
+}
+.lab-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(245px, .7fr);
+  align-items: center;
+  position: relative;
+  isolation: isolate;
+  gap: 14px;
+  min-height: 120px;
+  margin-bottom: 10px;
+  padding: 14px clamp(13px, 1.5vw, 24px);
+  overflow: hidden;
+  border: 1px solid #f0f6ff;
+  border-radius: 17px;
+  background: linear-gradient(110deg, #e4efff, #c5dffc 64%, #b7d4f6);
+}
+.lab-hero::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0 18% 0 32%;
+  background: url('../assets/medical/dashboard-anatomy-hero.png') right top / cover no-repeat;
+  mask-image: linear-gradient(90deg, transparent, #000 48%, #000 74%, transparent);
+  content: '';
+}
+.lab-hero h1 { margin: 3px 0 5px; font-size: clamp(24px, 2.6vw, 39px); line-height: 1.16; }
+.lab-hero p { max-width: 570px; margin: 0; color: var(--lab-muted); font-size: 13px; }
+.lab-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 9px 7px;
+  border: 1px solid #ffffffc7;
+  border-radius: 13px;
+  background: #f5f9ffd9;
+  text-align: center;
+}
+.lab-summary span { display: grid; justify-items: center; gap: 1px; }
+.lab-summary span + span { border-left: 1px solid #d9e8ff; }
+.lab-summary svg { width: 19px; height: 19px; color: var(--lab-blue); }
+.lab-summary strong { font-size: clamp(19px, 2vw, 26px); line-height: 1.25; }
+.lab-summary small { color: var(--lab-muted); font-size: 11px; }
+
+.anatomy-page .anatomy-mode-switch { gap: 8px; margin-bottom: 12px; }
+.anatomy-page .anatomy-mode-switch button {
+  min-width: min(30%, 215px);
+  min-height: 56px;
+  border-color: #f6f9ff;
+  border-radius: 11px;
+  background: var(--lab-panel);
+  color: var(--lab-blue);
+  box-shadow: 0 4px 12px #2559a71a;
+}
+.anatomy-page .anatomy-mode-switch button strong { color: var(--lab-ink); }
+.anatomy-page .anatomy-mode-switch button small { color: var(--lab-muted); }
+.anatomy-page .anatomy-mode-switch button.active { border-color: #76aaff; background: var(--ui-primary); color: #fff; box-shadow: 0 5px 12px #1558eb40; }
+.anatomy-page .anatomy-mode-switch button.active :is(strong, small) { color: #fff; }
+
+.anatomy-page .anatomy-body-workbench {
+  grid-template-columns: minmax(158px, .85fr) minmax(0, 2.3fr) minmax(235px, 1.1fr);
+  gap: 11px;
+  height: clamp(515px, calc(100dvh - 240px), 820px);
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
+}
+.anatomy-page .anatomy-body-workbench:fullscreen {
+  height: 100dvh;
+  padding: 10px;
+  background: #e7f0ff;
+}
+.body-system-rail, .body-detail-panel {
+  border: 1px solid #fff;
+  border-radius: 14px;
+  background: var(--lab-panel);
+  box-shadow: 0 4px 16px #153b741a;
+}
+.body-system-rail > header { min-height: 39px; padding: 0 10px; border-color: var(--lab-line); }
+.body-system-rail > header span { color: var(--lab-ink); }
+.body-system-rail > header svg { color: var(--lab-blue); }
+.body-system-rail > header small { color: var(--lab-muted); white-space: nowrap; }
+.body-system-list { gap: 2px; padding: 5px 7px; }
+.body-system-row { background: transparent; border-radius: 9px; }
+.body-system-row.active { border-color: #b1d0ff; background: #deebff; }
+.body-system-focus { grid-template-columns: 29px minmax(0,1fr); align-items: center; gap: 7px; padding: 4px 2px 4px 5px; }
+.body-system-focus:hover { background: #e3eeff; }
+.body-system-focus strong, .body-system-row.active .body-system-focus strong { color: var(--lab-ink); }
+.body-system-focus small, .body-system-row.active .body-system-focus small { color: var(--lab-muted); }
+.body-system-eye { width: 29px; color: #466792; border-color: transparent; }
+.body-system-eye:hover { color: var(--lab-blue); background: #e3eeff; }
+.body-attribution { margin: 0; padding: 7px 9px; color: var(--lab-muted); font-size: 10px; }
+
+.body-stage {
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #37649e;
+  border-radius: 15px;
+  background: radial-gradient(ellipse at 50% 96%, #1154a4, #0b244d 49%, #081630 86%);
+  box-shadow: 0 6px 20px #142e5e40;
+}
+.lab-stage-bar {
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 8px;
+  background: #091933;
+}
+.lab-stage-modes, .lab-stage-controls { display: flex; align-items: center; gap: 4px; }
+.lab-stage-modes > *, .lab-stage-controls button {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 0;
+  border-radius: 6px;
+  background: #21395b;
+  color: #e7f1ff;
+  font-size: 11px;
+}
+.lab-stage-modes > * { padding: 0 7px; }
+.lab-stage-modes > span { background: #1759dc; font-weight: 750; }
+.lab-stage-controls button { width: 28px; }
+.lab-stage-controls button:hover, .lab-stage-modes button:hover, .lab-stage-controls [aria-pressed="true"] { background: #295cb4; }
+.body-stage :deep(.anatomy-3d) { background: transparent; }
+.body-stage :deep(.anatomy-3d::before) {
+  position: absolute;
+  z-index: -1;
+  inset: auto 10% 9%;
+  height: 12%;
+  border: 1px solid #5ba8fc80;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #367ee257, #1c60b022 59%, transparent 70%);
+  box-shadow: 0 0 20px #1d73db68, inset 0 0 15px #479dff43;
+  content: '';
+}
+.body-stage :deep(.anatomy-3d-overlay) { background: #0c2245; }
+.body-stage :deep(.anatomy-3d-bar i) { background: #468fff; }
+.body-stage :deep(.anatomy-3d-legend) { background: #091932db; }
+.body-stage :deep(.anatomy-3d-legend span) { color: #e1efff; }
+.body-stage-note { min-height: 33px; flex-wrap: wrap; gap: 4px 9px; padding: 4px 8px; border-color: #234375; background: #0b1e3d; }
+.body-stage-note span, .body-stage-note small { color: #d5e5ff; font-size: 10px; }
+.body-stage-note small { margin-left: auto; }
+.body-stage-note svg { width: 12px; height: 12px; }
+
+.body-detail-panel { gap: 8px; padding: 0; border: 0; background: transparent; box-shadow: none; }
+.body-detail-panel > * {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid #fff;
+  border-radius: 13px;
+  background: var(--lab-panel);
+  box-shadow: 0 3px 12px #17396813;
+}
+.body-detail-panel :is(.lab-detail-overview, .lab-quick, .lab-progress) h2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  color: var(--lab-ink);
+  font-size: 14px;
+  line-height: 1.2;
+}
+.body-detail-panel h2 svg { flex: 0 0 auto; color: var(--lab-blue); }
+.body-detail-panel .lab-detail-overview {
+  background: linear-gradient(90deg, #f4f8fff7 42%, #e5efffbb), url('../assets/medical/dashboard-anatomy-hero.png') right top / auto 150% no-repeat, #eaf3ff;
+}
+.lab-detail-overview > strong { display: block; font-size: 17px; overflow-wrap: anywhere; }
+.lab-detail-overview p { margin: 5px 0 0; color: var(--lab-muted); font-size: 12px; line-height: 1.55; }
+.lab-quick-actions { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 5px; }
+.lab-quick-actions button {
+  display: grid;
+  min-height: 53px;
+  place-content: center;
+  justify-items: center;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid #e2ecfd;
+  border-radius: 9px;
+  background: #e5eeff;
+  color: var(--lab-ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+.lab-quick-actions button svg { color: var(--lab-blue); }
+.lab-quick-actions button:hover, .lab-quick-actions button[aria-expanded="true"] { border-color: #91b7ff; background: #d9e7ff; }
+.lab-structure-search { display: grid; gap: 5px; margin-top: 8px; }
+.lab-structure-search input { width: 100%; min-width: 0; padding: 6px 8px; border: 1px solid #bbd1f0; border-radius: 7px; background: #fff; color: var(--lab-ink); font-size: 12px; }
+.lab-structure-results { display: grid; gap: 3px; max-height: 170px; overflow: auto; }
+.lab-structure-results button { display: flex; justify-content: space-between; gap: 6px; padding: 5px; border: 0; border-radius: 5px; background: #f9fbff; color: var(--lab-ink); text-align: left; }
+.lab-progress div { display: flex; justify-content: space-between; gap: 6px; color: var(--lab-muted); font-size: 12px; }
+.lab-progress progress { display: block; width: 100%; height: 8px; margin: 5px 0; accent-color: var(--lab-blue); }
+.lab-progress > small { color: var(--lab-muted); font-size: 11px; }
+.lab-progress strong { color: #1646c5; }
+
+@media (max-width: 1050px) {
+  .anatomy-page .anatomy-body-workbench { grid-template-columns: minmax(155px, .75fr) minmax(0, 2fr); grid-template-rows: auto auto; height: auto; }
+  .body-stage { min-height: 500px; }
+  .body-system-rail { max-height: 500px; }
+  .body-detail-panel { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: visible; align-items: start; }
+  .body-detail-panel > :not(.lab-detail-overview, .lab-quick, .lab-progress) { grid-column: 1 / -1; }
+  .anatomy-page .anatomy-body-workbench:fullscreen { overflow: auto; }
+}
+@media (max-width: 620px) {
+  .lab-hero { grid-template-columns: minmax(0,1fr); gap: 9px; }
+  .lab-hero::before { inset: 0 0 32% 28%; opacity: .64; }
+  .anatomy-page .anatomy-mode-switch button { min-width: 145px; flex: 0 0 145px; }
+  .anatomy-page .anatomy-body-workbench { grid-template-columns: minmax(0,1fr); }
+  .body-system-rail { max-height: 206px; }
+  .body-stage { min-height: 460px; }
+  .body-detail-panel { grid-template-columns: 1fr; }
+}
+
+.is-atlas-mode .lab-hero { grid-template-columns: minmax(0, 1fr); min-height: 110px; }
+.is-atlas-mode .lab-hero::before { inset: 0 0 0 39%; background-position: right 65%; mask-image: linear-gradient(90deg, transparent, #000 48%, #000 88%, transparent); }
+.is-atlas-mode .anatomy-mode-switch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.is-atlas-mode .anatomy-mode-switch button { min-width: 0; min-height: 61px; padding-inline: clamp(10px, 2vw, 27px); gap: 11px; }
+.is-atlas-mode .anatomy-mode-switch button strong { font-size: 15px; }
+.is-atlas-mode .anatomy-mode-switch button > svg { flex: 0 0 auto; width: 23px; height: 23px; }
+.is-atlas-mode .anatomy-system-tabs {
+  gap: 4px;
+  margin: 0 0 13px;
+  padding: 5px;
+  border: 1px solid #f9fbff;
+  border-radius: 12px;
+  background: #edf4ff;
+}
+.is-atlas-mode .anatomy-system-tabs button {
+  flex: 1 0 auto;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 9px;
+  color: #355479;
+  font-size: 13px;
+}
+.is-atlas-mode .anatomy-system-tabs button.active { background: #fff; color: #0f55e5; box-shadow: 0 3px 12px #275eb52b; }
+
+.is-atlas-mode .anatomy-atlas-workbench {
+  display: grid;
+  grid-template-columns: minmax(177px, .9fr) minmax(0, 2.05fr) minmax(220px, 1.12fr);
+  grid-template-rows: auto auto;
+  align-items: stretch;
+  gap: 12px;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.is-atlas-mode .anatomy-atlas-workbench.nav-collapsed { grid-template-columns: 46px minmax(0, 2.05fr) minmax(220px, 1.12fr); }
+.is-atlas-mode :is(.atlas-layer-nav, .atlas-image-lab, .atlas-detail-panel, .atlas-study-strip) {
+  min-width: 0;
+  border: 1px solid #fff;
+  border-radius: 15px;
+  background: var(--lab-panel);
+  box-shadow: 0 5px 14px #193d8018;
+}
+.is-atlas-mode .atlas-layer-nav { grid-column: auto; display: flex; min-height: 0; overflow: hidden; }
+.is-atlas-mode .atlas-layer-nav > header { flex-wrap: wrap; gap: 4px; min-height: 49px; padding: 6px 9px; border-color: var(--lab-line); }
+.is-atlas-mode .atlas-layer-nav > header span { color: var(--lab-ink); font-size: 15px; white-space: nowrap; }
+.is-atlas-mode .atlas-layer-nav > header :is(svg, button) { color: var(--lab-blue); }
+.is-atlas-mode .atlas-layer-nav > header select {
+  max-width: 100%;
+  min-height: 28px;
+  padding: 0 3px;
+  border: 1px solid #deebff;
+  border-radius: 6px;
+  background: #f6faff;
+  color: var(--lab-ink);
+  font-size: 11px;
+}
+.is-atlas-mode .atlas-layer-nav > header button { width: 25px; height: 28px; background: #e7f0ff; }
+.is-atlas-mode .nav-collapsed .atlas-layer-nav > header { justify-content: center; }
+.is-atlas-mode .nav-collapsed .atlas-layer-nav select { display: none; }
+.is-atlas-mode .atlas-layer-tree { display: grid; align-content: start; gap: 3px; max-height: 626px; }
+.is-atlas-mode .atlas-layer-tree button { min-height: 47px; padding: 5px 6px; border-radius: 9px; color: #506a8f; }
+.is-atlas-mode .atlas-layer-tree button:hover { background: #e9f2ff; }
+.is-atlas-mode .atlas-layer-tree button.active { border-color: #c0d9ff; background: #dcecff; color: var(--lab-blue); }
+.is-atlas-mode .atlas-layer-tree button strong { color: var(--lab-ink); font-size: 12px; }
+.is-atlas-mode .atlas-layer-tree button small { color: var(--lab-muted); }
+.is-atlas-mode .nav-collapsed .atlas-layer-tree { display: none; }
+
+.is-atlas-mode .atlas-image-lab { grid-template-rows: auto auto minmax(0, 1fr) auto; min-height: 0; padding: 8px; gap: 8px; }
+.is-atlas-mode .atlas-image-lab > header { flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; min-height: 34px; gap: 5px; padding: 0 4px; border: 0; background: transparent; }
+.is-atlas-mode .atlas-breadcrumb { flex-wrap: wrap; color: var(--lab-muted); }
+.is-atlas-mode .atlas-breadcrumb :is(button, strong) { color: var(--lab-ink); white-space: normal; }
+.is-atlas-mode .atlas-breadcrumb button:hover { color: var(--lab-blue); }
+.atlas-level-chip { padding: 5px 8px; border: 1px solid #dae8fd; border-radius: 8px; background: #e7f1ff; color: #38577c; font-size: 11px; white-space: nowrap; }
+.atlas-image-instruction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 36px;
+  margin: 0;
+  padding: 6px 9px;
+  border: 1px solid #fff;
+  border-radius: 10px;
+  background: #e3edfd;
+  color: #304d74;
+  font-size: 12px;
+  text-align: center;
+}
+.atlas-image-instruction svg { flex: 0 0 auto; color: var(--lab-blue); }
+.is-atlas-mode .atlas-image-canvas {
+  min-height: 0;
+  overflow: visible;
+  padding: clamp(8px, 1.2vw, 17px);
+  border: 1px solid #dbe8fb;
+  border-radius: 13px;
+  background: #fbfdff;
+}
+.is-atlas-mode .atlas-image-stage { width: 100%; height: auto; background: transparent; box-shadow: none; }
+.is-atlas-mode .atlas-image-stage > img { position: absolute; inset: 0; object-fit: fill; }
+.is-atlas-mode .atlas-hotspot > span { background: #165def; box-shadow: 0 2px 8px #1a62e85c; }
+.is-atlas-mode .atlas-hotspot:is(:hover, .selected, :focus-visible) > span { background: #0841a5; outline: 2px solid #94c1ff; }
+.is-atlas-mode .atlas-hotspot > span > b { max-width: min(165px, 35vw); color: #234774; white-space: normal; text-align: center; }
+.is-atlas-mode .atlas-image-lab > footer { min-height: 28px; padding: 2px 4px; border: 0; background: transparent; }
+.is-atlas-mode .atlas-image-lab > footer :is(span, small) { color: var(--lab-muted); }
+.is-atlas-mode .atlas-image-lab > footer span { flex: 0 0 auto; }
+.is-atlas-mode .atlas-image-lab > footer small { display: block; overflow-wrap: anywhere; }
+
+.is-atlas-mode .atlas-detail-panel { padding: clamp(11px, 1.3vw, 17px); max-height: 680px; }
+.is-atlas-mode .atlas-detail-panel > * { flex: 0 0 auto; }
+.is-atlas-mode .atlas-detail-title { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: var(--lab-ink); font-size: clamp(16px, 1.4vw, 22px); }
+.atlas-detail-title svg { flex: 0 0 auto; }
+.is-atlas-mode .atlas-detail-panel > p { color: var(--lab-muted); }
+.is-atlas-mode .atlas-drilldown-list { margin-bottom: 9px; }
+.is-atlas-mode .atlas-drilldown-list button {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 43px;
+  padding: 5px 7px;
+  border: 1px solid #d6e6fc;
+  border-radius: 9px;
+  background: #eef5ff;
+  color: var(--lab-blue);
+  text-align: left;
+}
+.is-atlas-mode .atlas-drilldown-list button:hover { border-color: #8fb7ff; background: #e1eeff; }
+.is-atlas-mode .atlas-drilldown-list button b { color: var(--lab-ink); font-size: 12px; }
+.is-atlas-mode .atlas-drilldown-list button small { color: var(--lab-muted); }
+.is-atlas-mode .atlas-drilldown-list .atlas-drilldown-icon { display: grid; width: 30px; aspect-ratio: 1; place-items: center; border-radius: 9px; background: #e3eeff; }
+.is-atlas-mode .atlas-empty-detail { padding: 18px 6px; border-top-color: #dbe7fb; color: var(--lab-muted); }
+.is-atlas-mode .atlas-empty-detail svg, .is-atlas-mode .atlas-graph-link { color: var(--lab-blue); }
+.is-atlas-mode .atlas-empty-detail strong { color: var(--lab-ink); }
+.is-atlas-mode .atlas-graph-link { font-size: 13px; }
+
+.atlas-study-strip { grid-column: 1 / -1; padding: 6px; }
+.atlas-study-summary { display: grid; grid-template-columns: minmax(0, 1.5fr) auto auto minmax(0, 1.12fr); gap: 6px; }
+.atlas-study-summary > :is(div, button) {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  background: #f7faff;
+  color: var(--lab-ink);
+  text-align: left;
+}
+.atlas-study-summary strong { flex: 0 0 auto; font-size: 11px; color: var(--lab-ink); }
+.atlas-study-summary small { color: var(--lab-muted); font-size: 10px; white-space: normal; }
+.atlas-study-summary svg { flex: 0 0 auto; color: var(--lab-blue); }
+.atlas-study-summary button { justify-content: flex-start; }
+.atlas-study-summary button:hover { background: #e5efff; }
+.atlas-study-summary button > svg:last-child { margin-left: auto; }
+.atlas-study-strip .atlas-resource-content { padding: 5px; }
+.atlas-study-strip .atlas-resource-tabs { max-width: 300px; }
+
+@media (max-width: 1120px) {
+  .atlas-study-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 960px) {
+  .is-atlas-mode :is(.anatomy-atlas-workbench, .anatomy-atlas-workbench.nav-collapsed) { grid-template-columns: minmax(0, 1.75fr) minmax(200px, 1fr); }
+  .is-atlas-mode .atlas-layer-nav { grid-column: 1 / -1; }
+  .is-atlas-mode .atlas-layer-tree { display: flex; overflow-x: auto; }
+  .is-atlas-mode .atlas-layer-tree button { flex: 0 0 164px; }
+  .is-atlas-mode .atlas-detail-panel { max-height: none; }
+}
+@media (max-width: 700px) {
+  .is-atlas-mode :is(.anatomy-atlas-workbench, .anatomy-atlas-workbench.nav-collapsed) { grid-template-columns: minmax(0, 1fr); }
+  .is-atlas-mode .atlas-layer-nav { order: 0; }
+  .is-atlas-mode .atlas-image-lab { order: 1; }
+  .is-atlas-mode .atlas-detail-panel { order: 2; min-height: 0; }
+  .atlas-study-strip { order: 3; }
+}
+@media (max-width: 500px) {
+  .is-atlas-mode .anatomy-mode-switch { gap: 5px; }
+  .is-atlas-mode .anatomy-mode-switch button { justify-content: center; gap: 4px; padding-inline: 3px; }
+  .is-atlas-mode .anatomy-mode-switch button > svg { width: 15px; height: 15px; }
+  .is-atlas-mode .anatomy-mode-switch button strong { font-size: 11px; }
+  .is-atlas-mode .anatomy-mode-switch button small { display: none; }
+  .is-atlas-mode .lab-hero::before { opacity: .6; }
+  .atlas-study-summary { grid-template-columns: 1fr; }
+}
+
+
+.is-practice-mode .anatomy-mode-switch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 970px; gap: 10px; }
+.is-practice-mode .anatomy-mode-switch button { min-width: 0; min-height: 57px; }
+.is-practice-mode .anatomy-mode-switch button > svg { flex: 0 0 auto; width: 22px; height: 22px; }
+.is-practice-mode .anatomy-system-tabs {
+  width: fit-content;
+  max-width: 100%;
+  padding: 5px;
+  gap: 5px;
+  border: 1px solid #f8fbff;
+  border-radius: 12px;
+  background: #eaf2ff;
+}
+.is-practice-mode .anatomy-system-tabs button { min-height: 36px; color: #355479; font-size: 13px; }
+.is-practice-mode .anatomy-system-tabs button.active { color: #0f55e5; box-shadow: 0 3px 12px #275eb52b; }
+
+.is-practice-mode .anatomy-workbench {
+  display: grid;
+  grid-template-columns: minmax(158px, .76fr) minmax(0, 2.35fr) minmax(252px, 1.2fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 10px;
+  height: clamp(550px, calc(100dvh - 305px), 760px);
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.is-practice-mode .anatomy-exercise-rail {
+  display: flex;
+  grid-column: auto;
+  border: 1px solid #fff;
+  border-radius: 15px;
+  background: var(--lab-panel);
+  box-shadow: 0 5px 14px #193d8018;
+}
+.is-practice-mode .anatomy-exercise-rail > header { min-height: 48px; padding: 0 12px; border-color: var(--lab-line); }
+.is-practice-mode .anatomy-exercise-rail > header span { color: var(--lab-ink); }
+.is-practice-mode .anatomy-exercise-rail > header small { color: var(--lab-muted); white-space: nowrap; }
+.is-practice-mode .anatomy-exercise-rail > header svg { color: var(--lab-blue); }
+.is-practice-mode .anatomy-exercise-list { display: grid; align-content: start; gap: 5px; padding: 7px; }
+.is-practice-mode .anatomy-exercise-list button {
+  grid-template-columns: 29px minmax(0, 1fr) 15px;
+  gap: 6px;
+  min-height: 51px;
+  padding: 5px 6px;
+  border: 1px solid #e3ecfc;
+  border-radius: 10px;
+  background: #f4f8ff;
+  color: #2c548a;
+}
+.is-practice-mode .anatomy-exercise-list button:hover { background: #e3eeff; }
+.is-practice-mode .anatomy-exercise-list button.active { border-color: #a4c6ff; background: #dce9ff; color: var(--lab-blue); box-shadow: none; }
+.is-practice-mode .anatomy-exercise-list button > span:first-child { color: #2158b8; }
+.is-practice-mode .anatomy-exercise-list strong { color: var(--lab-ink); font-size: 13px; }
+.is-practice-mode .anatomy-exercise-list small { color: var(--lab-muted); font-size: 10px; }
+
+.is-practice-mode .anatomy-visual-lab {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid #426da4;
+  border-radius: 16px;
+  background: #0b2248;
+  box-shadow: 0 6px 18px #142e5e32;
+}
+.is-practice-mode .anatomy-visual-lab:fullscreen { width: 100%; height: 100%; border-radius: 0; }
+.is-practice-mode .anatomy-lab-toolbar {
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  min-height: 48px;
+  padding: 7px 10px;
+  border: 0;
+  background: linear-gradient(110deg, #153668, #0b2248);
+}
+.is-practice-mode .anatomy-lab-toolbar > div { min-width: 0; gap: 5px; color: #d5e8ff; }
+.is-practice-mode .anatomy-lab-toolbar > div > svg { flex: 0 0 auto; }
+.is-practice-mode .anatomy-lab-toolbar strong { color: #fff; font-size: 13px; overflow-wrap: anywhere; }
+.is-practice-mode .anatomy-lab-toolbar small { color: #c5d9f7; font-size: 10px; }
+.practice-view-controls { margin-left: auto; }
+.practice-view-controls button {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #ffffff1c;
+  border-radius: 7px;
+  background: #264978;
+  color: #edf5ff;
+}
+.practice-view-controls button:hover:not(:disabled) { background: #3566a7; }
+.practice-view-controls button:disabled { opacity: .5; }
+.is-practice-mode .anatomy-image-frame {
+  display: flex;
+  container-type: size;
+  min-width: 0;
+  overflow: auto;
+  padding: 10px;
+  background: #fff;
+  cursor: auto;
+  touch-action: pan-x pan-y;
+}
+.is-practice-mode .anatomy-image-frame.is-dragging { cursor: grabbing; }
+.is-practice-mode .anatomy-image-stage {
+  flex: 0 0 auto;
+  min-width: 0;
+  margin: auto;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+}
+.is-practice-mode .anatomy-image-stage:disabled { opacity: 1; }
+.is-practice-mode .anatomy-stage-note {
+  flex-wrap: wrap;
+  gap: 4px 9px;
+  min-height: 35px;
+  padding: 5px 10px;
+  border-color: #274977;
+  background: #102b53;
+  color: #e6efff;
+  font-size: 11px;
+}
+.is-practice-mode .anatomy-stage-note small { color: #bed2f0; overflow-wrap: anywhere; }
+
+.is-practice-mode .anatomy-task-panel { gap: 7px; padding: 0; border: 0; background: transparent; }
+.is-practice-mode .anatomy-task-panel > * {
+  flex: 0 0 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid #fff;
+  border-radius: 13px;
+  background: var(--lab-panel);
+}
+.practice-detail-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin-bottom: 9px; }
+.practice-detail-nav > * {
+  display: flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid #e3edfc;
+  border-radius: 8px;
+  background: #edf4ff;
+  color: #234579;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.practice-detail-nav > * > svg { flex: 0 0 auto; }
+.practice-detail-nav > *:hover { border-color: #a1c4ff; }
+.practice-detail-nav [aria-pressed="true"] { border-color: #6b9fff; background: var(--ui-primary); color: #fff; }
+.is-practice-mode .anatomy-task-status { margin-bottom: 5px; }
+.is-practice-mode .anatomy-task-status :is(span,b) { padding: 3px 6px; background: #e5efff; color: #355886; font-size: 10px; }
+.is-practice-mode .anatomy-task-panel h2 { margin: 0 0 5px; color: var(--lab-ink); font-size: clamp(16px, 1.4vw, 21px); }
+.is-practice-mode .anatomy-prompt { margin: 0; color: var(--lab-muted); font-size: 12px; line-height: 1.6; }
+.is-practice-mode :is(.anatomy-structure-panel > header strong, .anatomy-instructions > strong, .anatomy-video-panel summary) { color: var(--lab-ink); font-size: 13px; }
+.is-practice-mode .anatomy-task-panel :is(header, summary, .anatomy-instructions > strong) > svg { color: var(--lab-blue); }
+.is-practice-mode .anatomy-structure-tabs { flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+.is-practice-mode .anatomy-structure-tabs button { min-height: 27px; padding: 0 6px; border-color: #d1e1fa; color: #395780; font-size: 11px; }
+.is-practice-mode .anatomy-structure-tabs button.active { border-color: #5891f6; background: #e3edff; color: #0c4cd8; }
+.is-practice-mode .anatomy-structure-panel article { padding: 8px; border: 1px solid #d9e7fc; border-radius: 9px; background: #f5f9ff; }
+.is-practice-mode .anatomy-structure-panel article > span { background: #e2edff; color: #3f6192; }
+.is-practice-mode .anatomy-structure-panel article > strong { color: var(--lab-ink); }
+.is-practice-mode .anatomy-instructions ol { gap: 4px; margin-top: 7px; }
+.is-practice-mode .anatomy-instructions li { gap: 7px; color: var(--lab-muted); font-size: 12px; }
+.is-practice-mode .anatomy-instructions li span { width: 23px; height: 23px; background: #dceaff; color: #1356df; }
+.is-practice-mode .anatomy-message { margin-top: 7px; padding: 6px; font-size: 11px; }
+.is-practice-mode .anatomy-message.has-point { background: #e5f0ff; color: #244f97; }
+.is-practice-mode .anatomy-result { gap: 9px; }
+.is-practice-mode .anatomy-actions { gap: 6px; padding: 7px; }
+.is-practice-mode .anatomy-video-panel summary { display: flex; align-items: center; gap: 6px; font-weight: 750; cursor: pointer; }
+.is-practice-mode .anatomy-video-panel summary svg:last-child { margin-left: auto; }
+.is-practice-mode .anatomy-video-panel[open] summary svg:last-child { transform: rotate(180deg); }
+
+@media (max-width: 1050px) {
+  .is-practice-mode .anatomy-workbench { grid-template-columns: minmax(0, 1.65fr) minmax(230px, 1fr); grid-template-rows: auto 540px; height: auto; }
+  .is-practice-mode .anatomy-exercise-rail { grid-column: 1 / -1; }
+  .is-practice-mode .anatomy-exercise-list { display: flex; overflow-x: auto; }
+  .is-practice-mode .anatomy-exercise-list button { flex: 0 0 164px; }
+}
+@media (max-width: 690px) {
+  .is-practice-mode .anatomy-workbench { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; }
+  .is-practice-mode .anatomy-exercise-rail { order: 0; }
+  .is-practice-mode .anatomy-visual-lab { order: 1; height: clamp(370px, 100vw, 530px); }
+  .is-practice-mode .anatomy-task-panel { order: 2; min-height: 0; overflow: visible; }
+  .is-practice-mode .anatomy-mode-switch { gap: 5px; }
+  .is-practice-mode .anatomy-mode-switch button { justify-content: center; padding-inline: 3px; gap: 4px; }
+  .is-practice-mode .anatomy-mode-switch button > svg { width: 15px; height: 15px; }
+  .is-practice-mode .anatomy-mode-switch button strong { font-size: 11px; }
+  .is-practice-mode .anatomy-mode-switch button small { display: none; }
+}
+
+</style>

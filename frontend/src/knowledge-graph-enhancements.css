@@ -95,11 +95,12 @@
 
 .graph-stage.anatomy-graph-stage {
   --graph-canvas-height: 620px;
+  --graph-backdrop-shade: linear-gradient(180deg, #05133745, #0513375c);
   min-height: var(--graph-canvas-height);
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(5, 20, 54, .22), rgba(5, 20, 54, .38) 56%, rgba(5, 20, 54, .61)),
-    #061b50 url('./assets/medical/knowledge-graph-backdrop.jpeg') center / cover no-repeat;
+    var(--graph-backdrop-shade),
+    #061b50 url('./assets/medical/knowledge-graph-stage.webp') center bottom / cover no-repeat;
 }
 
 .graph-canvas-scroll {

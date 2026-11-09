@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-const props = defineProps<{ nodeId?: string }>();
+const props = defineProps<{ nodeId?: string; light?: boolean }>();
 
 const icons: Record<string, string[]> = {
   root: [
@@ -40,18 +40,66 @@ const icons: Record<string, string[]> = {
   lymphatic: [
     'm5 7 5 4m4 0 5-4m-7 7v4',
     'M6 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm16 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm-7 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm-1 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z'
-  ]
+  ],
+  skull: ['M4 10a8 8 0 1 1 16 0c0 3-2 4-3 5v4h-3v2h-4v-2H7v-4c-1-1-3-2-3-5Z', 'M8 11h2m4 0h2m-5 4 1-1 1 1'],
+  spine: ['M9 2h6v4H9zm-1 6h8v4H8zm0 6h8v4H8zm1 6h6v2H9zM12 6v2m0 4v2m0 4v2'],
+  liver: ['M3 9c2-5 5-6 9-5 3 1 6 1 9 1v3c0 3-2 5-7 5l-2 4c-2 3-6 4-9 1Z', 'M12 5v5c0 2 1 3 3 3'],
+  bladder: ['M8 8a4 4 0 0 0-4 4v2c0 3 3 5 6 5l2 3 2-3c3 0 6-2 6-5v-2a4 4 0 0 0-4-4Z', 'm7 8-3-5m13 5 3-5'],
+  bowel: ['M5 6c0-2 2-3 4-2l3 1 3-1c2-1 4 0 4 2v10a3 3 0 0 1-3 3h-4v3M5 6v10a3 3 0 0 0 3 3m0-12h8m-8 4h8m-8 4h8'],
+  airway: ['M10 2v10l-6 7m10-17v10l6 7M10 6h4m-4 4h4m-8 6v5m12-5v5'],
+  vessel: ['M10 22V11L5 6V2m9 20V11l5-5V2m-7 5V2'],
+  testis: ['M15 8a6 8 0 1 0 0 14 6 8 0 0 0 0-14Z', 'M17 15c4-2 4-7 0-10-2-1-3-2-3-4'],
+  gland: ['M8 5c3-3 9-1 10 3 3 3 2 7-1 9-1 4-6 5-9 2-4 0-6-5-4-8 0-3 2-5 4-6Z', 'M8 12h.01m4-3h.01m4 5h.01m-5 3h.01'],
+  kidney: ['M15 3c-5-1-10 3-10 10 0 5 3 8 7 7 2 0 3-2 3-4 0-3-3-3-3-5 0-1 1-2 3-2s4-1 4-3c0-1-2-3-4-3Z', 'M13 11c4 1 6 4 6 9']
 };
 
-const paths = computed(() => {
-  const id = props.nodeId;
-  if (id === 'anatomy_root') return icons.root;
-  return icons[id?.replace(/^anatomy_system_/, '') ?? ''] ?? ['M4 7h16M4 12h16M4 17h16M8 4v6m8-1v6m-6-1v6'];
+const organIconGroups: Record<string, string[]> = {
+  skull: ['skull'],
+  spine: ['vertebral-column'],
+  locomotor: ['thorax', 'pelvis'],
+  circulatory: ['heart'],
+  vessel: ['aorta', 'pulmonary-vessels', 'vena-cava'],
+  airway: ['trachea', 'right-bronchial-tree', 'left-bronchial-tree'],
+  respiratory: ['right-lung', 'left-lung'],
+  digestive: ['esophagus', 'stomach'],
+  bowel: ['duodenum', 'jejunum', 'ileum', 'colon', 'rectum', 'appendix'],
+  liver: ['liver', 'gallbladder', 'pancreas'],
+  kidney: ['right-kidney', 'left-kidney'],
+  bladder: ['right-ureter', 'left-ureter', 'bladder', 'urethra'],
+  testis: ['right-testis', 'left-testis', 'right-epididymis', 'left-epididymis'],
+  nervous: ['telencephalon', 'diencephalon', 'cerebellum', 'midbrain', 'pons', 'medulla'],
+  gland: ['pituitary', 'pineal', 'adrenal', 'seminal-vesicle', 'prostate'],
+  lymphatic: ['thymus', 'spleen']
+};
+const organIcons = new Map(Object.entries(organIconGroups).flatMap(([key, ids]) => ids.map(id => [id, key] as const)));
+const iconKey = computed(() => {
+  const id = props.nodeId ?? '';
+  if (id === 'anatomy_root') return 'root';
+  if (id.startsWith('anatomy_organ_')) return organIcons.get(id.slice('anatomy_organ_'.length)) ?? '';
+  return id.replace(/^anatomy_system_/, '');
 });
+const paths = computed(() => icons[iconKey.value] ?? ['M4 7h16M4 12h16M4 17h16M8 4v6m8-1v6m-6-1v6']);
+
+const palettes: Record<string, readonly [string, string, string]> = {
+  root: ['#fff4da', '#8b5529', '#ad632b'],
+  locomotor: ['#e9f1ff', '#315784', '#315784'],
+  circulatory: ['#fbe7ed', '#a6375a', '#b03049'],
+  respiratory: ['#e6f6fb', '#196781', '#227a96'],
+  digestive: ['#fff0dd', '#8c521f', '#ab6426'],
+  urinary: ['#f2eafa', '#714791', '#854e9e'],
+  reproductive: ['#fcebf3', '#91436d', '#a14a79'],
+  nervous: ['#eeecff', '#514b9e', '#6258a6'],
+  endocrine: ['#f2eaff', '#784d97', '#784d97'],
+  lymphatic: ['#e8f6ee', '#32735d', '#28785e']
+};
+const palette = computed(() => palettes[iconKey.value] ?? ['#edf3ff', '#345c91', '#345c91']);
 </script>
 
 <template>
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-    <path v-for="path in paths" :key="path" :d="path" />
+  <svg viewBox="0 0 24 24" fill="none" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+    <ellipse v-if="!light" cx="12" cy="12" rx="11.75" ry="11.75" :fill="palette[0]" />
+    <g :transform="light ? 'translate(1 1) scale(.9167)' : 'translate(3 3) scale(.75)'">
+      <path v-for="(path, index) in paths" :key="path" :d="path" :stroke="light ? (index ? '#91e5ff' : '#e0f7ff') : (index ? palette[2] : palette[1])" />
+    </g>
   </svg>
 </template>
