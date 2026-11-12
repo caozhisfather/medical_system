@@ -244,3 +244,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local teaching data backups and uploaded classroom resources
+data/*.pre-teaching-*.sqlite3
+data/class_resources/

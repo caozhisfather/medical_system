@@ -28,7 +28,8 @@ const workspaces: Record<WorkspaceRole, { title: string; links: NavItem[] }> = {
       { label: '学习总览', path: '/student/dashboard', icon: LayoutDashboard },
       { label: '虚拟解剖室', path: '/student/anatomy', icon: ScanLine },
       { label: '知识图谱', path: '/knowledge-graph', icon: ChartNetwork },
-      { label: '学习档案', path: '/student/archive', icon: History }
+        { label: '学习档案', path: '/student/archive', icon: History },
+        { label: '我的班级', path: '/student/classrooms', icon: Users }
     ]
   },
   teacher: {
@@ -45,6 +46,7 @@ const workspaces: Record<WorkspaceRole, { title: string; links: NavItem[] }> = {
     title: '管理员工作台',
     links: [
       { label: '系统控制台', path: '/admin/dashboard', icon: Settings2 },
+      { label: '班级管理', path: '/admin/classrooms', icon: Users },
       { label: 'Skill 管理', path: '/admin/skills', icon: SlidersHorizontal },
       { label: '教学知识库', path: '/admin/knowledge', icon: Library },
       { label: '知识图谱', path: '/knowledge-graph', icon: ChartNetwork }

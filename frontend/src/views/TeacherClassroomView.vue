@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { BookOpenCheck, Check, FileClock, LoaderCircle, Plus, Sparkles, TriangleAlert, Users } from '@lucide/vue';
+import { ArrowRight, BarChart3, BookOpenCheck, Check, ChevronRight, ClipboardList, FileClock, GraduationCap, Layers3, LoaderCircle, Plus, RefreshCw, Search, Sparkles, Target, TriangleAlert, Users } from '@lucide/vue';
 import {
   createClassroom,
   generateAiClassroomGuidance,
@@ -12,6 +12,11 @@ import {
 import MarkdownContent from '../components/MarkdownContent.vue';
 import type { ClassroomDetail, ClassroomGuidance, ClassroomStudent, ClassroomSummary } from '../types';
 
+const classSearch = ref('');
+const studentSection = ref<HTMLElement | null>(null);
+const guidanceSection = ref<HTMLElement | null>(null);
+let detailRequest = 0;
+let guidanceRequest = 0;
 const classrooms = ref<ClassroomSummary[]>([]);
 const activeClassId = ref('');
 const detail = ref<ClassroomDetail | null>(null);
@@ -36,6 +41,28 @@ const selectedStudent = computed<ClassroomStudent | null>(() =>
 const latestGuidance = computed(() => guidance.value[0] ?? null);
 const earlierGuidance = computed(() => guidance.value.slice(1, 11));
 
+const filteredClasses = computed(() => classrooms.value.filter(item => item.name.toLocaleLowerCase().includes(classSearch.value.trim().toLocaleLowerCase())));
+const classStats = computed(() => {
+  const students = detail.value?.students ?? [];
+  const practiced = students.filter(student => student.total_attempts > 0).length;
+  const attempts = students.reduce((sum, student) => sum + student.total_attempts, 0);
+  const correct = students.reduce((sum, student) => sum + student.anatomy.correct + student.quiz.correct, 0);
+  return { count: students.length, practiced, pending: students.length - practiced, attempts,
+    accuracy: attempts ? Math.round(correct / attempts * 100) : null,
+    average: practiced ? Math.round(students.reduce((sum, student) => sum + (student.total_attempts ? student.average_score : 0), 0) / practiced) : null };
+});
+const practicedShare = computed(() => classStats.value.count ? classStats.value.practiced / classStats.value.count * 100 : 0);
+const needsReview = computed(() => (detail.value?.students ?? []).filter(student => student.weak_points.length));
+const practiceCounts = computed(() => [
+  { label: '空间定位', count: (detail.value?.students ?? []).reduce((sum, student) => sum + student.anatomy.total, 0) },
+  { label: '结构刷题', count: (detail.value?.students ?? []).reduce((sum, student) => sum + student.quiz.total, 0) }
+]);
+const practiceMaximum = computed(() => Math.max(1, ...practiceCounts.value.map(item => item.count)));
+const recentEvents = computed(() => [
+  ...(detail.value?.students ?? []).map(student => ({ id: student.student_id, text: student.student_name + ' 加入班级', time: student.joined_at })),
+  ...guidance.value.map(item => ({ id: item.id, text: item.source === 'ai' ? '已生成 AI 学习建议 · ' + (selectedStudent.value?.student_name ?? '') : '已发送教师指导 · ' + (selectedStudent.value?.student_name ?? ''), time: item.created_at }))
+].filter(item => Number.isFinite(Date.parse(item.time))).sort((a, b) => Date.parse(b.time) - Date.parse(a.time)).slice(0, 4));
+
 function formatTime(value: string) {
   if (!value) return '';
   const date = new Date(value);
@@ -47,7 +74,8 @@ async function loadClasses(preferredId = '') {
   error.value = '';
   try {
     classrooms.value = (await getMyClassrooms()).items;
-    const nextId = preferredId || activeClassId.value || classrooms.value[0]?.id || '';
+    const preferred = preferredId || activeClassId.value;
+    const nextId = classrooms.value.find(item => item.id === preferred)?.id || classrooms.value[0]?.id || '';
     if (nextId) await selectClass(nextId);
     else {
       activeClassId.value = '';
@@ -63,32 +91,46 @@ async function loadClasses(preferredId = '') {
 }
 
 async function selectClass(classId: string) {
+  const request = ++detailRequest;
+  ++guidanceRequest;
   activeClassId.value = classId;
+  detail.value = null;
+  selectedStudentId.value = '';
+  guidance.value = [];
+  guidanceForm.value = { content: '', recommendedScore: null };
+  loadingGuidance.value = false;
   loadingDetail.value = true;
   error.value = '';
   try {
-    detail.value = await getClassroomDetail(classId);
-    const nextStudentId = detail.value.students[0]?.student_id ?? '';
+    const loaded = await getClassroomDetail(classId);
+    if (request !== detailRequest) return;
+    detail.value = loaded;
+    const nextStudentId = loaded.students[0]?.student_id ?? '';
     selectedStudentId.value = nextStudentId;
     if (nextStudentId) await loadGuidance(nextStudentId);
-    else guidance.value = [];
   } catch (reason) {
-    detail.value = null;
-    error.value = reason instanceof Error ? reason.message : '班级详情读取失败';
+    if (request === detailRequest) error.value = reason instanceof Error ? reason.message : '班级详情读取失败';
   } finally {
-    loadingDetail.value = false;
+    if (request === detailRequest) loadingDetail.value = false;
   }
 }
 
 async function loadGuidance(studentId: string) {
-  if (!activeClassId.value || !studentId) return;
+  const classId = activeClassId.value;
+  if (!classId || !studentId) return;
+  const request = ++guidanceRequest;
   loadingGuidance.value = true;
+  guidance.value = [];
   try {
-    guidance.value = (await getClassroomGuidance(activeClassId.value, studentId)).items;
+    const result = await getClassroomGuidance(classId, studentId);
+    if (request === guidanceRequest) guidance.value = result.items;
   } catch {
-    guidance.value = [];
+    if (request === guidanceRequest) {
+      guidance.value = [];
+      error.value = '指导记录读取失败，请重新选择学生重试。';
+    }
   } finally {
-    loadingGuidance.value = false;
+    if (request === guidanceRequest) loadingGuidance.value = false;
   }
 }
 
@@ -133,15 +175,17 @@ async function sendGuidance() {
   const student = selectedStudent.value;
   const content = guidanceForm.value.content.trim();
   if (!student || !content || sending.value) return;
+  const classId = activeClassId.value;
   sending.value = true;
   error.value = '';
   try {
-    const created = await sendClassroomGuidance(activeClassId.value, {
+    const created = await sendClassroomGuidance(classId, {
       student_id: student.student_id,
       content,
       recommended_score: guidanceForm.value.recommendedScore
     });
-    guidance.value = [created, ...guidance.value];
+    if (activeClassId.value !== classId || selectedStudentId.value !== student.student_id) return;
+    guidance.value = [created, ...guidance.value.filter(item => item.id !== created.id)];
     guidanceForm.value = { content: '', recommendedScore: null };
     message.value = `已向${student.student_name}发送学习指导。`;
   } catch (reason) {
@@ -154,11 +198,12 @@ async function sendGuidance() {
 async function generateAiGuidance() {
   const student = selectedStudent.value;
   if (!student || aiLoading.value) return;
+  const classId = activeClassId.value;
   aiLoading.value = true;
   error.value = '';
   try {
-    const created = await generateAiClassroomGuidance(activeClassId.value, student.student_id);
-    guidance.value = [created, ...guidance.value];
+    const created = await generateAiClassroomGuidance(classId, student.student_id);
+    guidance.value = [created, ...guidance.value.filter(item => item.id !== created.id)];
     if (detail.value) {
       detail.value.students = detail.value.students.map((item) =>
         item.student_id === student.student_id
@@ -178,16 +223,19 @@ onMounted(() => { void loadClasses(); });
 </script>
 
 <template>
-  <div class="workspace-page classroom-page">
-    <section class="classroom-hero">
-      <div>
-        <span class="section-kicker">教师端 · 班级与学情</span>
-        <h1>班级管理</h1>
-        <p>创建班级后把班级码发给学生。学生加入后，你可以查看真实作答表现、发送指导，也可以让AI学习教练生成复练建议。</p>
-      </div>
-      <button class="button-primary" type="button" @click="showCreate = !showCreate"><Plus :size="17" />创建班级</button>
+  <div class="workspace-page classroom-page class-management">
+    <section class="class-banner">
+      <span>教师工作台 <ChevronRight :size="13" />班级管理</span>
+      <h1>班级管理</h1>
+      <p>管理教学班级，掌握学生作答表现，发送学习指导与复习建议。</p>
     </section>
-
+    <section class="class-top-metrics" aria-label="班级统计">
+      <article><Users /><div><small>班级总数</small><strong>{{ loadingClasses ? '—' : classrooms.length }}</strong></div></article>
+      <article><GraduationCap /><div><small>班级成员人次</small><strong>{{ loadingClasses ? '—' : classrooms.reduce((sum, item) => sum + item.student_count, 0) }}</strong></div></article>
+      <article><ClipboardList /><div><small>当前班级累计作答</small><strong>{{ detail ? classStats.attempts : '—' }}</strong></div></article>
+      <article><Target /><div><small>当前班级正确率</small><strong>{{ classStats.accuracy == null ? '—' : classStats.accuracy + '%' }}</strong></div></article>
+      <article><BarChart3 /><div><small>已作答学生均分</small><strong>{{ classStats.average == null ? '—' : classStats.average }}</strong></div></article>
+    </section>
     <section v-if="showCreate" class="classroom-create">
       <label><span>班级名称</span><input v-model="createForm.name" maxlength="60" placeholder="例如：临床医学 2026-1 班" /></label>
       <label><span>班级说明</span><input v-model="createForm.description" maxlength="500" placeholder="课程、学期或教学范围" /></label>
@@ -196,49 +244,90 @@ onMounted(() => { void loadClasses(); });
       </button>
     </section>
 
-    <p v-if="error" class="classroom-banner is-error"><TriangleAlert :size="16" />{{ error }}</p>
-    <p v-else-if="message" class="classroom-banner is-ok"><Check :size="16" />{{ message }}</p>
+    <p v-if="error" class="classroom-banner is-error" role="alert"><TriangleAlert :size="16" />{{ error }}</p>
+    <p v-else-if="message" class="classroom-banner is-ok" role="status"><Check :size="16" />{{ message }}</p>
 
-    <div v-if="loadingClasses" class="classroom-state"><LoaderCircle class="spin" :size="22" />正在读取班级</div>
-
-    <div v-else-if="!classrooms.length" class="classroom-empty">
-      <Users :size="30" />
-      <strong>还没有班级</strong>
-      <p>先创建班级，再把系统生成的班级码发给学生。</p>
-      <button class="button-primary" type="button" @click="showCreate = true"><Plus :size="17" />创建第一个班级</button>
-    </div>
-
-    <div v-else class="classroom-layout">
-      <aside class="classroom-list">
-        <button v-for="item in classrooms" :key="item.id" type="button" :class="{ active: item.id === activeClassId }" @click="selectClass(item.id)">
-          <span><strong>{{ item.name }}</strong><small>{{ item.student_count }} 名学生</small></span>
-          <b>{{ item.code }}</b>
-        </button>
+    <div class="classroom-layout">
+      <aside class="class-list-panel">
+        <header><h2>班级列表</h2><button class="button-primary" type="button" :aria-expanded="showCreate" @click="showCreate = !showCreate"><Plus :size="15" />创建班级</button></header>
+        <label class="class-search"><Search :size="16" /><input v-model="classSearch" aria-label="搜索班级名称" placeholder="搜索班级名称" /></label>
+        <div class="class-list-items">
+          <button v-for="item in filteredClasses" :key="item.id" type="button" :class="{ active: item.id === activeClassId }" :aria-pressed="item.id === activeClassId" @click="selectClass(item.id)">
+            <GraduationCap :size="20" /><strong>{{ item.name }}</strong><small>{{ item.student_count }} 人</small><ChevronRight :size="15" />
+          </button>
+          <p v-if="loadingClasses" class="class-quiet" role="status">正在读取班级…</p>
+          <p v-else-if="!filteredClasses.length" class="class-quiet">{{ classrooms.length ? '没有匹配的班级' : error ? '班级列表暂时无法读取' : '尚未创建班级' }}</p>
+        </div>
+        <button class="class-refresh" type="button" :disabled="loadingClasses" @click="loadClasses()"><RefreshCw :size="14" />刷新班级</button>
       </aside>
 
-      <main v-if="loadingDetail" class="classroom-state"><LoaderCircle class="spin" :size="22" />正在统计学情</main>
-      <main v-else-if="detail" class="classroom-detail">
-        <header class="classroom-detail-head">
+      <main class="classroom-detail">
+        <nav class="class-quick-panel" aria-label="快捷功能">
+          <h2>快捷功能</h2>
+          <div>
+            <button type="button" :disabled="!detail" @click="studentSection?.scrollIntoView({ block: 'start' })"><Users />学生学情</button>
+            <button type="button" :disabled="!selectedStudent" @click="guidanceSection?.scrollIntoView({ block: 'start' })"><BookOpenCheck />教师指导</button>
+            <button type="button" :disabled="!selectedStudent || aiLoading" @click="generateAiGuidance"><Sparkles />AI 学习建议</button>
+            <RouterLink to="/teacher/exam-settings"><ClipboardList />题型与测验</RouterLink>
+            <RouterLink to="/teacher/knowledge"><Layers3 />教学资料</RouterLink>
+            <button type="button" :disabled="!detail" @click="copyCode"><Check />复制班级码</button>
+          </div>
+        </nav>
+
+        <div v-if="loadingClasses || loadingDetail" class="classroom-state class-card" role="status"><LoaderCircle class="spin" :size="22" />正在读取班级与学情</div>
+        <section v-else-if="!detail" class="classroom-empty class-card">
+          <Users :size="28" />
+          <strong>{{ error ? '班级数据暂不可用' : '还没有班级' }}</strong>
+          <p>{{ error ? '请刷新班级列表后重试。' : '点击创建班级，生成班级码后邀请学生加入。这里会展示真实学情、练习分布和指导记录。' }}</p>
+          <button v-if="!error" class="button-primary" type="button" @click="showCreate = true"><Plus :size="16" />创建第一个班级</button>
+          <button v-else class="button-secondary" type="button" @click="loadClasses()"><RefreshCw :size="16" />重新读取</button>
+        </section>
+
+        <header v-if="detail" class="classroom-detail-head">
           <div><span>{{ detail.teacher_name }}</span><h2>{{ detail.name }}</h2><p>{{ detail.description || '暂无班级说明' }}</p></div>
           <button type="button" class="class-code" @click="copyCode"><small>班级码</small><strong>{{ detail.code }}</strong><span>{{ codeCopied ? '已复制' : '点击复制' }}</span></button>
         </header>
 
-        <section class="classroom-metrics">
-          <article><small>班级人数</small><strong>{{ detail.students.length }}</strong></article>
-          <article><small>平均得分</small><strong>{{ detail.students.length ? Math.round(detail.students.reduce((sum, item) => sum + item.average_score, 0) / detail.students.length) : 0 }}</strong></article>
-          <article><small>累计作答</small><strong>{{ detail.students.reduce((sum, item) => sum + item.total_attempts, 0) }}</strong></article>
-        </section>
+        <div class="class-overview-grid">
+          <section class="class-card">
+            <header><h2>班级概览</h2><small>{{ detail?.name || '创建班级后查看' }}</small></header>
+            <div class="class-participation">
+              <div class="class-donut" :style="{ background: 'conic-gradient(#2476ff ' + practicedShare + '%, #dce7fb 0)' }"><strong>{{ detail ? classStats.count : '—' }}</strong><small>班级人数</small></div>
+              <dl><div><dt>已作答学生</dt><dd>{{ detail ? classStats.practiced : '—' }} 人</dd></div><div><dt>尚未作答</dt><dd>{{ detail ? classStats.pending : '—' }} 人</dd></div></dl>
+            </div>
+          </section>
+          <section class="class-card">
+            <header><h2>班级练习分布</h2><small>累计作答次数</small></header>
+            <div class="class-practice-bars">
+              <div v-for="item in practiceCounts" :key="item.label"><span>{{ item.label }}</span><i><b :style="{ width: item.count / practiceMaximum * 100 + '%' }"></b></i><strong>{{ detail ? item.count : '—' }}</strong></div>
+            </div>
+          </section>
+          <section class="class-card class-recent">
+            <header><h2><FileClock :size="18" />近期动态</h2></header>
+            <ul v-if="recentEvents.length"><li v-for="item in recentEvents" :key="item.id"><span>{{ item.text }}</span><time :datetime="item.time">{{ formatTime(item.time) }}</time></li></ul>
+            <p v-else class="class-quiet">暂无入班和指导记录。</p>
+            <small>显示学生入班及当前学生的指导记录。</small>
+          </section>
+          <section class="class-card class-review">
+            <header><h2><Target :size="18" />复习关注</h2><small>{{ detail ? needsReview.length : '—' }} 名学生</small></header>
+            <button v-for="student in needsReview.slice(0, 3)" :key="student.student_id" type="button" @click="selectStudent(student.student_id); guidanceSection?.scrollIntoView({ block: 'start' })"><span><strong>{{ student.student_name }}</strong><small>{{ student.weak_points.slice(0, 2).join('、') }}</small></span><ChevronRight :size="15" /></button>
+            <p v-if="!needsReview.length" class="class-quiet">{{ classStats.attempts ? '当前暂无明确薄弱项。' : '完成作答后可在这里查看复习关注项。' }}</p>
+          </section>
+        </div>
+        <section v-if="detail" ref="studentSection" class="class-students-panel">
+          <header><h2><Users :size="18" />学生学情</h2><small>{{ detail.students.length }} 名学生</small></header>
+          <div class="student-grid">
 
-        <section class="student-grid">
           <button v-for="student in detail.students" :key="student.student_id" type="button" :class="{ active: student.student_id === selectedStudentId }" @click="selectStudent(student.student_id)">
             <header><strong>{{ student.student_name }}</strong><span>{{ student.average_score }} 分</span></header>
             <p>{{ student.total_attempts }} 次作答 · 定位 {{ student.anatomy.total }} · 刷题 {{ student.quiz.total }}</p>
             <small>{{ student.weak_points.length ? `重点：${student.weak_points.slice(0, 2).join('、')}` : '暂无明确薄弱项' }}</small>
           </button>
           <div v-if="!detail.students.length" class="classroom-empty compact"><Users :size="24" /><strong>暂时没有学生加入</strong><p>把班级码 {{ detail.code }} 发给学生即可。</p></div>
+          </div>
         </section>
 
-        <section v-if="selectedStudent" class="student-guidance">
+        <section v-if="selectedStudent" ref="guidanceSection" class="student-guidance">
           <header>
             <div><span>学生指导</span><h3>{{ selectedStudent.student_name }}</h3></div>
             <button class="button-secondary" type="button" :disabled="aiLoading" @click="generateAiGuidance">
@@ -248,8 +337,8 @@ onMounted(() => { void loadClasses(); });
 
           <div class="student-performance">
             <article><small>综合得分</small><strong>{{ selectedStudent.average_score }}</strong></article>
-            <article><small>定位正确率</small><strong>{{ selectedStudent.anatomy.accuracy }}%</strong></article>
-            <article><small>刷题正确率</small><strong>{{ selectedStudent.quiz.accuracy }}%</strong></article>
+            <article><small>定位正确率</small><strong>{{ Math.round(selectedStudent.anatomy.accuracy * 10) / 10 }}%</strong></article>
+            <article><small>刷题正确率</small><strong>{{ Math.round(selectedStudent.quiz.accuracy * 10) / 10 }}%</strong></article>
           </div>
 
           <div class="guidance-grid">
@@ -400,4 +489,104 @@ onMounted(() => { void loadClasses(); });
   .class-code { justify-items: start; }
   .classroom-metrics, .student-performance, .student-grid { grid-template-columns: 1fr; }
 }
+
+.class-management { gap: 12px; color: #10234e; }
+.class-banner { padding: 17px 27px; min-height: 132px; border: 1px solid #f5faff; border-radius: 17px; background: linear-gradient(90deg, #dcecff, #d8e8ff00 80%), #cbdffa url('../assets/medical/teacher-overview-banner.webp') right center / auto 100% no-repeat; }
+.class-banner > span { display: flex; align-items: center; gap: 5px; color: #155bdc; font-size: 12px; font-weight: 750; }
+.class-banner h1 { margin: 6px 0; font-size: 31px; line-height: 1.2; }
+.class-banner p { max-width: 70%; margin: 0; color: #405a80; font-size: 13px; line-height: 1.6; }
+.class-top-metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.class-top-metrics article, .class-list-panel, .class-card, .class-quick-panel, .class-students-panel {
+  min-width: 0; border: 1px solid #fff; border-radius: 15px; background: linear-gradient(145deg, #fcfdff, #eef5ff); box-shadow: 0 4px 13px #153b7e13;
+}
+.class-top-metrics article { display: flex; align-items: center; gap: 13px; padding: 14px; }
+.class-top-metrics article > svg { width: 42px; height: 42px; flex: 0 0 auto; padding: 9px; border-radius: 50%; background: #e1edff; color: #1566fa; }
+.class-top-metrics article > div { display: grid; gap: 4px; }
+.class-top-metrics small { color: #415b80; font-size: 11px; }
+.class-top-metrics strong { font-size: 25px; color: #0c50eb; line-height: 1.1; }
+.class-management .classroom-layout { grid-template-columns: minmax(230px, .85fr) minmax(0, 2.65fr); gap: 12px; }
+.class-list-panel { display: flex; flex-direction: column; gap: 12px; padding: 13px; align-self: start; min-height: 550px; }
+.class-list-panel header, .class-card header, .class-students-panel > header { display: flex; align-items: center; justify-content: space-between; gap: 7px; }
+.class-management h2 { margin: 0; color: #10234e; font-size: 17px; }
+.class-list-panel .button-primary { min-height: 31px; padding: 0 8px; font-size: 11px; }
+.class-search { display: flex; align-items: center; gap: 6px; padding: 0 9px; border: 1px solid #cdddF5; border-radius: 9px; background: #f9fbff; color: #607fa9; }
+.class-search input { width: 100%; min-width: 0; min-height: 34px; border: 0; background: transparent; color: #294771; font-size: 12px; }
+.class-list-items { display: grid; align-content: start; gap: 6px; max-height: 580px; overflow: auto; }
+.class-list-items > button { display: grid; grid-template-columns: auto minmax(0,1fr) auto auto; align-items: center; gap: 7px; min-height: 49px; padding: 7px; border: 1px solid #e0eafa; border-radius: 9px; background: #f4f8ff; color: #36577f; text-align: left; }
+.class-list-items > button.active { border-color: #82aaff; background: #dfebff; }
+.class-list-items > button strong { overflow: hidden; color: #17325a; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.class-list-items > button svg { color: #1e64f0; }
+.class-list-items > button small { font-size: 11px; white-space: nowrap; }
+.class-refresh { display: inline-flex; align-items: center; gap: 6px; justify-content: center; margin-top: auto; padding: 7px; border: 0; background: #e7f0ff; color: #26578f; border-radius: 8px; font-size: 12px; }
+.class-management .classroom-detail { gap: 10px; }
+.class-quick-panel { padding: 13px; }
+.class-quick-panel h2 { margin-bottom: 10px; }
+.class-quick-panel > div { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; }
+.class-quick-panel :is(button, a) { display: grid; min-width: 0; justify-items: center; place-content: center; gap: 7px; min-height: 66px; padding: 5px; border: 0; border-radius: 9px; background: #e5eeff; color: #193b76; text-decoration: none; font-size: 11px; }
+.class-quick-panel :is(button, a) svg { width: 23px; height: 23px; color: #1c68fa; }
+.class-quick-panel :is(button, a):hover:not(:disabled) { background: #d9e8ff; }
+.class-management .classroom-detail-head { padding: 12px; border-color: #fff; border-radius: 13px; background: #f4f8ff; }
+.class-management .classroom-detail-head h2 { margin: 2px 0; }
+.class-management .classroom-detail-head p { color: #516b8f; }
+.class-management .class-code { background: #e4efff; border-color: #cedfff; }
+.class-management .class-code strong { color: #1353d4; font-size: 16px; }
+.class-overview-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+.class-card { padding: 13px; }
+.class-card header small { color: #577193; font-size: 11px; }
+.class-card header h2, .class-students-panel > header h2 { display: flex; align-items: center; gap: 6px; }
+.class-card header h2 svg, .class-students-panel h2 svg { color: #236af0; }
+.class-participation { display: flex; align-items: center; justify-content: space-around; gap: 12px; min-height: 137px; padding-top: 10px; }
+.class-donut { position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 0 0 auto; width: 113px; aspect-ratio: 1; border-radius: 50%; }
+.class-donut::before { position: absolute; z-index: -1; inset: 18%; border-radius: inherit; background: #f4f9ff; content: ''; }
+.class-donut strong { font-size: 27px; }
+.class-donut small { color: #3d5e8c; font-size: 11px; }
+.class-participation dl { display: grid; gap: 13px; font-size: 12px; }
+.class-participation dl > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.class-participation dd { margin: 0; font-weight: 750; white-space: nowrap; }
+.class-participation dt::before { display: inline-block; width: 8px; height: 8px; margin-right: 5px; border-radius: 50%; background: #2476ff; content: ''; }
+.class-participation dl > div:last-child dt::before { background: #c6d7f3; }
+.class-practice-bars { display: grid; align-content: center; gap: 22px; min-height: 137px; }
+.class-practice-bars > div { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 8px; font-size: 12px; }
+.class-practice-bars i { height: 10px; border-radius: 99px; background: #dfeafb; overflow: hidden; }
+.class-practice-bars b { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #56a6ff, #276af4); }
+.class-recent ul { margin: 8px 0; padding: 0; list-style: none; }
+.class-recent li { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 7px; padding: 9px 0; border-bottom: 1px solid #e1eafa; color: #355378; font-size: 11px; }
+.class-recent time { font-size: 10px; color: #647a9c; }
+.class-recent > small { font-size: 10px; color: #5a7193; }
+.class-review > button { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 6px; padding: 9px 0; border: 0; border-bottom: 1px solid #e0eafa; background: transparent; color: #27527f; text-align: left; }
+.class-review > button span { display: grid; gap: 4px; min-width: 0; }
+.class-review > button small { color: #617591; overflow-wrap: anywhere; }
+.class-quiet { color: #59718f; font-size: 12px; line-height: 1.7; }
+.class-students-panel { padding: 13px; scroll-margin-top: 85px; }
+.class-students-panel > header { margin-bottom: 10px; }
+.class-students-panel > header small { color: #59718f; font-size: 11px; }
+.class-management .student-grid > button.active { border-color: #8eb8ff; background: #e9f2ff; }
+.class-management .student-grid header strong { color: #173760; }
+.class-management .student-guidance { scroll-margin-top: 85px; border-color: #fff; border-radius: 14px; background: #f5f9ff; }
+.class-management .student-performance strong { color: #1756c9; }
+.class-management .student-performance article { min-width: 0; }
+.class-management .student-performance strong { font-size: clamp(18px, 2vw, 24px); overflow-wrap: anywhere; }
+.class-management .class-review > button strong { font-size: 13px; }
+.class-management .class-review > button small { font-size: 11px; }
+.class-management .guidance-grid { grid-template-columns: minmax(0,1fr) minmax(0,1.2fr); }
+.class-management .classroom-create { border-color: #d8e7ff; border-radius: 12px; background: #f8fbff; }
+@media (max-width: 1100px) {
+  .class-top-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .class-management .classroom-layout { grid-template-columns: minmax(200px,.8fr) minmax(0,2.2fr); }
+  .class-overview-grid { grid-template-columns: minmax(0,1fr); }
+  .class-quick-panel > div { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .class-management .guidance-grid { grid-template-columns: minmax(0,1fr); }
+}
+@media (max-width: 760px) {
+  .class-management .classroom-layout { grid-template-columns: minmax(0,1fr); }
+  .class-list-panel { min-height: 0; }
+  .class-list-items { max-height: 200px; }
+  .class-banner { padding: 17px; }
+  .class-banner p { max-width: 80%; }
+  .class-top-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .class-top-metrics article { gap: 7px; padding: 10px; }
+  .class-top-metrics article > svg { width: 34px; height: 34px; padding: 7px; }
+  .class-management .classroom-detail-head { flex-direction: column; }
+}
+
 </style>

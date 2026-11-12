@@ -21,6 +21,7 @@ from fastapi.middleware.wsgi import WSGIMiddleware
 from .api.daily_review import router as daily_review_router
 from .api.digital_human import router as digital_human_router
 from .api.sparkos import router as sparkos_router
+from .api.teaching import router as teaching_router
 from .config import ROOT_DIR, settings
 from .data_sources import load_admin_users, load_data_sources, load_textbook_pathways
 from .flask_app import create_flask_app
@@ -74,6 +75,7 @@ app.mount("/flask", WSGIMiddleware(create_flask_app()))
 app.include_router(daily_review_router)
 app.include_router(digital_human_router)
 app.include_router(sparkos_router)
+app.include_router(teaching_router)
 rag_pipeline = RagPipeline(settings.rag_provider)
 hybrid_service = HybridRetrievalService()
 graph_service = KnowledgeGraphService()

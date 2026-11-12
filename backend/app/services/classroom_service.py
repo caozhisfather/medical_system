@@ -92,6 +92,12 @@ class ClassroomService:
                 """
             )
 
+            db.execute("BEGIN IMMEDIATE")
+            columns = {r[1] for r in db.execute("PRAGMA table_info(classroom_memberships)")}
+            if "active" not in columns:
+                db.execute("ALTER TABLE classroom_memberships ADD COLUMN active INTEGER NOT NULL DEFAULT 1")
+                db.execute("ALTER TABLE classroom_memberships ADD COLUMN removed_at TEXT")
+
     def _new_code(self, db: sqlite3.Connection) -> str:
         for _ in range(20):
             code = "".join(secrets.choice(self.CODE_ALPHABET) for _ in range(6))
@@ -155,7 +161,7 @@ class ClassroomService:
             rows = db.execute(
                 """
                 SELECT c.*,
-                       (SELECT COUNT(*) FROM classroom_memberships m WHERE m.class_id = c.id) AS student_count
+                       (SELECT COUNT(*) FROM classroom_memberships m WHERE m.class_id = c.id AND m.active=1) AS student_count
                 FROM classrooms c
                 WHERE c.teacher_id = ? AND c.archived = 0
                 ORDER BY c.created_at DESC
@@ -173,10 +179,10 @@ class ClassroomService:
                 """
                 SELECT c.*, m.joined_at,
                        (SELECT COUNT(*) FROM classroom_memberships members
-                        WHERE members.class_id = c.id) AS student_count
+                        WHERE members.class_id = c.id AND members.active=1) AS student_count
                 FROM classroom_memberships m
                 JOIN classrooms c ON c.id = m.class_id
-                WHERE m.student_id = ? AND c.archived = 0
+                WHERE m.student_id = ? AND m.active=1 AND c.archived = 0
                 ORDER BY m.joined_at DESC
                 """,
                 (student_id,),
@@ -214,15 +220,18 @@ class ClassroomService:
                     class_id, student_id, student_account, student_name, joined_at
                 ) VALUES (?, ?, ?, ?, ?)
                 ON CONFLICT(class_id, student_id) DO UPDATE SET
+                    active = 1, removed_at = NULL,
                     student_account = excluded.student_account,
                     student_name = excluded.student_name
                 """,
                 (row["id"], student_id, student_account, student_name, _now()),
             )
             student_count = db.execute(
-                "SELECT COUNT(*) AS count FROM classroom_memberships WHERE class_id = ?",
+                "SELECT COUNT(*) AS count FROM classroom_memberships WHERE class_id = ? AND active=1",
                 (row["id"],),
             ).fetchone()["count"]
+            if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='class_activity_logs'").fetchone():
+                db.execute("INSERT INTO class_activity_logs VALUES(?,?,?,?,?,?,?)", (uuid4().hex,row['id'],'students','学生通过邀请码加入班级',student_id,student_name,_now()))
         return self._public_class(row, student_count=int(student_count or 0))
 
     def _require_owner(self, db: sqlite3.Connection, class_id: str, teacher_id: str) -> sqlite3.Row:
@@ -242,7 +251,7 @@ class ClassroomService:
             member_rows = db.execute(
                 """
                 SELECT * FROM classroom_memberships
-                WHERE class_id = ?
+                WHERE class_id = ? AND active=1
                 ORDER BY student_name COLLATE NOCASE
                 """,
                 (class_id,),
@@ -267,7 +276,7 @@ class ClassroomService:
                 db.execute(
                     """
                     SELECT 1 FROM classroom_memberships
-                    WHERE class_id = ? AND student_id = ?
+                    WHERE class_id = ? AND student_id = ? AND active=1
                     """,
                     (class_id, student_id),
                 ).fetchone()
