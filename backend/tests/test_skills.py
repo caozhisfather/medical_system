@@ -32,6 +32,18 @@ def test_registry_defaults_closed_and_persists_policy(registry):
     assert all(skill['read_only'] for skill in reopened.list_skills())
 
 
+def test_statistics_uses_complete_call_history(registry):
+    enable(registry)
+    for index in range(55):
+        registry.invoke('anatomy_search',SkillQuery(query='heart'),'admin','admin',str(index))
+    summary=registry.statistics()
+    assert len(registry.recent_calls())==50
+    assert summary['total_calls']==summary['today_calls']==55
+    assert summary['per_skill'][0]['total']==summary['per_skill'][0]['successful']==55
+    assert len(summary['trend'])==7 and summary['trend'][-1]['count']==55
+    assert summary['latest_update']
+
+
 def test_disabled_and_forbidden_never_execute_handlers(registry):
     def unexpected(args):
         pytest.fail('Disabled or forbidden skill was executed')

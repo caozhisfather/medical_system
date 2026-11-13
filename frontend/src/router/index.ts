@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import ProductShell from '../layouts/ProductShell.vue';
+import { startAccessTracking } from '../services/accessTracking';
 import { trainingStore } from '../stores/training';
 import { getCurrentUser } from '../api';
 
@@ -65,4 +66,5 @@ router.beforeEach(async (to) => {
   return true;
 });
 
+startAccessTracking(router);
 export default router;

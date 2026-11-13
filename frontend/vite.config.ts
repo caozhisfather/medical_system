@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     proxy: {
-      '/api': apiTarget,
+      '/api': { target: apiTarget, changeOrigin: true, configure(proxy) { proxy.on('proxyReq', (proxyReq, req) => { proxyReq.setHeader('X-Forwarded-For', req.socket.remoteAddress || '127.0.0.1'); }); } },
       '/flask': apiTarget
     }
   }

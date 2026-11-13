@@ -248,3 +248,4 @@ __marimo__/
 # Local teaching data backups and uploaded classroom resources
 data/*.pre-teaching-*.sqlite3
 data/class_resources/
+data/access_audit.sqlite3*

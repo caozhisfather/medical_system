@@ -22,6 +22,7 @@ from .api.daily_review import router as daily_review_router
 from .api.digital_human import router as digital_human_router
 from .api.sparkos import router as sparkos_router
 from .api.teaching import router as teaching_router
+from .api.access_audit import router as access_router, record as record_access
 from .config import ROOT_DIR, settings
 from .data_sources import load_admin_users, load_data_sources, load_textbook_pathways
 from .flask_app import create_flask_app
@@ -76,6 +77,19 @@ app.include_router(daily_review_router)
 app.include_router(digital_human_router)
 app.include_router(sparkos_router)
 app.include_router(teaching_router)
+app.include_router(access_router)
+
+
+@app.middleware('http')
+async def audit_access_requests(request: Request, call_next):
+    should_record = request.url.path.startswith('/api/') and request.method in {'POST','PUT','PATCH','DELETE'} and request.url.path != '/api/access/visit'
+    request_user = optional_user(request.headers.get('authorization')) if should_record else None
+    response = await call_next(request)
+    path = request.url.path
+    if path.startswith('/api/') and request.method in {'POST','PUT','PATCH','DELETE'} and path != '/api/access/visit':
+        user = getattr(request.state,'audit_user',None) or request_user
+        record_access(request,user=user,kind='login' if path=='/api/auth/login' else 'operation',status=response.status_code)
+    return response
 rag_pipeline = RagPipeline(settings.rag_provider)
 hybrid_service = HybridRetrievalService()
 graph_service = KnowledgeGraphService()
@@ -531,11 +545,12 @@ def site_overview() -> dict:
 
 
 @app.post("/api/auth/login", response_model=AuthLoginResponse)
-def auth_login(payload: AuthLoginRequest) -> AuthLoginResponse:
+def auth_login(payload: AuthLoginRequest, request: Request) -> AuthLoginResponse:
     try:
         token, user = auth_service.login(payload.account, payload.password, payload.role)
     except ValueError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
+    request.state.audit_user = AuthUser(**user)
     return AuthLoginResponse(token=token, user=AuthUser(**user))
 
 
@@ -1366,7 +1381,11 @@ def admin_data_sources_sync(authorization: str | None = Header(default=None)) ->
 def admin_knowledge_status(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     require_role(authorization, {"admin", "super_admin"})
     knowledge_items = read_json("knowledge.json")
-    return {"items": len(knowledge_items), "bilingual_items": sum(1 for item in knowledge_items if item.get("title_en")), "vector_ready": sum(1 for item in knowledge_items if item.get("vector_status") == "mock_ready"), "sources": sorted({item.get("data_source", "mock") for item in knowledge_items})}
+    source_counts: dict[str, int] = {}
+    for item in knowledge_items:
+        source = str(item.get('data_source') or '未标注来源')
+        source_counts[source] = source_counts.get(source, 0) + 1
+    return {"items": len(knowledge_items), "bilingual_items": sum(1 for item in knowledge_items if item.get("title_en")), "vector_ready": sum(1 for item in knowledge_items if item.get("vector_status") == "mock_ready"), "sources": sorted({item.get("data_source", "mock") for item in knowledge_items}), "source_counts": source_counts}
 
 
 @app.get("/api/admin/graph-status")
@@ -1463,6 +1482,12 @@ def admin_skill_update(skill_id: str, payload: SkillPolicyUpdate, authorization:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     write_audit_log(user, 'admin.skill.configure', skill_id, json.dumps(payload.model_dump(), ensure_ascii=False))
     return result
+
+
+@app.get('/api/admin/skills/statistics')
+def admin_skill_statistics(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    require_role(authorization, {'admin','super_admin'})
+    return skill_registry.statistics()
 
 
 @app.post('/api/admin/skills/{skill_id}/test', response_model=SkillResult)

@@ -1,218 +1,103 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
-import { Check, ListChecks, LoaderCircle, RotateCcw, Save, Sparkles, TextCursorInput, ToggleLeft, Zap } from '@lucide/vue';
-import { getExamSettings, saveExamSettings } from '../api';
-import type { ExamSettings } from '../types';
-
-const OPTION_CHOICES = [2, 3, 4, 5];
-const DIFFICULTIES: Array<{ id: ExamSettings['difficulty']; label: string; note: string }> = [
-  { id: 'basic', label: '基础识记', note: '结构与名称，适合课后自测' },
-  { id: 'exam', label: '考试标准', note: '位置、毗邻与功能，对标期末难度' },
-  { id: 'clinical', label: '临床应用', note: '结合损伤与病变，适合提高训练' }
-];
-
-const GENERATION_MODES: Array<{ id: ExamSettings['generation_mode']; label: string; note: string }> = [
-  { id: 'prebuild', label: '预生成题库', note: '提前批量出题，学生答题无需等待，题目可控可复核' },
-  { id: 'realtime', label: '实时生成', note: '每个结构现场出题，内容更新鲜，学生需等待数秒' }
-];
-
-const settings = ref<ExamSettings | null>(null);
-const loading = ref(true);
-const saving = ref(false);
-const message = ref('');
-const error = ref('');
-
-const weightTotal = computed(() => {
-  const types = settings.value?.question_types;
-  if (!types) return 0;
-  return [types.single_choice, types.true_false, types.short_answer]
-    .filter((item) => item.enabled)
-    .reduce((total, item) => total + (item.weight || 0), 0);
-});
-
-const enabledCount = computed(() => {
-  const types = settings.value?.question_types;
-  if (!types) return 0;
-  return [types.single_choice, types.true_false, types.short_answer].filter((item) => item.enabled).length;
-});
-
-const generationModeLabel = computed(
-  () => GENERATION_MODES.find((item) => item.id === settings.value?.generation_mode)?.label ?? ''
-);
-
-async function load() {
-  loading.value = true;
-  error.value = '';
-  try {
-    settings.value = await getExamSettings();
-  } catch (fetchError) {
-    error.value = fetchError instanceof Error ? fetchError.message : '题型配置读取失败';
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function save() {
-  if (!settings.value || saving.value) return;
-  saving.value = true;
-  message.value = '';
-  error.value = '';
-  try {
-    settings.value = await saveExamSettings(settings.value);
-    message.value = '配置已保存，学生下一次测验将按新设置出题。';
-  } catch (saveError) {
-    error.value = saveError instanceof Error ? saveError.message : '保存失败';
-  } finally {
-    saving.value = false;
-  }
-}
-
-function toggleOptionCount(count: number) {
-  const single = settings.value?.question_types.single_choice;
-  if (!single) return;
-  const current = single.option_counts ?? [4];
-  single.option_counts = current.includes(count)
-    ? current.filter((item) => item !== count)
-    : [...current, count].sort((a, b) => a - b);
-}
-
-function resetPrompt() {
-  if (!settings.value) return;
-  settings.value.system_prompt = '';
-  message.value = '已清空提示词，保存后恢复系统默认提示词。';
-}
-
-onMounted(load);
+import { computed, onMounted, ref, watch } from 'vue';
+import { ArrowRight, BookOpen, Check, CircleDot, ClipboardCheck, Copy, FileText, Layers, ListChecks, LoaderCircle, MessageSquare, RotateCcw, Save, Search, SlidersHorizontal, Sparkles, Target, X, Zap, Star, Plus, FlaskConical, Stethoscope, Pencil, Calculator, Ellipsis, LayoutGrid, TrendingUp, Play, ShieldCheck } from '@lucide/vue';
+import { getExamSettings, saveExamSettings, generateQuiz, getCurrentUser } from '../api';
+import type { ExamSettings, QuizSet } from '../types';
+import heroBanner from '../assets/medical/exam-prompt-banner.webp';
+type EngineType=keyof ExamSettings['question_types'];
+type Category={id:string;title:string;icon:any;note:string;engine?:EngineType};
+type Prompt={id:string;title:string;note:string;instruction:string;category?:string};
+const categories=ref<Category[]>([
+{id:'single_choice',title:'选择题',icon:CircleDot,engine:'single_choice',note:'单项选择，考查知识的识记、理解与应用，适用于基础测评与随堂练习。'},
+{id:'true_false',title:'判断题',icon:Check,engine:'true_false',note:'辨析解剖描述的真伪，巩固容易混淆的结构知识。'},
+{id:'short_answer',title:'简答题',icon:ClipboardCheck,engine:'short_answer',note:'围绕结构、功能及临床联系作答，明确要点与教材依据。'},
+{id:'essay',title:'论述题',icon:FileText,note:'系统组织知识，围绕主题展开分析与论述。'},
+{id:'case',title:'病例分析题',icon:Stethoscope,note:'以教学病例为线索，组织分析问题与讨论要点。'},
+{id:'application',title:'综合应用题',icon:Layers,note:'串联结构、功能与应用，形成综合训练提示词。'},
+{id:'multiple',title:'多选题',icon:ListChecks,note:'梳理多个正确知识点，明确选项及评分要求。'},
+{id:'fill',title:'填空题',icon:Pencil,note:'以核心术语和结构名称为考点，明确标准答案。'},
+{id:'definition',title:'名词解释',icon:BookOpen,note:'围绕解剖术语组织定义、特征和教学要点。'},
+{id:'calculation',title:'计算题',icon:Calculator,note:'根据提供的教学材料组织计算过程与单位要求。'},
+{id:'other',title:'其他题型',icon:Ellipsis,note:'编写适合具体教学目标的题目与提示词。'}]);
+const basePrompts:Prompt[]=[
+{id:'basic',title:'基础知识{type}生成',note:'基于指定知识点生成{type}，包含参考答案与解析。',instruction:'考查给定知识点的基本概念、结构、位置与功能，提供答案和清晰解析。'},
+{id:'clinical',title:'临床情境{type}生成',note:'结合真实教学情境，生成具有应用性的{type}。',instruction:'在给定教材和教学病例的范围内设置简短情境，考查知识应用。不得编造患者资料、教材页码或诊疗依据。'},
+{id:'case',title:'病例导向{type}生成',note:'依据病例资料，设计考查分析、辨别与处理原则的{type}。',instruction:'仅根据提供的教学病例设计问题，明确分析过程和答案依据，不添加未提供的病例事实。'},
+{id:'focus',title:'重点难点强化训练',note:'围绕核心考点生成高区分度的{type}，用于阶段测评。',instruction:'聚焦教学材料中的核心考点与易混淆关系，明确题目范围，解析应说明判断理由。'}];
+const settings=ref<ExamSettings|null>(null),saved=ref(''),loading=ref(true),saving=ref(false),error=ref(''),message=ref('');
+const activeType=ref('single_choice'),tab=ref('types'),selectedPrompt=ref('basic'),query=ref(''),favorites=ref<string[]>([]),custom=ref<Prompt[]>([]),uses=ref(0),accountKey=ref(''),showAdd=ref(false),newTitle=ref(''),newContent=ref(''),isCategory=ref(false);
+const generating=ref(false),generated=ref<QuizSet|null>(null),structure=ref('heart'),sampleIndex=ref(0),demoVisible=ref(true);
+const activeCategory=computed(()=>categories.value.find(c=>c.id===activeType.value)!);
+const allPrompts=computed(()=>[...basePrompts,...custom.value.filter(p=>p.category===activeType.value)]);
+const selected=computed(()=>allPrompts.value.find(p=>p.id===selectedPrompt.value)||basePrompts[0]!);
+const visiblePrompts=computed(()=>allPrompts.value.filter(p=>(tab.value!=='favorites'||favorites.value.includes(activeType.value+':'+p.id))&&(p.title+p.note).split('{type}').join(activeCategory.value.title).includes(query.value.trim())));
+const promptCount=computed(()=>categories.value.length*basePrompts.length+custom.value.length);
+const dirty=computed(()=>!!settings.value&&JSON.stringify(settings.value)!==saved.value);
+const weightTotal=computed(()=>settings.value?Object.values(settings.value.question_types).reduce((n,v)=>n+(v.enabled?Number(v.weight)||0:0),0):0);
+const promptPreview=computed(()=>selected.value.id.startsWith('custom-')?selected.value.instruction:`请以“{知识点}”为主题，生成{题目数量}道${activeCategory.value.title}，要求：\n1. 符合医学专业教学要求，难度为{难度}；\n2. ${selected.value.instruction}\n3. ${activeType.value==='single_choice'?'每题提供 A、B、C、D 等配置规定的选项，仅有一个正确答案；':'明确题目要求、参考答案与必要的评分要点；'}\n4. 给出标准答案和简要解析；\n5. 题目语言规范、表达清晰。`);
+const sample=computed(()=>[
+{stem:'以下哪项属于心脏的腔室？',options:['右心房','肝小叶','肺泡','肱骨'],answer:0},
+{stem:'以下哪项是解剖学方位术语？',options:['上方','心室','肾脏','气管'],answer:0},
+{stem:'以下哪项属于人体器官？',options:['心脏','前方','内侧','矢状面'],answer:0}
+][sampleIndex.value%3]!);
+const previewQuestion=computed(()=>generated.value?.questions.find(q=>q.type===(activeCategory.value.engine||'single_choice')) || generated.value?.questions[0]);
+function label(p:Prompt,text:'title'|'note'){return p[text].split('{type}').join(activeCategory.value.title);}
+function count(id:string){return basePrompts.length+custom.value.filter(p=>p.category===id).length;}
+function persist(){if(accountKey.value)localStorage.setItem(accountKey.value,JSON.stringify({favorites:favorites.value,custom:custom.value,uses:uses.value,categories:categories.value.filter(c=>c.id.startsWith('custom-')).map(c=>({id:c.id,title:c.title,note:c.note}))}));}
+function star(id:string){const key=activeType.value+':'+id;favorites.value=favorites.value.includes(key)?favorites.value.filter(v=>v!==key):[...favorites.value,key];persist();}
+function selectCategory(id:string){activeType.value=id;selectedPrompt.value='basic';tab.value='types';generated.value=null;}
+function usePrompt(p=selected.value){if(!settings.value)return;selectedPrompt.value=p.id;settings.value.system_prompt=promptPreview.value;uses.value++;persist();message.value='提示词已加入编辑草稿，保存配置后生效。';tab.value='prompt';}
+async function copy(){try{await navigator.clipboard.writeText(promptPreview.value);message.value='已复制提示词';}catch{error.value='复制失败，请选择提示词文本手动复制。';}}
+async function load(){loading.value=true;error.value='';try{const [s,user]=await Promise.all([getExamSettings(),getCurrentUser()]);settings.value=s;saved.value=JSON.stringify(s);accountKey.value='medical_prompt_library_v2_'+user.id;try{const local=JSON.parse(localStorage.getItem(accountKey.value)||'{}');favorites.value=local.favorites||[];custom.value=local.custom||[];uses.value=local.uses||0;categories.value=[...categories.value.filter(c=>!c.id.startsWith('custom-')),...(local.categories||[]).map((c:any)=>({...c,icon:FileText}))];}catch{message.value='本机偏好无法读取，已使用内置模板。';}}catch(e){error.value=(e as Error).message;}finally{loading.value=false;}}
+async function save(){if(!settings.value||saving.value)return;const types=Object.values(settings.value.question_types);if(types.some(t=>!Number.isFinite(t.weight)||t.weight<0||t.weight>100)){error.value='题型权重必须为 0～100。';return;}if(types.some(t=>t.enabled)&&weightTotal.value<=0){error.value='启用题型的权重合计必须大于 0。';return;}if(settings.value.question_types.single_choice.enabled&&!settings.value.question_types.single_choice.option_counts.length){error.value='选择题至少保留一种选项数量。';return;}saving.value=true;error.value='';try{settings.value=await saveExamSettings(settings.value);saved.value=JSON.stringify(settings.value);message.value='配置已保存。';}catch(e){error.value=(e as Error).message;}finally{saving.value=false;}}
+function option(n:number){if(!settings.value)return;const counts=settings.value.question_types.single_choice.option_counts;settings.value.question_types.single_choice.option_counts=counts.includes(n)?counts.filter(v=>v!==n):[...counts,n].sort();}
+function add(){if(!newTitle.value.trim())return;const id='custom-'+Date.now();if(isCategory.value){categories.value.push({id,title:newTitle.value.trim(),note:'自定义教学提示词分类',icon:FileText});activeType.value=id;}else{custom.value.push({id,title:newTitle.value.trim(),note:'自定义提示词模板',instruction:newContent.value.trim(),category:activeType.value});selectedPrompt.value=id;}persist();showAdd.value=false;newTitle.value='';newContent.value='';}
+async function generate(){if(dirty.value){error.value='请先保存配置，再按此配置生成预览题。';return;}if(!activeCategory.value.engine){error.value='此分类用于提示词编辑；当前测验引擎支持选择题、判断题与简答题。';return;}generating.value=true;error.value='';try{const names:Record<string,string>={heart:'心脏',lung:'肺',brain:'脑'};generated.value=await generateQuiz({structure_en:structure.value,structure_cn:names[structure.value],force:true});if(!generated.value.questions.length)message.value=generated.value.message||'当前没有可用试题，请检查题型启用状态。';}catch(e){error.value=(e as Error).message;}finally{generating.value=false;}}
+watch(activeType,()=>{query.value='';});onMounted(load);
 </script>
-
 <template>
-  <div class="workspace-page exam-settings-page">
-    <header class="page-title-row">
-      <div>
-        <span class="section-kicker">教师端 · 命题控制</span>
-        <h1>题型与提示词</h1>
-        <p>决定虚拟解剖室测验的出题方式。配置保存后即时对学生生效，无需改代码。</p>
-      </div>
-      <div class="exam-settings-actions">
-        <button class="button-secondary" type="button" :disabled="loading || saving" @click="load"><RotateCcw :size="16" />重新读取</button>
-        <button class="button-primary" type="button" :disabled="loading || saving || !settings" @click="save">
-          <LoaderCircle v-if="saving" class="spin" :size="16" /><Save v-else :size="16" />{{ saving ? '保存中' : '保存配置' }}
-        </button>
-      </div>
-    </header>
-
-    <p v-if="error" class="exam-settings-banner is-error">{{ error }}</p>
-    <p v-else-if="message" class="exam-settings-banner is-ok"><Check :size="15" />{{ message }}</p>
-
-    <div v-if="loading" class="exam-settings-loading"><LoaderCircle class="spin" :size="22" />正在读取配置</div>
-
-    <template v-else-if="settings">
-      <section class="exam-settings-grid" data-tour="exam-question-types">
-        <article class="exam-card">
-          <header><ListChecks :size="18" /><div><h2>选择题</h2><small>单选自 {{ settings.question_types.single_choice.option_counts.join(' / ') }} 选一</small></div>
-            <label class="exam-switch"><input v-model="settings.question_types.single_choice.enabled" type="checkbox" /><span /></label>
-          </header>
-          <p>从同一系统或邻近结构中选择干扰项，考察位置与毗邻关系。</p>
-          <div class="exam-option-row">
-            <button v-for="count in OPTION_CHOICES" :key="count" type="button" :class="{ active: settings.question_types.single_choice.option_counts.includes(count) }" @click="toggleOptionCount(count)">{{ count }} 选 1</button>
-          </div>
-          <label class="exam-weight">占比 <input v-model.number="settings.question_types.single_choice.weight" type="number" min="0" max="100" /> %</label>
-        </article>
-
-        <article class="exam-card">
-          <header><ToggleLeft :size="18" /><div><h2>判断题</h2><small>对结构描述作出真伪判断</small></div>
-            <label class="exam-switch"><input v-model="settings.question_types.true_false.enabled" type="checkbox" /><span /></label>
-          </header>
-          <p>适合考察易混淆点，例如左右侧、瓣膜归属与毗邻关系。</p>
-          <label class="exam-weight">占比 <input v-model.number="settings.question_types.true_false.weight" type="number" min="0" max="100" /> %</label>
-        </article>
-
-        <article class="exam-card">
-          <header><TextCursorInput :size="18" /><div><h2>简答题</h2><small>这是什么、有什么功能、会发生什么病变</small></div>
-            <label class="exam-switch"><input v-model="settings.question_types.short_answer.enabled" type="checkbox" /><span /></label>
-          </header>
-          <p>由模型按要点评分，考察结构识别、功能理解与临床联系。</p>
-          <label class="exam-weight">占比 <input v-model.number="settings.question_types.short_answer.weight" type="number" min="0" max="100" /> %</label>
-        </article>
-      </section>
-
-      <section class="exam-panel" data-tour="exam-prompt">
-        <header>
-          <div><Sparkles :size="18" /><h2>难度基线</h2></div>
-          <small>当前启用 {{ enabledCount }} 种题型，权重合计 {{ weightTotal }}%</small>
-        </header>
-        <div class="exam-difficulty-row">
-          <button v-for="item in DIFFICULTIES" :key="item.id" type="button" :class="{ active: settings.difficulty === item.id }" @click="settings.difficulty = item.id">
-            <strong>{{ item.label }}</strong><small>{{ item.note }}</small>
-          </button>
-        </div>
-        <p v-if="weightTotal !== 100" class="exam-weight-warning">权重合计为 {{ weightTotal }}%，建议调整为 100% 再保存。</p>
-      </section>
-
-      <section class="exam-panel">
-        <header>
-          <div><Zap :size="18" /><h2>出题方式</h2></div>
-          <small>{{ generationModeLabel }}</small>
-        </header>
-        <div class="exam-difficulty-row">
-          <button v-for="item in GENERATION_MODES" :key="item.id" type="button" :class="{ active: settings.generation_mode === item.id }" @click="settings.generation_mode = item.id">
-            <strong>{{ item.label }}</strong><small>{{ item.note }}</small>
-          </button>
-        </div>
-      </section>
-
-      <section class="exam-panel">
-        <header>
-          <div><TextCursorInput :size="18" /><h2>系统提示词</h2></div>
-          <div class="exam-prompt-actions">
-            <button class="text-button" type="button" @click="resetPrompt">恢复默认</button>
-          </div>
-        </header>
-        <p>这段提示词会作为出题模型的系统指令，决定命题范围、干扰项风格与解析要求。</p>
-        <textarea v-model="settings.system_prompt" rows="12" spellcheck="false" placeholder="留空保存后将恢复系统默认提示词" />
-        <small class="exam-prompt-meta">{{ settings.system_prompt.length }} / 4000 字符<template v-if="settings.updated_at"> · 上次更新 {{ settings.updated_at.slice(0, 19).replace('T', ' ') }}<template v-if="settings.updated_by"> by {{ settings.updated_by }}</template></template></small>
-      </section>
-    </template>
-  </div>
+<div class="exam-reference" :style="{'--exam-banner':`url(${heroBanner})`}">
+ <section class="exam-hero"><span>教师工作台 <b>›</b> 题型与提示词</span><h1>题型与提示词</h1><p>构建高质量医学题目与提示词模板，支持智能出题、教学训练与测评应用。</p></section>
+ <div v-if="error" role="alert" class="notice error">{{error}}<button @click="error=''"><X :size="15"/></button></div><div v-if="message" role="status" class="notice success">{{message}}<button @click="message=''"><X :size="15"/></button></div>
+ <div v-if="loading" class="loading"><LoaderCircle class="spin" :size="24"/>正在加载题型与提示词…</div>
+ <template v-else-if="settings">
+ <section class="exam-metrics"><article><i><Layers :size="29"/></i><div><small>题型模板</small><strong>{{categories.length}}<em>种</em></strong></div></article><article><i><MessageSquare :size="29"/></i><div><small>提示词模板</small><strong>{{promptCount}}<em>条</em></strong></div></article><article><i><LayoutGrid :size="29"/></i><div><small>应用场景</small><strong>{{basePrompts.length}}<em>类</em></strong></div></article><article title="尚未接入生成历史统计"><i><FileText :size="29"/></i><div><small>生成题目总数</small><strong class="empty-stat">—<em>暂无统计</em></strong></div></article><article title="本账号在当前浏览器中应用提示词的次数"><i><TrendingUp :size="29"/></i><div><small>使用次数</small><strong>{{uses}}<em>本机</em></strong></div></article></section>
+ <div class="exam-layout">
+  <aside class="exam-categories panel" data-tour="exam-question-types"><header><h2>题型分类</h2><button aria-label="新增题型分类" @click="isCategory=true;showAdd=true"><Plus :size="20"/></button></header><button v-for="c in categories" :key="c.id" class="category" :class="{active:activeType===c.id}" @click="selectCategory(c.id)"><component :is="c.icon" :size="21"/><strong>{{c.title}}</strong><span>{{count(c.id)}}</span></button></aside>
+  <main class="exam-main panel">
+   <nav class="exam-tabs"><button :class="{active:tab==='types'}" @click="tab='types'"><SlidersHorizontal :size="19"/>题型模板</button><button :class="{active:tab==='prompt'}" @click="tab='prompt'"><MessageSquare :size="19"/>提示词库</button><button :class="{active:tab==='generation'}" @click="tab='generation'"><Sparkles :size="19"/>智能出题</button><button :class="{active:tab==='applications'}" @click="tab='applications'"><BookOpen :size="19"/>教学应用</button><button :class="{active:tab==='favorites'}" @click="tab='favorites'"><Star :size="19"/>我的收藏</button></nav>
+   <section v-if="tab==='types'||tab==='favorites'" class="exam-body">
+    <div class="template-column"><header class="type-header"><i><component :is="activeCategory.icon" :size="26"/></i><div><h2>{{activeCategory.title}} · 题型模板</h2><p>{{activeCategory.note}}</p></div><button class="demo-button" @click="demoVisible=!demoVisible"><Play :size="14"/>应用示例</button></header>
+     <div class="list-header"><h3>{{tab==='favorites'?'我的收藏':'常用提示词模板'}}（{{visiblePrompts.length}}）</h3><button aria-label="新增提示词模板" @click="isCategory=false;showAdd=true"><Plus :size="17"/></button></div>
+     <div v-if="tab==='favorites'" class="library-search"><Search :size="16"/><input v-model="query" aria-label="搜索收藏" placeholder="搜索收藏模板"/></div>
+     <div class="template-list"><article v-for="(p,index) in visiblePrompts" :key="p.id" :class="{active:selectedPrompt===p.id}"><button class="template-select" @click="selectedPrompt=p.id"><i><component :is="[ClipboardCheck,FlaskConical,Layers,Target][index%4]" :size="24"/></i><div><strong>{{label(p,'title')}}</strong><small>{{label(p,'note')}}</small></div></button><button class="favorite-button" :class="{marked:favorites.includes(activeType+':'+p.id)}" :aria-label="(favorites.includes(activeType+':'+p.id)?'取消收藏':'收藏')+label(p,'title')" @click="star(p.id)"><Star :size="19"/></button><button class="use-button" @click="usePrompt(p)">使用</button></article></div><p v-if="!visiblePrompts.length" class="empty">暂无收藏，可点击模板右侧星标收藏。</p>
+    </div>
+    <aside class="result-column"><header><h3>提示词示例</h3><button @click="copy"><Copy :size="14"/>复制</button></header><pre>{{promptPreview}}</pre><section v-if="demoVisible" class="question-preview"><header><h3>生成效果预览</h3><span>版式示例</span></header><h4><b>Q1</b>{{sample.stem}}</h4><div v-for="(o,i) in sample.options" :key="o" class="answer-option" :class="{correct:i===sample.answer}"><span class="radio-mark">{{i===sample.answer?'●':''}}</span>{{String.fromCharCode(65+i)}}. {{o}}</div></section><footer><button @click="sampleIndex++"><RotateCcw :size="17"/>换一题</button><button class="primary" @click="usePrompt();tab='generation'"><Sparkles :size="18"/>使用此提示词生成</button></footer></aside>
+   </section>
+   <section v-else-if="tab==='prompt'" class="editor-content" data-tour="exam-prompt"><header><div><h2>提示词库 · 全局命题指令</h2><p>选择左侧分类，再使用模板编辑下方提示词。</p></div><button @click="settings.system_prompt='';message='保存后将恢复系统默认提示词。'"><RotateCcw :size="16"/>恢复默认</button></header><div class="library-search"><Search :size="17"/><input v-model="query" placeholder="搜索当前分类的提示词" aria-label="搜索提示词"/></div><div class="library-grid"><button v-for="p in visiblePrompts" :key="p.id" @click="usePrompt(p)"><MessageSquare :size="20"/><strong>{{label(p,'title')}}</strong><small>使用此模板 →</small></button></div><label class="prompt-label">系统提示词<textarea v-model="settings.system_prompt" maxlength="4000" rows="9" :disabled="saving" placeholder="留空保存后恢复默认提示词"/></label><small>{{settings.system_prompt.length}} / 4000 字符 · {{dirty?'尚未保存':'与服务器配置一致'}}</small><footer class="settings-footer"><button @click="load">重新读取</button><button class="primary" :disabled="saving" @click="save"><Save :size="16"/>{{saving?'保存中…':'保存配置'}}</button></footer></section>
+   <section v-else-if="tab==='generation'" class="editor-content"><header><h2>智能出题 · 测验配置</h2><button :disabled="saving" class="primary" @click="save"><Save :size="16"/>保存配置</button></header><p class="hint">自动测验支持选择、判断、简答三种题型；其余分类可用于提示词编写与收藏。</p><div class="engine-types"><article v-for="c in categories.filter(c=>c.engine)" :key="c.id"><label><input v-model="settings.question_types[c.engine!].enabled" type="checkbox"/>{{c.title}}</label><label>权重<input v-model.number="settings.question_types[c.engine!].weight" type="number" min="0" max="100"/>%</label></article></div><div class="inline-options"><span>选择题选项数</span><button v-for="n in [2,3,4,5]" :key="n" :class="{selected:settings.question_types.single_choice.option_counts.includes(n)}" @click="option(n)">{{n}}选1</button></div><div class="generation-fields"><label>难度<select v-model="settings.difficulty"><option value="basic">基础识记</option><option value="exam">考试标准</option><option value="clinical">临床应用</option></select></label><label>出题方式<select v-model="settings.generation_mode"><option value="prebuild">预生成题库</option><option value="realtime">实时生成</option></select></label><label>解剖结构<select v-model="structure"><option value="heart">心脏</option><option value="lung">肺</option><option value="brain">脑</option></select></label></div><p class="hint">启用权重合计 {{weightTotal}}%。{{dirty?'当前有修改，请先保存再生成。':'当前配置已保存。'}}</p><button class="primary" :disabled="generating||dirty" @click="generate"><LoaderCircle v-if="generating" class="spin" :size="18"/><Sparkles v-else :size="18"/>{{generating?'正在生成…':'生成预览题'}}</button><article v-if="previewQuestion" class="generated-question"><small>实际生成结果 · {{generated?.source==='local_fallback'?'本地备选题':'命题引擎'}}</small><h3>{{previewQuestion.stem}}</h3><p v-for="o in previewQuestion.options" :key="o">{{o}}</p><small>{{previewQuestion.citation}}</small></article></section>
+   <section v-else class="editor-content"><h2>教学应用</h2><p class="hint">使用教材依据准备题目，在班级中组织作业与教学训练。</p><div class="application-links"><RouterLink to="/teacher/knowledge"><BookOpen :size="30"/><h3>教学知识库</h3><p>查阅教材、病例与医学依据</p><span>进入知识库 →</span></RouterLink><RouterLink to="/teacher/classrooms"><ListChecks :size="30"/><h3>班级作业与测验</h3><p>组织教学、查看提交与批改成绩</p><span>进入班级管理 →</span></RouterLink></div></section>
+  </main>
+ </div>
+ </template>
+ <Teleport to="body"><div v-if="showAdd" class="exam-modal"><form role="dialog" aria-modal="true" :aria-label="isCategory?'新增题型分类':'新增提示词模板'" @submit.prevent="add"><header><h2>{{isCategory?'新增题型分类':'新增提示词模板'}}</h2><button type="button" aria-label="关闭" @click="showAdd=false"><X :size="20"/></button></header><label>名称<input v-model="newTitle" required maxlength="60"/></label><label v-if="!isCategory">提示词内容<textarea v-model="newContent" required maxlength="4000" rows="7"/></label><small>自定义内容及收藏按当前账号保存在此浏览器。</small><button class="primary" type="submit">保存</button></form></div></Teleport>
+</div>
 </template>
-
 <style scoped>
-.exam-settings-page { display: grid; gap: 16px; align-content: start; }
-.exam-settings-actions { display: flex; gap: 8px; }
-.exam-settings-banner { display: flex; align-items: center; gap: 6px; margin: 0; padding: 10px 12px; border-radius: 7px; font-size: 13px; }
-.exam-settings-banner.is-ok { background: #e6f4ef; color: #1c6b53; }
-.exam-settings-banner.is-error { background: #fdecea; color: #a4342a; }
-.exam-settings-loading { display: flex; align-items: center; gap: 8px; padding: 28px; color: #5d757a; }
-.exam-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
-.exam-card { display: grid; gap: 8px; padding: 16px; border: 1px solid var(--line, #e1e9ea); border-radius: 8px; background: #fff; }
-.exam-card > header { display: grid; grid-template-columns: 22px minmax(0,1fr) auto; align-items: center; gap: 8px; }
-.exam-card h2 { margin: 0; color: #214b51; font-size: 15px; }
-.exam-card small { color: #7b8f93; font-size: 11px; }
-.exam-card > p { margin: 0; color: #5d757a; font-size: 12px; line-height: 1.6; }
-.exam-option-row { display: flex; flex-wrap: wrap; gap: 6px; }
-.exam-option-row button { padding: 6px 10px; border: 1px solid var(--line, #e1e9ea); border-radius: 6px; background: #f7faf9; color: #4b6b70; font-size: 12px; cursor: pointer; }
-.exam-option-row button.active { border-color: rgba(15,118,110,.45); background: #e4f1ee; color: var(--teal, #0f766e); font-weight: 700; }
-.exam-weight { display: inline-flex; align-items: center; gap: 6px; color: #5d757a; font-size: 12px; }
-.exam-weight input { width: 62px; padding: 5px 7px; border: 1px solid var(--line, #e1e9ea); border-radius: 6px; font-size: 12px; }
-.exam-switch { position: relative; display: inline-flex; width: 42px; height: 24px; flex: 0 0 auto; }
-.exam-switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
-.exam-switch span { width: 100%; border-radius: 999px; background: #d5e0e1; transition: background .15s ease; }
-.exam-switch span::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .15s ease; }
-.exam-switch input:checked + span { background: var(--teal, #0f766e); }
-.exam-switch input:checked + span::after { transform: translateX(18px); }
-.exam-panel { display: grid; gap: 10px; padding: 16px; border: 1px solid var(--line, #e1e9ea); border-radius: 8px; background: #fff; }
-.exam-panel > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.exam-panel > header > div { display: flex; align-items: center; gap: 8px; }
-.exam-panel h2 { margin: 0; color: #214b51; font-size: 15px; }
-.exam-panel > header small { color: #7b8f93; font-size: 11px; }
-.exam-panel > p { margin: 0; color: #5d757a; font-size: 12px; line-height: 1.6; }
-.exam-difficulty-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
-.exam-difficulty-row button { display: grid; gap: 3px; padding: 10px 12px; border: 1px solid var(--line, #e1e9ea); border-radius: 7px; background: #f7faf9; color: #466066; text-align: left; cursor: pointer; }
-.exam-difficulty-row button strong { font-size: 13px; }
-.exam-difficulty-row button small { color: #7b8f93; font-size: 11px; }
-.exam-difficulty-row button.active { border-color: rgba(15,118,110,.45); background: #e4f1ee; }
-.exam-difficulty-row button.active strong { color: var(--teal, #0f766e); }
-.exam-weight-warning { margin: 0; color: #a4681c; font-size: 12px; }
-.exam-panel textarea { width: 100%; padding: 12px; border: 1px solid var(--line, #e1e9ea); border-radius: 7px; background: #fbfdfd; color: #2f4f56; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; line-height: 1.65; resize: vertical; }
-.exam-prompt-meta { color: #93a4a7; font-size: 11px; }
+.exam-reference{width:100%;max-width:1680px;margin:0 auto;padding:12px 20px 24px;color:#081b48;font-size:14px;display:grid;gap:12px}.exam-reference *{box-sizing:border-box}.exam-reference button,.exam-modal button{font:inherit;cursor:pointer;color:#155eef;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid #d4e0ff;background:#f9fbff;border-radius:13px;padding:8px 14px;font-size:13px}.exam-reference button:disabled{opacity:.5;cursor:not-allowed}.exam-reference button:focus-visible,.exam-reference a:focus-visible{outline:3px solid #a6c9ff;outline-offset:2px}.exam-reference button:hover{background:#e7f0ff}.primary,.exam-reference .primary{background:linear-gradient(110deg,#1684ff,#003cff);border-color:transparent;color:white;box-shadow:0 4px 10px #155eef26}.exam-hero{height:142px;border-radius:21px;padding:14px 36px;background-color:#deecff;background-image:linear-gradient(90deg,#e0edff,#deecff00 75%),var(--exam-banner);background-size:100% 100%,auto 240%;background-position:center,right 52%;background-repeat:no-repeat;overflow:hidden;box-shadow:0 4px 9px #4675ae09}.exam-hero>span{font-size:14px;font-weight:700;color:#034bfa}.exam-hero>span b{padding:0 12px;color:#7da8ff}.exam-hero h1{font-size:40px;line-height:1.2;margin:13px 0 7px;font-weight:800;letter-spacing:-1px}.exam-hero p{font-size:15px;margin:0;color:#223c69;max-width:67%;line-height:1.7}.exam-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}.exam-metrics article{display:flex;align-items:center;gap:17px;height:83px;border:1px solid #dbe6ff;border-radius:20px;background:linear-gradient(120deg,#ffffffed,#f6f9ffdf);padding:13px 18px;box-shadow:0 4px 7px #244ea30a;min-width:0}.exam-metrics i{width:55px;height:55px;flex-shrink:0;display:grid;place-items:center;color:#0654ff;border-radius:50%;background:linear-gradient(140deg,#e8eaff,#dffaff)}.exam-metrics small{font-size:14px;color:#4a6086}.exam-metrics strong{display:block;font-size:28px;line-height:1.3;color:#0045ff;font-weight:800;white-space:nowrap}.exam-metrics em{font-size:13px;font-style:normal;margin-left:6px;font-weight:600}.exam-metrics .empty-stat{font-size:25px}.exam-metrics .empty-stat em{font-weight:400;color:#64748b;font-size:10px}.panel{background:linear-gradient(120deg,#ffffffeb,#f8fbffed);border:1px solid #eef3ff;border-radius:21px;box-shadow:0 5px 14px #3066c30b;min-width:0}.exam-layout{display:grid;grid-template-columns:288px minmax(0,1fr);gap:12px;align-items:stretch}.exam-reference h2{font-size:19px;margin:0;font-weight:800}.exam-reference h3{font-size:16px;margin:0;font-weight:750}.exam-categories{padding:20px 14px 27px}.exam-categories header{display:flex;align-items:center;justify-content:space-between;padding:0 8px 18px}.exam-categories header button,.list-header button{border:0;background:transparent;padding:2px}.exam-categories>.category{display:flex;align-items:center;justify-content:flex-start;width:100%;height:44px;border:1px solid transparent;border-bottom-color:#e9effc;background:transparent;padding:9px 13px;border-radius:0;gap:17px;color:#084dfb}.category strong{text-align:left;flex:1;font-size:15px;color:#0e204c;font-weight:700}.category>span{font-size:14px;color:#3d5482;font-weight:400}.exam-categories>.category.active{background:linear-gradient(100deg,#dbe7ff,#eef4ff);border-color:#b8ccff;border-radius:11px}.category.active strong,.category.active>span{color:#0045ff}.exam-tabs{height:73px;display:flex;align-items:center;gap:15px;padding:13px 16px;flex-wrap:wrap}.exam-tabs button{min-width:140px;height:41px;font-size:15px;font-weight:700;border-radius:14px;padding:9px 20px;color:#17264f;background:#f4f8ff}.exam-tabs svg{color:#004aff}.exam-tabs button.active{background:linear-gradient(100deg,#1089ff,#0048ff);border-color:transparent;color:white;box-shadow:0 4px 11px #155eef40}.exam-tabs button.active svg{color:white}.exam-body{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:26px;padding:18px 16px 18px 17px;border-top:1px solid #edf2fd;border-radius:23px;background:#ffffff85;min-height:510px}.template-column{min-width:0}.type-header{display:flex;align-items:center;gap:13px;min-height:75px;padding:2px 0 18px;border-bottom:1px solid #e3ebfa}.type-header>i{display:grid;place-items:center;background:linear-gradient(145deg,#dcf4ff,#dfeaff);border-radius:50%;width:49px;height:49px;flex-shrink:0;color:#004fff}.type-header>div{flex:1;min-width:0}.type-header p{margin:7px 0 0;font-size:12px;line-height:1.8;color:#425b83}.type-header .demo-button{white-space:nowrap;border-radius:30px;font-size:12px;padding:6px 12px;background:#fff;align-self:flex-start;margin-top:5px}.list-header{display:flex;justify-content:space-between;align-items:center;padding:20px 12px 10px}.list-header button{opacity:.45}.template-list{display:grid;gap:9px;padding:0 10px}.template-list article{display:flex;align-items:center;gap:8px;border:1px solid #e5ecfb;border-radius:13px;background:linear-gradient(115deg,#f8fbff,#f6f9ff);padding:8px 12px;min-height:66px}.template-list article.active{border-color:#668bff;background:linear-gradient(100deg,#e7f0ff,#f9fcff)}.template-list .template-select{flex:1;min-width:0;justify-content:flex-start;text-align:left;border:0;background:none;padding:0;gap:14px;color:#003aff}.template-select i{width:41px;height:41px;display:grid;place-items:center;border-radius:50%;background:linear-gradient(130deg,#dff4ff,#e5ebff);flex-shrink:0}.template-select strong{display:block;font-size:15px;color:#0e244f;line-height:1.5}.active .template-select strong{color:#0040e4}.template-select small{display:block;font-size:12px;line-height:1.65;color:#455c80;margin-top:3px}.template-list .favorite-button{background:none;border:0;padding:4px;color:#2e416c}.favorite-button.marked svg{fill:#ffbf00;stroke:#ffbf00}.template-list .use-button{border-radius:30px;padding:5px 17px;font-size:12px;background:#fff}.result-column{min-width:0;padding:7px 6px 0 18px;border-radius:17px;background:linear-gradient(140deg,#fff,#f3f7ff70);box-shadow:0 5px 12px #2762d00a}.result-column>header,.question-preview>header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px}.result-column>header>button{padding:0;border:0;background:none;font-size:12px}.result-column pre{font:inherit;font-size:13px;line-height:1.85;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 15px;padding:13px 12px;background:linear-gradient(120deg,#f0f5ff,#eaf0ff);border:1px solid #e2ebff;border-radius:12px;height:137px;max-height:137px;overflow:auto;color:#233b66}.question-preview{padding:12px 13px 14px;border:1px solid #e4ecff;border-radius:14px;background:linear-gradient(140deg,#fcfdff,#f4f7ff)}.question-preview>header>span{background:#dce8ff;border-radius:5px;font-size:11px;padding:4px 7px;color:#1259ff}.question-preview h4{font-size:13px;line-height:1.7;margin:17px 0 12px}.question-preview h4>b{background:#087bff;color:white;border-radius:4px;font-size:11px;padding:1px 5px;margin-right:7px}.answer-option{display:flex;align-items:center;gap:7px;font-size:12px;color:#374b73;line-height:1.7;margin:8px 0;padding-left:22px}.answer-option.correct{font-weight:700;color:#122956}.radio-mark{display:inline-grid;place-items:center;line-height:1;width:13px;height:13px;border:1px solid #7a8db2;border-radius:50%;font-size:9px;flex-shrink:0}.correct .radio-mark{color:#fff;background:#0056ff;border-color:#0056ff}.result-column footer{display:flex;justify-content:flex-end;align-items:center;gap:14px;margin:17px 0 0}.result-column footer button{font-size:13px;padding:10px 17px;min-height:42px}.result-column footer .primary{padding:10px 18px}.editor-content{border-top:1px solid #e9f0ff;padding:24px;min-height:510px}.editor-content>header{display:flex;justify-content:space-between;align-items:center;gap:12px}.editor-content p,.hint{font-size:12px;color:#64748b;line-height:1.8}.editor-content>small{font-size:11px;color:#64748b}.library-search{display:flex;align-items:center;gap:8px;border:1px solid #d9e5ff;border-radius:10px;padding:8px 12px;margin:15px 0;color:#6d8db8}.library-search input{width:100%;border:0;background:none;outline:none;font:inherit;color:#102a56}.library-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.library-grid button{justify-content:flex-start;text-align:left;padding:15px;flex-wrap:wrap}.library-grid small{margin-left:auto;font-size:11px}.prompt-label{display:grid;gap:10px;font-size:13px;font-weight:600}.prompt-label textarea{border:1px solid #d5e3ff;border-radius:12px;padding:14px;background:#f8fbff;color:#102a56;font:inherit;font-weight:400;line-height:1.8;resize:vertical}.settings-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:15px}.engine-types{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}.engine-types article{display:flex;flex-wrap:wrap;gap:12px;padding:15px;border:1px solid #dce7ff;border-radius:12px;background:#f6faff}.engine-types label{display:flex;align-items:center;gap:8px;font-size:13px}.engine-types input[type=number]{width:60px}.exam-reference input[type=number],.generation-fields select{border:1px solid #d4e2ff;border-radius:8px;padding:7px;color:#102a56;font:inherit;background:white}.inline-options{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px}.inline-options button.selected{background:#dceaff;border-color:#86aaff}.generation-fields{display:flex;gap:16px;margin:20px 0;flex-wrap:wrap}.generation-fields label{display:grid;gap:7px;font-size:12px;flex:1;min-width:120px}.generated-question{padding:20px;background:#edf5ff;border-radius:12px;margin-top:20px}.generated-question h3{margin:15px 0}.application-links{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}.application-links a{padding:25px;border:1px solid #dce7ff;border-radius:16px;background:#f6faff;color:#155eef;text-decoration:none}.application-links h3{margin:15px 0}.application-links p{color:#64748b}.notice{display:flex;align-items:center;gap:12px;padding:10px 15px;border-radius:10px;font-size:12px}.notice>button{margin-left:auto;border:0;background:none;padding:0}.error{background:#fff0ee;color:#b42318}.success{background:#e8f8ef;color:#178746}.loading,.empty{min-height:150px;display:flex;align-items:center;justify-content:center;gap:10px;color:#64748b}.exam-modal{position:fixed;inset:0;z-index:150;background:#0d2c5e66;display:grid;place-items:center;padding:20px}.exam-modal form{background:#fff;color:#102a56;padding:24px;border-radius:18px;width:min(600px,100%);max-height:90dvh;overflow:auto;display:grid;gap:17px}.exam-modal header{display:flex;justify-content:space-between;align-items:center}.exam-modal h2{font-size:20px;margin:0}.exam-modal label{display:grid;gap:8px;font-size:13px}.exam-modal :is(input,textarea){font:inherit;border:1px solid #cddfff;padding:10px;border-radius:9px;resize:vertical}.exam-modal small{color:#64748b;font-size:11px}.exam-modal .primary{color:white;background:#155eef}.spin{animation:exam-spin 1s linear infinite}@keyframes exam-spin{to{transform:rotate(360deg)}}
+@media(max-width:1500px){.exam-layout{grid-template-columns:230px minmax(0,1fr)}.exam-tabs{gap:9px}.exam-tabs button{min-width:0;padding:9px 15px;font-size:13px}.exam-body{gap:18px;padding:17px}.type-header .demo-button{font-size:10px;padding:5px 8px}.type-header h2{font-size:16px}.template-select strong{font-size:13px}.template-select small{font-size:11px}.template-list article{padding:9px;gap:4px}.template-select i{width:34px;height:34px}.template-list .template-select{gap:9px}.template-list .use-button{padding:5px 12px}.exam-metrics article{gap:10px;padding:12px}.exam-metrics i{width:44px;height:44px}.exam-metrics small{font-size:12px}.exam-metrics strong{font-size:25px}.result-column{padding-left:10px}.result-column pre{font-size:12px}.result-column footer{gap:7px}.result-column footer button{font-size:11px;padding:9px 12px}.result-column footer .primary{padding:9px 12px}.category strong{font-size:14px}}
+@media(max-width:1150px){.exam-body{grid-template-columns:1fr}.result-column{padding:17px;box-shadow:none;border:1px solid #e2eaff}.exam-tabs{height:auto}.exam-hero p{font-size:13px}.exam-hero h1{font-size:31px}.exam-metrics article{height:78px}.exam-metrics i{width:32px;height:32px}.exam-metrics i svg{width:22px}.exam-metrics strong{font-size:23px}.exam-metrics em{font-size:10px}.engine-types{grid-template-columns:1fr}.library-grid{grid-template-columns:1fr}}
+@media(max-width:760px){.exam-reference{padding:12px;gap:10px}.exam-hero{height:auto;min-height:145px;padding:18px 22px;background-position:right center}.exam-hero h1{font-size:28px}.exam-hero p{max-width:85%;font-size:12px}.exam-hero>span{font-size:11px}.exam-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.exam-metrics article:last-child{grid-column:1/-1}.exam-metrics i{width:43px;height:43px}.exam-metrics article{height:78px}.exam-layout{grid-template-columns:1fr}.exam-categories{padding:14px;display:flex;flex-wrap:wrap;gap:5px}.exam-categories header{width:100%;padding:0 5px 10px}.exam-categories>.category{width:auto;flex:1 1 130px;border:1px solid #e0e9ff;border-radius:9px;gap:8px;height:40px;padding:7px 10px}.category strong{font-size:12px}.category>span{font-size:11px}.exam-tabs{gap:6px;padding:12px;display:grid;grid-template-columns:repeat(2,1fr)}.exam-tabs button{font-size:12px;padding:8px 5px}.exam-body{padding:15px;gap:16px}.type-header{flex-wrap:wrap;gap:10px}.type-header>div{flex:1 1 170px}.type-header .demo-button{margin-left:auto}.template-select strong{font-size:12px}.template-select small{font-size:10px}.template-list .favorite-button{padding:3px}.template-list .use-button{font-size:11px;padding:4px 9px}.result-column{padding:14px}.result-column footer{flex-wrap:wrap}.application-links{grid-template-columns:1fr}.editor-content{padding:18px}.editor-content>header{flex-wrap:wrap}}
+</style>
+
+<style>
+@media(min-width:1200px){
+.product-shell:has(.exam-reference){grid-template-columns:210px minmax(0,1fr);grid-template-rows:60px minmax(calc(100vh - 60px),auto)}
+.product-shell:has(.exam-reference) .product-topbar{min-height:60px;height:60px;padding-top:5px;padding-bottom:5px}
+.product-shell:has(.exam-reference) .product-topbar>div:first-child>strong{font-size:23px}
+}
+</style>
+
+<style>
+@media(min-width:1500px){.product-shell:has(.exam-reference) .product-topbar{grid-template-columns:374px minmax(0,1fr) auto}}
 </style>

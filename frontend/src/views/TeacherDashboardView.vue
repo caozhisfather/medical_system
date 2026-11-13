@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import overviewBanner from '../assets/medical/teaching-overview-reference-banner.webp';
 import { computed, onMounted, ref } from 'vue';
 import { ArrowRight, BookOpenCheck, ChartNetwork, ChartColumn, Check, ChevronRight, ClipboardList, Database, GraduationCap, Layers3, ListChecks, LoaderCircle, Megaphone, Pencil, RefreshCw, SlidersHorizontal, Users } from '@lucide/vue';
 import { getExamSettings, getMyClassrooms, getTeachingKnowledge } from '../api';
@@ -108,7 +109,8 @@ onMounted(loadOverview);
 
 <template>
   <div class="workspace-page teaching-overview">
-    <section class="teaching-banner" data-tour="teacher-dashboard-hero">
+    <section class="teaching-banner" data-tour="teacher-dashboard-hero" :style="{'--overview-banner':`url(${overviewBanner})`}">
+      <span class="teaching-breadcrumb">教师工作台 <b>›</b> 教学总览</span>
       <h1>教学总览</h1>
       <p>掌握教学动态，统筹班级、知识资源与命题配置。</p>
     </section>
@@ -271,4 +273,10 @@ onMounted(loadOverview);
   .teaching-shortcuts .teaching-icon { width: 28px; }
   .teaching-shortcuts > a > svg { width: 13px; }
 }
+
+/* Reference-style hero, scoped to teaching overview only. */
+.teaching-banner{min-height:142px;padding:15px 32px;border:1px solid #e1ebff;border-radius:20px;overflow:hidden;background-color:#deecff;background-image:linear-gradient(90deg,#e0edff 0%,#deecff12 75%),var(--overview-banner);background-size:100% 100%,auto 200%;background-repeat:no-repeat;background-position:center,right center;box-shadow:0 4px 12px #244da010}
+.teaching-breadcrumb{display:block;font-size:12px;line-height:1.6;font-weight:700;color:#0754f5}.teaching-breadcrumb b{padding:0 10px;color:#7ba9fa;font-weight:500}.teaching-banner h1{margin:12px 0 8px;font-size:38px;line-height:1.2;font-weight:800;letter-spacing:-.5px}.teaching-banner p{max-width:65%;font-size:13px;line-height:1.8;color:#36547f;margin:0}
+@media(max-width:1100px) and (min-width:651px){.teaching-banner{min-height:150px;padding:18px 26px;background-size:100% 100%,auto 175%}.teaching-banner h1{font-size:32px}.teaching-banner p{max-width:64%;font-size:12px}}
+@media(max-width:650px){.teaching-banner{min-height:170px;padding:19px 22px;background-image:linear-gradient(90deg,#e0edfffa 0%,#e0edffdf 60%,#deecff60),var(--overview-banner);background-size:100% 100%,auto 175%;background-position:center,right center}.teaching-banner h1{font-size:28px;margin:12px 0 10px}.teaching-banner p{max-width:90%;font-size:12px}.teaching-breadcrumb{font-size:11px}}
 </style>

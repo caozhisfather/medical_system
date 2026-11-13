@@ -1,0 +1,85 @@
+.landing-reference{background:linear-gradient(135deg,#f8fbff,#eaf3ff);color:#071b4d;padding:0;overflow:hidden}
+.landing-reference *{box-sizing:border-box}
+.landing-reference .landing-nav{height:83px;min-height:83px;margin:0;padding:10px 32px;display:flex;align-items:center;background:linear-gradient(110deg,#fff,#eef3ff);border:0;gap:25px;position:relative;z-index:3}
+.landing-reference .landing-nav nav{display:flex;align-items:center;gap:58px;margin:0 auto}
+.landing-reference .landing-nav nav a{font-size:22px;font-weight:800;color:#071b4d;position:relative;padding:18px 0;text-decoration:none}
+.landing-reference .landing-nav nav a:first-child{color:#0051ff}
+.landing-reference .landing-nav nav a:first-child:after{content:'';position:absolute;bottom:5px;left:25%;width:50%;height:4px;border-radius:4px;background:#0051ff}
+.landing-reference .landing-nav-action{height:54px;min-width:198px;font-size:22px;background:linear-gradient(115deg,#087fff,#004aff);border-radius:15px;border:1px solid #337fff;box-shadow:0 5px 10px #0061ff26;color:#fff;display:flex;align-items:center;justify-content:center;gap:15px}
+.landing-reference .brand-lockup{flex-shrink:0;text-decoration:none}
+.lp-hero{height:578px;position:relative;background:#c6e2ff var(--lab-hero) center center/cover no-repeat;display:flex;align-items:flex-start;padding:70px max(54px,calc((100vw - 1440px)/2));isolation:isolate}
+.lp-hero:before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#b9dbff55,#dbeaff22 40%,transparent 62%);z-index:-1}
+.lp-hero-copy{width:54%;max-width:650px;color:#071b4d}
+.lp-eyebrow{display:inline-block;color:#fff;background:linear-gradient(100deg,#0070ce,#2057ac);border:1px solid #e6f6ff;border-radius:18px;font-size:20px;font-weight:800;line-height:1.2;padding:7px 23px;box-shadow:0 2px 5px #1856a51a}
+.lp-hero h1{font-size:clamp(38px,4.65vw,65px);font-weight:850;letter-spacing:-1px;line-height:1.15;margin:17px 0 15px;white-space:nowrap;color:#071b4d;text-shadow:none}
+.lp-hero-copy>p{font-size:21px;line-height:1.65;font-weight:650;margin:0 0 24px;color:#102858}
+.lp-benefits{display:flex;gap:15px;white-space:nowrap}
+.lp-benefits span{display:flex;align-items:center;gap:9px;background:#eef7ff9c;border:1px solid #fff;border-radius:13px;padding:9px 12px;font-size:15px;color:#0c2e68;box-shadow:0 4px 12px #3a83d319}
+.lp-benefits svg{color:#0757bd;flex-shrink:0}
+.lp-actions{display:flex;gap:24px;margin:32px 0 17px}
+.lp-actions button,.lp-actions a{height:55px;display:inline-flex;align-items:center;justify-content:center;gap:12px;padding:0 29px;border:1px solid #075fff;border-radius:13px;color:#082458;background:#d6ebff99;font-size:21px;font-weight:750;text-decoration:none;box-shadow:0 4px 9px #125fe51f;cursor:pointer}
+.lp-actions .lp-primary{background:linear-gradient(105deg,#0078ff,#0045ff);color:#fff;padding:0 34px}
+.lp-actions button:hover,.lp-actions a:hover{filter:brightness(1.05);transform:translateY(-1px)}
+.lp-source{font-size:16px;line-height:1.7;font-weight:500;color:#0b2a60}
+.lp-capabilities{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:-55px 24px 0;padding:27px 17px;min-height:112px;background:linear-gradient(110deg,#fffffff2,#f2f6fff0);border:1px solid white;border-radius:18px;box-shadow:0 9px 18px #3887df24}
+.lp-capabilities article{display:flex;align-items:center;gap:15px;padding:0 11px;border-right:1px solid #c5ddff;min-width:0}
+.lp-capabilities article:last-child{border:0}
+.lp-capabilities i{flex-shrink:0;width:60px;height:60px;display:grid;place-items:center;border-radius:50%;background:linear-gradient(135deg,#e4f3ff,#d0e3ff);color:#006aff}
+.lp-capabilities span{display:grid;gap:6px;min-width:0}
+.lp-capabilities strong{font-size:20px;font-weight:800;white-space:nowrap;color:#071b4d}
+.lp-capabilities small{font-size:15px;line-height:1.5;color:#1c3158;white-space:nowrap}
+.lp-resources{padding:48px 27px 64px}
+.lp-resources header{display:flex;align-items:center;justify-content:space-between;gap:15px;margin:0 0 32px}
+.lp-resources h2{position:relative;margin:0;padding-left:25px;font-size:32px;line-height:1.4;color:#061b4e;font-weight:800}
+.lp-resources h2:before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:8px;background:linear-gradient(#063eff,#00aaff);border-radius:5px}
+.lp-resources header button{display:flex;align-items:center;gap:12px;border:0;background:none;color:#004bff;font-size:18px;font-weight:700;cursor:pointer;padding:4px}
+.lp-resource-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.lp-resource-card{padding:0;overflow:hidden;border:2px solid #fff;border-radius:17px;box-shadow:0 5px 10px #2264ac26;background:linear-gradient(125deg,#fff,#eaf2ff);text-align:left;color:#071b4d;cursor:pointer;font:inherit;transition:transform .2s,box-shadow .2s;min-width:0}
+.lp-resource-card:hover{transform:translateY(-5px);box-shadow:0 10px 20px #2264ac30}
+.lp-resource-card>img{width:100%;height:210px;display:block;object-fit:cover;background:#cde1fc}
+.lp-resource-card>div{position:relative;padding:12px 20px 20px;min-height:123px}
+.lp-resource-card h3{font-size:23px;font-weight:800;margin:0 0 6px;line-height:1.5;color:#071b4d}
+.lp-resource-card p{font-size:18px;line-height:1.6;margin:0;padding-right:30px;color:#10234a}
+.lp-resource-arrow{position:absolute;right:12px;bottom:22px;width:37px;height:37px;display:grid;place-items:center;background:#d8eaff;border-radius:50%;color:#005bff}
+.landing-reference button:focus-visible,.landing-reference a:focus-visible{outline:3px solid #006aff;outline-offset:4px}
+@media(min-width:1450px){.lp-capabilities{margin-left:max(24px,calc((100vw - 1440px)/2));margin-right:max(24px,calc((100vw - 1440px)/2))}.lp-resources{max-width:1494px;margin:auto}.lp-hero{height:620px}.lp-hero-copy{padding-top:20px}.lp-resource-card>img{height:230px}}
+@media(max-width:1100px){.landing-reference .landing-nav{padding:10px 22px;gap:18px}.landing-reference .landing-nav nav{gap:26px}.landing-reference .landing-nav nav a{font-size:18px}.landing-reference .landing-nav-action{min-width:150px;font-size:18px}.lp-hero{padding:65px 35px;height:555px;background-position:55% center}.lp-hero-copy{width:62%}.lp-hero-copy>p{font-size:18px}.lp-benefits{gap:8px}.lp-benefits span{padding:8px;font-size:13px}.lp-actions{gap:15px}.lp-actions button,.lp-actions a{font-size:18px;padding:0 20px}.lp-source{font-size:13px}.lp-capabilities{padding:20px 10px;margin-left:18px;margin-right:18px}.lp-capabilities article{gap:8px;padding:0 8px}.lp-capabilities i{width:45px;height:45px}.lp-capabilities i svg{width:29px}.lp-capabilities strong{font-size:16px}.lp-capabilities small{font-size:11px}.lp-resource-card>img{height:175px}.lp-resource-card>div{padding:12px}.lp-resource-card h3{font-size:19px}.lp-resource-card p{font-size:14px}.lp-resource-arrow{width:28px;height:28px;right:8px;bottom:16px}}
+@media(max-width:760px){.landing-reference .landing-nav{height:auto;min-height:76px;flex-wrap:wrap;padding:12px 18px;gap:12px}.landing-reference .landing-nav nav{order:3;width:100%;justify-content:center;gap:36px}.landing-reference .landing-nav nav a{font-size:15px;padding:7px 0 12px}.landing-reference .landing-nav nav a:first-child:after{bottom:2px}.landing-reference .landing-nav-action{margin-left:auto;min-width:110px;height:42px;font-size:15px;padding:0 12px}.lp-hero{height:auto;min-height:640px;padding:35px 24px 295px;background-size:auto 390px;background-position:65% bottom;background-color:#cee5ff}.lp-hero:before{background:linear-gradient(#d2e7ff 0%,#d2e7ff 40%,#d2e7ff00 70%)}.lp-hero-copy{width:100%;max-width:none}.lp-hero h1{font-size:clamp(30px,6.7vw,47px)}.lp-eyebrow{font-size:15px;padding:7px 17px}.lp-hero-copy>p{font-size:16px;margin-bottom:16px}.lp-benefits{flex-wrap:wrap}.lp-benefits span{font-size:12px;padding:6px 9px}.lp-benefits svg{width:18px;height:18px}.lp-actions{margin:20px 0 12px;gap:10px;flex-wrap:wrap}.lp-actions button,.lp-actions a{height:46px;font-size:16px;padding:0 16px}.lp-actions .lp-primary{padding:0 20px}.lp-source{font-size:12px}.lp-capabilities{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 0;margin-top:-30px;padding:22px 12px}.lp-capabilities article:nth-child(2){border:0}.lp-capabilities strong{font-size:15px}.lp-capabilities small{font-size:10px;white-space:normal}.lp-capabilities i{width:37px;height:37px}.lp-capabilities i svg{width:25px}.lp-resources{padding:34px 18px}.lp-resources h2{font-size:25px;padding-left:18px}.lp-resources header button{font-size:13px;gap:5px}.lp-resource-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.lp-resource-card>img{height:170px}.lp-resource-card h3{font-size:17px}.lp-resource-card p{font-size:13px;padding-right:16px}.lp-resource-arrow{width:24px;height:24px;right:5px;bottom:12px}.lp-resource-arrow svg{width:16px}}
+@media(max-width:400px){.lp-hero{padding-left:18px;padding-right:18px}.lp-desktop-break{display:none}.lp-capabilities{margin-left:12px;margin-right:12px;padding:18px 8px}.lp-capabilities article{padding:0 4px;gap:6px}.lp-capabilities strong{font-size:13px}.lp-resource-card>img{height:140px}.lp-resource-card h3{font-size:15px}.lp-resource-card>div{padding:10px;min-height:122px}.lp-resources header{gap:8px}.lp-resources h2{font-size:22px}.lp-resources header button{font-size:12px}}
+/* Identity entry follows the wide illustrated cards in the supplied reference. */
+.landing-reference .lp-entry{padding:32px 38px 44px;background:linear-gradient(125deg,#fff,#e9f4ff);max-width:none}
+.lp-entry .entry-heading{max-width:none;margin:0 0 36px;padding:0}
+.lp-entry .entry-heading h2{font-size:44px;line-height:1.25;letter-spacing:0;max-width:none;color:#061a4e;margin:0 0 24px;font-weight:850}
+.lp-entry .entry-heading>p{font-size:21px;color:#506388;line-height:1.75;max-width:870px;margin:0}
+.lp-entry .lp-entry-stage{display:block;background:none;border:0;border-radius:0;padding:0;box-shadow:none}
+.lp-entry .role-choice{display:grid;gap:14px;margin:0 0 36px;padding:0;background:none;border:0}
+.landing-reference .lp-entry .role-choice button{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;justify-content:flex-start;gap:34px;width:100%;height:126px;padding:20px 48px;border:1px solid #d7e7ff;border-radius:23px;background-color:#f6faff;background-image:linear-gradient(90deg,#fffffff0 0%,#eaf3fff5 54%,#d8eaff33 100%),var(--role-art);background-size:100% 100%,auto 210%;background-position:center,right center;background-repeat:no-repeat;text-align:left;box-shadow:0 4px 8px #3465a908;color:#071b4d;transform:none}
+.landing-reference .lp-entry .role-choice button.active{border:2px solid #0065ff;border-left:7px solid #2168ff;background-color:#eaf3ff;box-shadow:0 4px 9px #006aff13;padding-left:42px}
+.landing-reference .lp-entry .role-choice button>svg{height:51px;width:51px;color:#0060ff;flex-shrink:0}
+.landing-reference .lp-entry .role-choice button span{display:grid;gap:8px;position:relative}
+.landing-reference .lp-entry .role-choice button strong{font-size:27px;font-weight:800;color:#061a4e}
+.landing-reference .lp-entry .role-choice button small{font-size:18px;color:#40577c;font-weight:500}
+.lp-entry .lp-entry-console{background:#e9f3ff var(--entry-lab) left center/100% 100% no-repeat;border:1px solid white;border-radius:26px;box-shadow:0 10px 24px #4587d51a;min-height:420px;padding:34px 35px 24px 38.5%;display:block;color:#061a4e}
+.lp-entry .lp-entry-console>span{color:#0053ff;font-size:23px;font-weight:800;margin:0 0 14px;display:block}
+.lp-entry .lp-entry-console h3{font-size:28px;font-weight:750;line-height:1.6;margin:0 0 22px;color:#061a4e;max-width:none}
+.lp-entry .lp-entry-console ul{padding:0;list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:0 0 34px}
+.lp-entry .lp-entry-console li{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;border:0;padding:0;color:#071b4d;background:none}
+.lp-entry .lp-entry-console li:not(:last-child):after{content:'';position:absolute;right:0;top:20px;bottom:5px;width:1px;background:#b4d4ff}
+.lp-entry .lp-entry-console li i{display:grid;place-items:center;border-radius:50%;width:70px;height:70px;color:#0067ff;background:linear-gradient(140deg,#f6fcff,#c7dfff);border:1px solid white}
+.lp-entry .lp-entry-console li strong{font-size:21px;font-weight:700;white-space:nowrap;color:#071b4d}
+.lp-entry .lp-entry-console>button{display:flex;align-items:center;justify-content:center;gap:22px;width:min(455px,90%);margin:auto;background:linear-gradient(115deg,#338fff,#0049f6);border:1px solid #7cb6ff;border-radius:19px;height:62px;min-height:62px;color:#fff;font-size:25px;font-weight:800;box-shadow:0 10px 20px #0065ff24}
+.lp-entry .lp-entry-console>button svg{width:25px;height:25px}
+.lp-entry .landing-command{margin-top:30px}
+@media(min-width:1450px){.landing-reference .lp-entry{padding-left:max(38px,calc((100vw - 1440px)/2));padding-right:max(38px,calc((100vw - 1440px)/2))}}
+@media(max-width:1000px){.landing-reference .lp-entry{padding:32px 25px}.lp-entry .entry-heading h2{font-size:36px}.lp-entry .entry-heading>p{font-size:18px}.landing-reference .lp-entry .role-choice button{height:112px;padding:18px 30px;gap:25px}.landing-reference .lp-entry .role-choice button.active{padding-left:24px}.landing-reference .lp-entry .role-choice button strong{font-size:24px}.landing-reference .lp-entry .role-choice button small{font-size:16px}.lp-entry .lp-entry-console{padding:28px 22px 26px 36%;min-height:380px}.lp-entry .lp-entry-console h3{font-size:22px}.lp-entry .lp-entry-console>span{font-size:20px}.lp-entry .lp-entry-console li strong{font-size:16px}.lp-entry .lp-entry-console li i{height:58px;width:58px}.lp-entry .lp-entry-console>button{font-size:21px;height:55px;min-height:55px}}
+@media(max-width:650px){.landing-reference .lp-entry{padding:28px 18px}.lp-entry .entry-heading h2{font-size:29px;margin-bottom:18px}.lp-entry .entry-heading>p{font-size:15px;line-height:1.8}.lp-entry .entry-heading{margin-bottom:24px}.lp-entry .role-choice{gap:12px;margin-bottom:24px}.landing-reference .lp-entry .role-choice button{height:106px;border-radius:18px;padding:15px 20px;gap:16px;background-image:linear-gradient(90deg,#f6fafffa 0%,#eaf3ffed 63%,#d8eaff66),var(--role-art)}.landing-reference .lp-entry .role-choice button.active{padding-left:14px}.landing-reference .lp-entry .role-choice button>svg{width:34px;height:34px}.landing-reference .lp-entry .role-choice button strong{font-size:21px}.landing-reference .lp-entry .role-choice button small{font-size:12px}.lp-entry .lp-entry-console{padding:225px 20px 24px;min-height:600px;background-size:auto 260px;background-position:left top;background-color:#e9f3ff;position:relative;isolation:isolate}.lp-entry .lp-entry-console:before{content:'';position:absolute;inset:175px 0 0;background:linear-gradient(#e9f3ff00,#e9f3ff 70px);z-index:-1;border-radius:25px}.lp-entry .lp-entry-console h3{font-size:20px;line-height:1.7}.lp-entry .lp-entry-console>span{font-size:19px}.lp-entry .lp-entry-console li i{width:52px;height:52px}.lp-entry .lp-entry-console li i svg{width:31px;height:31px}.lp-entry .lp-entry-console li strong{font-size:13px}.lp-entry .lp-entry-console ul{margin-bottom:25px}.lp-entry .lp-entry-console>button{width:100%;font-size:18px;gap:10px}.lp-entry .landing-command{padding:18px}}
+.landing-reference .lp-entry{background:linear-gradient(125deg,#fff,#e9f4ff)!important}
+.landing-reference .lp-entry .role-choice button,.landing-reference .lp-entry .role-choice button.active{background-image:linear-gradient(90deg,#fffffff0 0%,#eaf3fff5 54%,#d8eaff33 100%),var(--role-art)!important;border-radius:23px!important}
+.landing-reference .lp-entry .role-choice button.active{border:2px solid #0065ff!important;border-left:7px solid #2168ff!important}
+.landing-reference .lp-entry .role-choice button small{color:#40577c!important}
+.landing-reference .lp-entry .lp-entry-console{background:#e9f3ff var(--entry-lab) left center/100% 100% no-repeat!important;border-radius:26px!important}
+.landing-reference .lp-entry .lp-entry-console h3{color:#061a4e!important}
+@media(max-width:650px){.landing-reference .lp-entry .lp-entry-console{background-size:auto 260px!important;background-position:left top!important}.landing-reference .lp-entry .role-choice button,.landing-reference .lp-entry .role-choice button.active{background-image:linear-gradient(90deg,#f6fafffa 0%,#eaf3ffed 63%,#d8eaff66),var(--role-art)!important}}
+
+.landing-reference .lp-entry .role-choice button,.landing-reference .lp-entry .role-choice button.active{background-size:100% 100%,auto 140%!important;background-position:center,right center!important;background-repeat:no-repeat!important}
+.landing-reference .lp-entry .role-choice button:first-child{background-size:100% 100%,auto 130%!important}

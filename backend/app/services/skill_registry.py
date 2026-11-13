@@ -118,3 +118,15 @@ class SkillRegistry:
     def recent_calls(self, limit: int = 50) -> list[dict]:
         with self._db() as db:
             return [dict(row) for row in db.execute('SELECT * FROM skill_calls ORDER BY created_at DESC LIMIT ?', (max(1, min(limit, 100)),))]
+
+    def statistics(self) -> dict:
+        local = datetime.now(timezone(timedelta(hours=8)))
+        start = local.replace(hour=0,minute=0,second=0,microsecond=0).astimezone(timezone.utc).isoformat()
+        days = [(local.date()-timedelta(days=n)).isoformat() for n in range(6,-1,-1)]
+        with self._db() as db:
+            trend = {r['day']:r['count'] for r in db.execute("SELECT date(created_at,'+8 hours') day,COUNT(*) count FROM skill_calls WHERE date(created_at,'+8 hours')>=? GROUP BY day",(days[0],))}
+            return {'today_calls':db.execute('SELECT COUNT(*) FROM skill_calls WHERE created_at>=?',(start,)).fetchone()[0],
+                    'total_calls':db.execute('SELECT COUNT(*) FROM skill_calls').fetchone()[0],
+                    'latest_update':db.execute("SELECT MAX(updated_at) FROM skill_policies WHERE updated_at!=''").fetchone()[0],
+                    'per_skill':[dict(r) for r in db.execute("SELECT skill_id,COUNT(*) total,SUM(status='success') successful,ROUND(AVG(duration_ms),1) average_ms FROM skill_calls GROUP BY skill_id")],
+                    'trend':[{'date':d,'count':trend.get(d,0)} for d in days]}
