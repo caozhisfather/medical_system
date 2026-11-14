@@ -27,9 +27,11 @@ class MailService:
             server.login(self.username, self.password)
             server.send_message(message)
 
-    def send_verification(self, recipient: str, token: str) -> None:
-        link = f"{self.frontend_url}/verify-email?token={token}"
-        self._send(recipient, "验证你的芯聆知医账号", f"请在30分钟内打开链接完成验证：{link}", self._template("验证邮箱", "完成邮箱验证后即可使用账号。", link, "验证邮箱"))
+    def send_verification(self, recipient: str, code: str) -> None:
+        if len(code) != 6 or not code.isascii() or not code.isdigit():
+            raise ValueError("Invalid verification code")
+        self._send(recipient, "AI Medical 邮箱验证码", f"你的邮箱验证码是：{code}。10分钟内有效，请勿向他人透露。重新发送后旧验证码失效。如非本人操作，请忽略。",
+            f"""<html><body style="background:#f1f6ff;font-family:Arial,sans-serif;color:#102a56"><div style="max-width:520px;margin:32px auto;padding:32px;background:white;border-radius:18px"><strong style="color:#155eef">AI Medical</strong><h1 style="font-size:24px">验证你的邮箱</h1><p>请在网站输入以下六位验证码：</p><div style="font-size:36px;font-weight:bold;letter-spacing:8px;color:#155eef;padding:20px;background:#edf5ff;text-align:center">{code}</div><p>10分钟内有效。重新发送后旧验证码失效。</p><p>请勿向他人透露验证码。如非本人操作，请忽略此邮件。</p></div></body></html>""")
 
     def send_password_reset(self, recipient: str, token: str) -> None:
         link = f"{self.frontend_url}/reset-password?token={token}"

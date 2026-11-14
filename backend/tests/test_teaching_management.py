@@ -174,7 +174,7 @@ def test_migration_is_repeatable_and_preserves_old_database(tmp_path):
 def test_student_isolation_and_distinct_students(env):
     c,t,st,root=env
     other,token=main.auth_service.register('peer01','另一学生','peer@example.test','peer123456','student')
-    main.auth_service.verify_email(token)
+    main.auth_service.verify_email_code(other["email"], token)
     login=ok(c.post('/api/auth/login',json={'account':'peer01','password':'peer123456','role':'student'}))
     peer={'Authorization':'Bearer '+login['token']}
     c1=create(c,t,'甲班');c2=create(c,t,'乙班')

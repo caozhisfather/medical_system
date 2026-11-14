@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   Box,
+  BookOpen,
+  ChevronRight,
+  ChevronLeft,
+  Pause,
+  Play,
   ChartNoAxesColumnIncreasing,
   PlayCircle,
   ArrowRight,
@@ -20,6 +25,11 @@ import {
 } from '@lucide/vue';
 import AgentCommand from '../components/AgentCommand.vue';
 import BrandLogo from '../components/BrandLogo.vue';
+import workflowBody from '../assets/medical/workflow-body.webp';
+import workflowHeart from '../assets/medical/workflow-heart.webp';
+import workflowValve from '../assets/medical/workflow-valve.webp';
+import workflowTest from '../assets/medical/workflow-test.webp';
+import footerBackground from '../assets/medical/landing-footer-dna.webp';
 import entryLab from '../assets/medical/landing-entry-lab.webp';
 import studentRoleArt from '../assets/medical/landing-resource-heart.webp';
 import teacherRoleArt from '../assets/medical/teacher-overview-banner.webp';
@@ -29,11 +39,42 @@ import heartResource from '../assets/medical/landing-resource-heart.webp';
 import skeletonResource from '../assets/medical/landing-resource-skeleton.webp';
 import headResource from '../assets/medical/landing-resource-head.webp';
 import lungsResource from '../assets/medical/landing-resource-lungs.webp';
-import dashboardImage from '../assets/showcase/student-dashboard-hd.png';
-import teacherDashboardImage from '../assets/medical/teacher-dashboard.png';
 import type { WorkspaceRole } from '../stores/training';
 
 const router = useRouter();
+const workflowSteps = [
+ {title:'选择系统',icon:Layers3,image:workflowBody,description:'从整体人体进入运动、循环、呼吸、消化等人体系统，镜头自动框到该系统。'},
+ {title:'下钻器官',icon:ScanLine,image:workflowHeart,description:'在系统内继续选择器官，例如心脏、肺、肝、肾，放大成独立的三维标本。'},
+ {title:'点选精细结构',icon:MousePointer2,image:workflowValve,description:'点选心腔、瓣膜等精细结构，查看规范中文解剖名、英文原名与功能讲解。'},
+ {title:'测验与溯源',icon:Crosshair,image:workflowTest,description:'完成选择、判断与简答，讲解命中教材时给出书名、章节与页码。'}
+];
+const activeStep = ref(0);
+const workflowPaused = ref(false);
+const workflowHover = ref(false);
+const workflowFocus = ref(false);
+const workflowGrid = ref<HTMLElement|null>(null);
+const workflowFrame = ref<Record<string,string>>({opacity:'0'});
+let workflowTimer: ReturnType<typeof setInterval>|undefined;
+let workflowObserver: IntersectionObserver|null = null;
+let workflowResize: ResizeObserver|null = null;
+let workflowVisible = false;
+function measureWorkflow() {
+ const card=workflowGrid.value?.querySelectorAll<HTMLElement>('.lp-workflow-card')[activeStep.value];
+ if(card) workflowFrame.value={width:`${card.offsetWidth}px`,height:`${card.offsetHeight}px`,transform:`translate(${card.offsetLeft}px,${card.offsetTop}px)`,opacity:'1'};
+}
+function selectStep(index:number) { activeStep.value=(index+workflowSteps.length)%workflowSteps.length; }
+watch(activeStep,()=>nextTick(measureWorkflow));
+onMounted(()=>{
+ workflowPaused.value=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ if(workflowGrid.value){
+  workflowObserver=new IntersectionObserver(entries=>{workflowVisible=entries[0]?.isIntersecting??false;},{threshold:0.2});
+  workflowObserver.observe(workflowGrid.value);
+  workflowResize=new ResizeObserver(measureWorkflow);workflowResize.observe(workflowGrid.value);
+ }
+ nextTick(measureWorkflow);
+ workflowTimer=setInterval(()=>{if(workflowVisible&&!workflowPaused.value&&!workflowHover.value&&!workflowFocus.value&&!document.hidden)selectStep(activeStep.value+1);},3500);
+});
+onBeforeUnmount(()=>{clearInterval(workflowTimer);workflowObserver?.disconnect();workflowResize?.disconnect();});
 const resources = [
   {title:'系统解剖实验',description:'心血管、呼吸、消化等系统的结构认知与空间关系',image:heartResource,system:'circulatory'},
   {title:'骨骼与关节实验',description:'全身骨骼结构、关节组成与运动相关解剖',image:skeletonResource,system:'locomotor'},
@@ -100,7 +141,7 @@ onBeforeUnmount(() => revealObserver?.disconnect());
         <BrandLogo variant="compact" subtitle="可追溯的虚拟解剖实验室" />
       </a>
       <nav aria-label="落地页导航">
-        <a href="#showcase">产品实景</a>
+        <a href="#resources">实验资源</a>
         <a href="#workflow">学习路径</a>
         <a href="#entry">进入平台</a>
       </nav>
@@ -115,7 +156,7 @@ onBeforeUnmount(() => revealObserver?.disconnect());
         <h1>虚拟解剖实验室</h1>
         <p>基于真实解剖数据与教学标准，提供可交互、<br class="lp-desktop-break"/>可训练、可评估的医学实验学习环境。</p>
         <div class="lp-benefits"><span><Box :size="24"/>三维结构交互</span><span><Layers3 :size="24"/>教材依据明确</span><span><ChartNoAxesColumnIncreasing :size="24"/>教学评价支持</span></div>
-        <div class="lp-actions"><button class="lp-primary" @click="scrollToEntry">开始学习 <ArrowRight :size="23"/></button><a href="#showcase"><PlayCircle :size="24"/>查看产品实景</a></div>
+        <div class="lp-actions"><button class="lp-primary" @click="scrollToEntry">开始学习 <ArrowRight :size="23"/></button><a href="#resources"><PlayCircle :size="24"/>浏览实验资源</a></div>
         <small class="lp-source">数据来源：BodyParts3D 4.0 · 人民卫生出版社教材体系</small>
       </div>
     </section>
@@ -125,76 +166,15 @@ onBeforeUnmount(() => revealObserver?.disconnect());
       <article><i><BookOpenCheck :size="38"/></i><span><strong>教材依据可追溯</strong><small>对接权威教材与课程标准</small></span></article>
       <article><i><SlidersHorizontal :size="38"/></i><span><strong>教师决策与考核</strong><small>题型与提示词灵活配置</small></span></article>
     </section>
-    <section class="lp-resources" aria-labelledby="resource-title">
+    <section id="resources" class="lp-resources" aria-labelledby="resource-title">
       <header><h2 id="resource-title">核心实验资源</h2><button @click="scrollToEntry">查看全部资源 <ArrowRight :size="23"/></button></header>
       <div class="lp-resource-grid"><button v-for="r in resources" :key="r.title" class="lp-resource-card" @click="openResource(r.system)"><img :src="r.image" :alt="r.title+'教学模型'"/><div><h3>{{r.title}}</h3><p>{{r.description}}</p><span class="lp-resource-arrow"><ArrowRight :size="22"/></span></div></button></div>
     </section>
 
-    <section id="showcase" class="landing-showcase reveal">
-      <header class="landing-section-head">
-        <span class="landing-section-kicker">产品实景</span>
-        <h2>不是概念片，是一套能上手操作的解剖教学产品。</h2>
-        <p class="landing-section-lede">学生探索三维结构，教师维护可追溯的教学依据，管理员治理数据与索引，三个角色共用同一份知识底稿。</p>
-      </header>
-
-      <div class="showcase-grid">
-        <article class="showcase-main">
-          <div class="showcase-frame">
-            <img :src="dashboardImage" alt="学生工作台实景" loading="lazy" />
-          </div>
-          <footer><span>学生工作台</span><strong>从系统入口直接进入三维解剖室</strong></footer>
-        </article>
-
-        <article class="showcase-report">
-          <div class="showcase-frame">
-            <img :src="teacherDashboardImage" alt="教师工作台实景" loading="lazy" />
-          </div>
-          <footer><span>教师工作台</span><strong>维护教学依据，配置题型与提示词</strong></footer>
-        </article>
-
-        <aside class="showcase-evidence" aria-label="可追溯证据链">
-          <div class="evidence-statement">
-            <Network :size="28" />
-            <p>每个结构都连接三维模型、规范解剖名、教材依据与知识图谱。</p>
-          </div>
-          <div class="evidence-chain" aria-label="证据链组成">
-            <span><i aria-hidden="true"></i><strong>三维模型</strong><small>可点击的结构</small></span>
-            <span><i aria-hidden="true"></i><strong>规范术语</strong><small>中英解剖名对照</small></span>
-            <span><i aria-hidden="true"></i><strong>教材依据</strong><small>章节与页码</small></span>
-            <span><i aria-hidden="true"></i><strong>知识图谱</strong><small>连接临床联系</small></span>
-          </div>
-        </aside>
-      </div>
-    </section>
-
-    <section id="workflow" class="landing-workflow reveal">
-      <div class="workflow-intro landing-section-head">
-        <span class="landing-section-kicker">学习路径</span>
-        <h2>一次学习，从整体人体走到一个具体结构。</h2>
-        <p class="landing-section-lede">从选择系统到精细结构，每一步都保留教材依据与可回看的训练记录。</p>
-      </div>
-      <div class="workflow-track">
-        <article>
-          <Layers3 :size="24" />
-          <strong>选择系统</strong>
-          <p>从整体人体进入运动、循环、呼吸、消化等八大系统，镜头自动框到该系统。</p>
-        </article>
-        <article>
-          <ScanLine :size="24" />
-          <strong>下钻器官</strong>
-          <p>在系统内继续选择器官，例如心脏、肺、肝、肾，放大成独立的三维标本。</p>
-        </article>
-        <article>
-          <MousePointer2 :size="24" />
-          <strong>点选精细结构</strong>
-          <p>点选心腔、瓣膜等精细结构，查看规范中文解剖名、英文原名与功能讲解。</p>
-        </article>
-        <article>
-          <Crosshair :size="24" />
-          <strong>测验与溯源</strong>
-          <p>完成选择、判断与简答，讲解命中教材时给出书名、章节与页码。</p>
-        </article>
-      </div>
+    <section id="workflow" class="lp-workflow reveal" :style="{'--workflow-bg':`url(${footerBackground})`}">
+      <header class="lp-workflow-heading"><span>学习路径</span><h2>一次学习，从整体人体走到一个具体结构<span>。</span></h2><i aria-hidden="true"></i><p>从选择系统到精细结构，每一步都保留教材依据与可回看的训练记录。</p></header>
+      <div ref="workflowGrid" class="lp-workflow-grid" @mouseenter="workflowHover=true" @mouseleave="workflowHover=false" @focusin="workflowFocus=true" @focusout="workflowFocus=false"><span class="lp-workflow-frame" :style="workflowFrame" aria-hidden="true"></span><article v-for="(step,index) in workflowSteps" :key="step.title" :class="{featured:index===activeStep}" class="lp-workflow-card" role="button" tabindex="0" :aria-pressed="activeStep===index" :aria-label="`第${index+1}步：${step.title}`" @click="selectStep(index)" @keydown.enter.prevent="selectStep(index)" @keydown.space.prevent="selectStep(index)" @keydown.right.prevent="selectStep(activeStep+1)" @keydown.left.prevent="selectStep(activeStep-1)"><div class="lp-step-top"><span>{{String(index+1).padStart(2,'0')}}</span><component :is="step.icon" :size="34"/></div><img :src="step.image" :alt="step.title+'示意图'" loading="lazy"/><h3>{{step.title}}</h3><p>{{step.description}}</p><span v-if="index<workflowSteps.length-1" class="lp-step-arrow" aria-hidden="true"><ChevronRight :size="25"/></span></article></div>
+      <div class="lp-workflow-controls" aria-label="学习路径轮播控制"><button aria-label="上一步" @click="selectStep(activeStep-1)"><ChevronLeft :size="18"/></button><button v-for="(step,index) in workflowSteps" :key="step.title" class="lp-step-dot" :class="{active:activeStep===index}" :aria-label="`切换到第${index+1}步`" :aria-pressed="activeStep===index" @click="selectStep(index)">{{String(index+1).padStart(2,'0')}}</button><button aria-label="下一步" @click="selectStep(activeStep+1)"><ChevronRight :size="18"/></button><button class="lp-play-toggle" :aria-label="workflowPaused?'播放轮播':'暂停轮播'" @click="workflowPaused=!workflowPaused"><Play v-if="workflowPaused" :size="16"/><Pause v-else :size="16"/>{{workflowPaused?'播放':'暂停'}}</button></div>
     </section>
 
     <section id="entry" class="landing-entry lp-entry reveal">
@@ -238,11 +218,9 @@ onBeforeUnmount(() => revealObserver?.disconnect());
       </div>
     </section>
 
-    <footer class="landing-footer">
-      <div class="brand-lockup">
-        <BrandLogo variant="compact" subtitle="可追溯的虚拟解剖实验室" />
-      </div>
-      <p><ShieldCheck :size="16" /> 三维模型与讲解仅用于医学教育，不作为临床诊断依据。</p>
+    <footer class="landing-footer lp-reference-footer" :style="{'--footer-background':`url(${footerBackground})`}">
+      <div class="lp-footer-brand"><BookOpen :size="62" :stroke-width="1.5"/><span><strong>虚拟解剖实验室</strong><small>医学三维结构与空间定位训练平台</small></span></div>
+      <p><ShieldCheck :size="28"/> <span>三维模型与讲解仅用于医学教育，不作为临床诊断依据。</span></p>
     </footer>
   </main>
 </template>

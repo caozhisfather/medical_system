@@ -69,7 +69,7 @@ class Settings:
     mail_port: int = int(env_value("MAIL_PORT", "465"))
     mail_username: str = env_value("MAIL_USERNAME", "")
     mail_password: str = env_value("MAIL_PASSWORD", "")
-    mail_from_name: str = env_value("MAIL_FROM_NAME", "芯聆知医")
+    mail_from_name: str = env_value("MAIL_FROM_NAME", "AI Medical")
     public_frontend_url: str = env_value("PUBLIC_FRONTEND_URL", env_value("FRONTEND_ORIGIN", "http://127.0.0.1:5173"))
 
     @property

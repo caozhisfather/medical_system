@@ -6,6 +6,7 @@ export type WorkspaceRole = 'student' | 'teacher' | 'admin';
 export interface UserProfile {
   role: WorkspaceRole;
   name: string;
+  nickname?: string;
   school: string;
   grade: string;
   specialty: string;
@@ -74,7 +75,7 @@ export const trainingStore = {
         ? { grade: response.user.department || '系统管理中心', specialty: '平台运维与知识工程', className: '全校医学教学空间', direction: '数据源与知识库治理' }
         : { grade: response.user.department || '临床医学四年级', specialty: '临床医学', className: '临床医学 2023-2 班', direction: '虚拟解剖与空间定位' };
     state.authenticated = true;
-    state.profile = { ...state.profile, ...roleProfile, role, name: response.user.name, completed: true };
+    state.profile = { ...state.profile, ...roleProfile, role, name: response.user.name, nickname: response.user.nickname || response.user.name, completed: true };
     localStorage.setItem('medical_auth_token', response.token);
     persist('medical_auth', true);
     persist('medical_profile', state.profile);

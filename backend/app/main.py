@@ -31,7 +31,7 @@ from .knowledge_graph_service import AnatomyKnowledgeGraphService, KnowledgeGrap
 from .obsidian_export_service import ObsidianGraphExportService
 from .models import (
     AgentChatRequest, AgentChatResponse, AnatomySubmitRequest, AnatomySubmitResponse, AuthLoginRequest, AuthLoginResponse, AuthUser, CaseSummary, ChatMessage,
-    AuthRegisterRequest, AuthEmailTokenRequest, AuthForgotPasswordRequest, AuthResetPasswordRequest, AuthTeacherReviewRequest,
+    AuthRegisterRequest, AuthNicknameUpdate, AuthEmailCodeRequest, AuthForgotPasswordRequest, AuthResetPasswordRequest, AuthTeacherReviewRequest,
     MissingPoint, PatientChatRequest, PatientChatResponse, RagAnswer, RagQuery, ScoreItem, TTSRequest, TTSResponse,
     TrainingReport, TrainingScoreRequest, CaseRandomRequest, TrainingStartRequest, TrainingOrderTestRequest, TrainingDiagnosisRequest, CaseValidateRequest,
     TeacherCaseDraftRequest, TeacherCaseEditRequest, TeacherCaseDecisionRequest, TeacherRecommendationDecisionRequest,
@@ -569,17 +569,22 @@ def auth_register(payload: AuthRegisterRequest) -> dict[str, Any]:
     if not _strong_password(payload.password):
         raise HTTPException(status_code=422, detail="密码至少8位，且必须同时包含字母和数字")
     try:
-        user, token = auth_service.register(payload.account, payload.name, payload.email, payload.password, payload.role)
-        mail_service.send_verification(payload.email, token)
+        user, token = auth_service.register(payload.account or f"user_{uuid4().hex[:16]}", payload.name, payload.email, payload.password, payload.role, payload.nickname)
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+    try:
+        mail_service.send_verification(payload.email, token)
     except (OSError, RuntimeError, smtplib.SMTPException) as exc:
-        raise HTTPException(status_code=503, detail="账号已创建，但验证邮件发送失败，请稍后重新发送验证邮件") from exc
-    return {"message": "验证邮件已发送，请在30分钟内完成验证", "user": user}
+        auth_service.verification_delivery_failed(payload.email, token)
+        raise HTTPException(status_code=503, detail="账号已创建，但验证码邮件发送失败，请重新获取验证码") from exc
+    return {"message": "六位验证码已发送，请在10分钟内完成验证", "user": user}
 
 
 @app.post("/api/auth/resend-verification")
 def auth_resend_verification(payload: AuthForgotPasswordRequest) -> dict[str, str]:
+    if not _valid_email(payload.email):
+        raise HTTPException(status_code=422, detail="请输入有效的邮箱地址")
+    result = None
     try:
         result = auth_service.create_verification(payload.email)
         if result:
@@ -587,14 +592,16 @@ def auth_resend_verification(payload: AuthForgotPasswordRequest) -> dict[str, st
     except ValueError as exc:
         raise HTTPException(status_code=429, detail=str(exc)) from exc
     except (OSError, RuntimeError, smtplib.SMTPException) as exc:
+        if result:
+            auth_service.verification_delivery_failed(*result)
         raise HTTPException(status_code=503, detail="邮件发送失败，请稍后重试") from exc
-    return {"message": "如果该邮箱存在且尚未验证，验证邮件已发送"}
+    return {"message": "如果该邮箱已注册且尚未验证，六位验证码已发送，10分钟内有效"}
 
 
 @app.post("/api/auth/verify-email")
-def auth_verify_email(payload: AuthEmailTokenRequest) -> dict[str, Any]:
+def auth_verify_email(payload: AuthEmailCodeRequest) -> dict[str, Any]:
     try:
-        user = auth_service.verify_email(payload.token)
+        user = auth_service.verify_email_code(payload.email, payload.code)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     message = "邮箱验证成功，可以登录" if user["role"] == "student" else "邮箱验证成功，教师账号正在等待管理员审核"
@@ -627,6 +634,15 @@ def auth_reset_password(payload: AuthResetPasswordRequest) -> dict[str, str]:
 @app.get("/api/auth/me", response_model=AuthUser)
 def auth_me(authorization: str | None = Header(default=None)) -> AuthUser:
     return require_role(authorization, {"student", "teacher", "admin", "super_admin"})
+
+
+@app.patch("/api/auth/me", response_model=AuthUser)
+def auth_update_nickname(payload: AuthNicknameUpdate, authorization: str | None = Header(default=None)) -> AuthUser:
+    user = require_role(authorization, {"student", "teacher", "admin", "super_admin"})
+    try:
+        return AuthUser(**auth_service.update_nickname(user.id, payload.nickname))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.post("/api/auth/logout")

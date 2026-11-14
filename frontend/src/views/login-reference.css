@@ -1,0 +1,59 @@
+.login-reference{min-height:100dvh;padding:25px 40px 43px;color:#082957;background:radial-gradient(ellipse at 40% 25%,#f5faff,#dbe9ff)!important}
+.login-reference *{box-sizing:border-box}
+.login-reference .login-stage{display:grid;grid-template-columns:55.2% 44.8%;width:min(1456px,100%);margin:0 auto;min-height:950px;border:0;border-radius:27px;overflow:hidden;background:#eaf3ff!important;box-shadow:0 18px 45px #3f76bd26}
+.login-reference .login-context{position:relative;isolation:isolate;margin:0;overflow:hidden;background:#2d65a6!important;min-width:0;min-height:950px}
+.login-reference .login-context>img{position:absolute;inset:0;display:block;height:100%;width:100%;object-fit:cover;object-position:center top;filter:none}
+.login-reference .login-context:after{content:'';position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,#1d66bc11,transparent 45%,#0d519b22 66%,#1c5baa88)!important}
+.login-reference .login-context figcaption{position:absolute;left:8.3%;right:6%;bottom:52px;color:white;z-index:1;display:grid;gap:18px}
+.login-reference .login-context figcaption>strong{font-size:clamp(28px,3.35vw,52px);font-weight:800;line-height:1.3;white-space:nowrap;color:white;letter-spacing:.01em}
+.login-caption-rule{height:5px;width:64px;display:block;border-radius:5px;background:#9fe8ff}
+.login-reference .login-context figcaption p{font-size:23px;color:#fff;line-height:1.8;margin:0;font-weight:500}
+.login-context-features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:20px;gap:0}
+.login-context-features span{display:flex;align-items:center;justify-content:center;gap:12px;font-size:18px;font-weight:700;color:white;white-space:nowrap;position:relative}
+.login-context-features span:not(:last-child):after{content:'';position:absolute;right:0;top:5px;bottom:5px;width:1px;background:#ffffff55}
+.login-context-features span:first-child{justify-content:flex-start}
+.login-context-features svg{flex-shrink:0}
+.login-reference .login-panel{position:relative;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-start;gap:0;padding:72px 47px 24px 58px;margin-left:-1px;border:1px solid #fff;border-radius:29px;background:linear-gradient(125deg,#f7faff,#ecf4ffe6 75%,#dcecff);min-width:0;overflow:hidden;color:#082957}
+.login-reference .login-panel:before{content:'';position:absolute;z-index:-1;width:115%;height:155px;right:-15%;top:-70px;background:linear-gradient(125deg,#a6d2ff66,#4d9eff99);border:1px solid white;border-radius:0 0 0 100%;transform:rotate(8deg)}
+.login-reference .login-panel:after{content:'';position:absolute;z-index:-1;bottom:-54px;left:-10%;width:130%;height:100px;border:1px solid #fff;border-radius:50%;background:#9ccaff55;transform:rotate(4deg)}
+.login-reference .login-heading h1{font-size:clamp(26px,3.2vw,49px);font-weight:850;line-height:1.3;letter-spacing:0;white-space:nowrap;margin:0;color:#082957!important}
+.login-reference .login-heading p{font-size:23px;line-height:1.6;color:#5e7ba4;margin:11px 0 0}
+.login-reference .login-role-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:0;margin:34px 0 0;gap:0;min-height:62px;border:1px solid white;border-radius:22px;background:linear-gradient(110deg,#e2efff,#c9dfff)!important;box-shadow:0 6px 13px #477dc42a;overflow:hidden}
+.login-reference .login-role-tabs button{display:flex;align-items:center;justify-content:center;gap:10px;font:inherit;font-size:20px;font-weight:700;border:0;background:none;color:#1c3c68;border-radius:20px;padding:10px 4px;white-space:nowrap;cursor:pointer;min-width:0}
+.login-reference .login-role-tabs button svg{width:26px;height:26px;color:#557eaf;flex-shrink:0}
+.login-reference .login-role-tabs button.active{color:white!important;background:linear-gradient(120deg,#328de9,#0047cd)!important;box-shadow:0 5px 12px #0751c733}
+.login-reference .login-role-tabs button.active svg{color:#fff}
+.login-reference .login-form{display:grid;gap:18px;margin-top:29px}
+.login-reference .login-form>label{display:grid;gap:7px;font-size:20px;font-weight:700;color:#06295f}
+.login-reference .login-input{display:flex;align-items:center;gap:16px;min-height:55px;border:1px solid #b8d4ff;border-radius:14px;background:linear-gradient(105deg,#fff,#e9f2ff);padding:0 19px;color:#7690b2;box-shadow:0 3px 5px #7ca6db25}
+.login-reference .login-input>svg{width:25px;height:25px;flex-shrink:0}
+.login-reference .login-input input{width:100%;min-width:0;flex:1;border:0;background:transparent;outline:0;font:inherit;font-size:20px;color:#163962;height:52px}
+.login-reference .login-input input::placeholder{color:#7b95b8;font-weight:400}
+.login-reference .login-input:focus-within{border-color:#1b75ff;box-shadow:0 0 0 3px #1b75ff17}
+.login-reference .login-input button{display:grid;place-items:center;border:0;background:transparent;color:#688bb6;cursor:pointer;padding:0;width:29px;height:32px}
+.login-reference .login-input button svg{width:25px;height:25px}
+.login-reference .login-options{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:5px 0 8px}
+.login-reference .remember-account{display:flex;align-items:center;gap:11px;font-size:19px;color:#4b6385;font-weight:400}
+.login-reference .remember-account input{width:22px;height:22px;accent-color:#0054ff;margin:0}
+.login-reference .login-options a,.login-reference .register-entry a{color:#0049f3!important;font-size:18px;font-weight:700;text-decoration:none}
+.login-reference .login-submit{height:68px;display:flex;align-items:center;justify-content:center;gap:18px;color:white;font-size:25px;font-weight:800;border:1px solid #84b8ff;border-radius:19px;background:linear-gradient(110deg,#48a7f8,#0041ed)!important;box-shadow:0 12px 23px #1466ef30;cursor:pointer}
+.login-reference .login-submit:hover:not(:disabled){filter:brightness(1.05);background:linear-gradient(110deg,#48a7f8,#0041ed)!important}
+.login-reference .login-submit:disabled{opacity:.65;cursor:wait}
+.login-reference .register-entry{margin:20px 0 0;text-align:center;font-size:18px;color:#6782a5;line-height:1.5}
+.login-reference .verification-entry{margin-top:18px}
+.login-reference .verification-entry a{display:inline-flex;align-items:center;justify-content:center;gap:17px}
+.login-reference .demo-account{display:flex;align-items:center;gap:18px;margin-top:54px;padding:16px 17px;border:1px solid white;border-radius:21px;background:linear-gradient(120deg,#f3f9ff,#dfeaff);position:relative}
+.login-reference .demo-account:before{content:'';position:absolute;left:16px;right:16px;top:-25px;height:1px;background:#c7ddff}
+.demo-monitor{color:#0074d5;flex-shrink:0}
+.login-reference .demo-account span{display:grid;gap:5px;flex:1;min-width:0}
+.login-reference .demo-account strong{font-size:19px;color:#0b2b5c;line-height:1.4}
+.login-reference .demo-account small{font-size:15px;color:#5e7ba4;line-height:1.5}
+.login-reference .demo-account button{font:inherit;white-space:nowrap;font-size:17px;color:#0047eb;background:#f6fbff;border:1px solid #668aff;padding:8px 13px;border-radius:14px;font-weight:700;cursor:pointer}
+.login-home{display:inline-flex;gap:6px;align-items:center;justify-content:center;text-decoration:none;color:#607fa7;font-size:12px;margin-top:13px}
+.login-error{margin:0;padding:10px 13px;border-radius:10px;background:#fff0ee;color:#b42318;font-size:14px;line-height:1.6}
+.login-reference button:focus-visible,.login-reference a:focus-visible{outline:3px solid #4d99ff;outline-offset:3px}
+.login-spinner{animation:login-spin 1s linear infinite}@keyframes login-spin{to{transform:rotate(360deg)}}
+@media(max-width:1250px){.login-reference{padding:24px}.login-reference .login-stage{grid-template-columns:52% 48%;min-height:820px}.login-reference .login-context{min-height:820px}.login-reference .login-panel{padding:60px 30px 24px}.login-reference .login-heading p{font-size:18px}.login-reference .login-role-tabs button{font-size:16px;gap:6px}.login-reference .login-context figcaption{left:7%;right:6%;bottom:42px}.login-reference .login-context figcaption p{font-size:19px}.login-context-features span{font-size:13px;gap:7px}.login-context-features svg{width:24px}.login-reference .login-form>label{font-size:17px}.login-reference .login-input input{font-size:17px}.login-reference .login-submit{font-size:21px;height:59px}.login-reference .demo-account{gap:10px;padding:14px 12px;margin-top:44px}.login-reference .demo-account strong{font-size:16px}.login-reference .demo-account small{font-size:12px}.login-reference .demo-account button{font-size:14px;padding:8px 10px}.login-reference .register-entry,.login-reference .register-entry a,.login-reference .login-options a,.login-reference .remember-account{font-size:15px}}
+@media(max-width:800px){.login-reference{padding:18px}.login-reference .login-stage{grid-template-columns:1fr;max-width:580px}.login-reference .login-context{min-height:320px}.login-reference .login-context>img{object-position:center 35%;opacity:.7}.login-reference .login-context:after{background:linear-gradient(transparent,#1257a1dd)!important}.login-reference .login-context figcaption{bottom:25px;gap:12px}.login-reference .login-context figcaption>strong{font-size:32px}.login-reference .login-context figcaption p{font-size:15px}.login-context-features{margin-top:5px}.login-reference .login-panel{padding:40px 34px 24px;border-radius:25px 25px 0 0;margin:-15px 0 0;z-index:1}.login-reference .login-heading h1{font-size:32px}.login-reference .login-heading p{font-size:17px}.login-reference .login-role-tabs{margin-top:25px}.login-reference .login-form{margin-top:25px}.login-reference .demo-account{margin-top:42px}}
+@media(max-width:420px){.login-reference{padding:12px}.login-reference .login-context{min-height:285px}.login-reference .login-context figcaption>strong{font-size:26px}.login-reference .login-context figcaption p{font-size:14px}.login-context-features span{font-size:11px;gap:5px}.login-context-features svg{width:20px}.login-reference .login-panel{padding:31px 20px 22px}.login-reference .login-heading h1{font-size:27px}.login-reference .login-heading p{font-size:14px}.login-reference .login-role-tabs{min-height:52px}.login-reference .login-role-tabs button{font-size:14px;gap:4px}.login-reference .login-role-tabs button svg{width:21px;height:21px}.login-reference .login-submit{font-size:19px}.login-reference .demo-account{gap:8px;padding:12px 9px}.demo-monitor{width:25px}.login-reference .demo-account button{font-size:12px}.login-reference .demo-account strong{font-size:14px}.login-reference .demo-account small{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.login-spinner{animation:none}}

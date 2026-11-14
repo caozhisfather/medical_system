@@ -223,10 +223,15 @@ export async function sendAgentMessage(message: string, role: string, activeModu
 export function login(account: string, password: string, role: string) { return postJson<AuthResponse>('/api/auth/login', { account, password, role }); }
 export function logout() { return postJson<{ status: string; message: string }>('/api/auth/logout', {}); }
 export function getCurrentUser() { return readJson<AuthResponse['user']>('/api/auth/me'); }
-export function registerAccount(payload: { account: string; name: string; email: string; password: string; role: 'student' | 'teacher' }) {
+export async function updateNickname(nickname: string): Promise<AuthResponse['user']> {
+  const response=await fetch(`${baseUrl}/api/auth/me`,{method:'PATCH',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({nickname})});
+  if(!response.ok)throw new Error(await requestError(response));
+  return response.json();
+}
+export function registerAccount(payload: { account?: string; nickname?: string; name: string; email: string; password: string; role: 'student' | 'teacher' }) {
   return postJson<{ message: string }>('/api/auth/register', payload);
 }
-export function verifyEmail(token: string) { return postJson<{ message: string }>('/api/auth/verify-email', { token }); }
+export function verifyEmail(email: string, code: string) { return postJson<{ message: string }>('/api/auth/verify-email', { email, code }); }
 export function resendVerification(email: string) { return postJson<{ message: string }>('/api/auth/resend-verification', { email }); }
 export function forgotPassword(email: string) { return postJson<{ message: string }>('/api/auth/forgot-password', { email }); }
 export function resetPassword(token: string, password: string) { return postJson<{ message: string }>('/api/auth/reset-password', { token, password }); }

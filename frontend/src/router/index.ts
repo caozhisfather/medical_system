@@ -36,6 +36,7 @@ const router = createRouter({
         { path: 'admin/classrooms', component: () => import('../views/TeacherClassManagementView.vue'), meta: { role: 'admin' } },
         { path: 'admin/skills', component: () => import('../views/AdminSkillsView.vue'), meta: { role: 'admin' } },
         { path: 'admin/knowledge', component: () => import('../views/TeacherCaseLibraryView.vue'), meta: { role: 'admin' } },
+        { path: 'account', component: () => import('../views/AccountProfileView.vue') },
         { path: 'help', component: () => import('../views/HelpCenterView.vue') },
         { path: 'knowledge-graph', component: () => import('../views/KnowledgeGraphViewV2.vue') }
       ]
@@ -50,7 +51,7 @@ router.beforeEach(async (to) => {
     try {
       const user = await getCurrentUser();
       const role = user.role === 'super_admin' ? 'admin' : user.role as 'student' | 'teacher' | 'admin';
-      trainingStore.saveProfile({ role, name: user.name });
+      trainingStore.saveProfile({ role, name: user.name, nickname: user.nickname || user.name });
     } catch {
       trainingStore.signOut();
     }

@@ -120,13 +120,14 @@ class RagAnswer(BaseModel):
 
 
 class AuthLoginRequest(BaseModel):
-    account: str = Field(..., min_length=1, max_length=80)
+    account: str = Field(..., min_length=1, max_length=120)
     password: str = Field(..., min_length=1, max_length=120)
     role: str = Field(default="student", max_length=30)
 
 
 class AuthUser(BaseModel):
     id: str
+    nickname: str = ""
     name: str
     account: str
     role: str
@@ -142,11 +143,22 @@ class AuthLoginResponse(BaseModel):
 
 
 class AuthRegisterRequest(BaseModel):
-    account: str = Field(..., min_length=3, max_length=40, pattern=r"^[A-Za-z0-9_]+$")
+    account: str | None = Field(default=None, min_length=3, max_length=40, pattern=r"^[A-Za-z0-9_]+$")
+    nickname: str | None = Field(default=None, min_length=1, max_length=40)
     name: str = Field(..., min_length=2, max_length=40)
     email: str = Field(..., min_length=5, max_length=120)
     password: str = Field(..., min_length=8, max_length=120)
     role: str = Field(default="student", max_length=20)
+
+
+class AuthNicknameUpdate(BaseModel):
+    model_config = {"extra": "forbid"}
+    nickname: str = Field(min_length=1, max_length=40)
+
+
+class AuthEmailCodeRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=254)
+    code: str = Field(pattern=r"^[0-9]{6}$")
 
 
 class AuthEmailTokenRequest(BaseModel):

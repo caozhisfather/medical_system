@@ -20,7 +20,7 @@ class AuthServiceTests(unittest.TestCase):
             "student_new", "测试学生", "student@example.com", "Medical123", "student"
         )
         self.assertEqual(user["status"], "email_pending")
-        verified = self.service.verify_email(verification_token)
+        verified = self.service.verify_email_code(user["email"], verification_token)
         self.assertEqual(verified["status"], "active")
 
         session_token, logged_in = self.service.login("student@example.com", "Medical123", "student")
@@ -34,7 +34,7 @@ class AuthServiceTests(unittest.TestCase):
         _, verification_token = self.service.register(
             "student_reset", "重置学生", "reset@example.com", "Medical123", "student"
         )
-        self.service.verify_email(verification_token)
+        self.service.verify_email_code("reset@example.com", verification_token)
         session_token, _ = self.service.login("student_reset", "Medical123", "student")
         _, reset_token = self.service.create_password_reset("reset@example.com") or (None, None)
         self.assertIsNotNone(reset_token)
@@ -46,7 +46,7 @@ class AuthServiceTests(unittest.TestCase):
         user, verification_token = self.service.register(
             "teacher_new", "测试教师", "teacher@example.com", "Medical123", "teacher"
         )
-        verified = self.service.verify_email(verification_token)
+        verified = self.service.verify_email_code("teacher@example.com", verification_token)
         self.assertEqual(verified["status"], "pending_review")
         with self.assertRaisesRegex(ValueError, "等待管理员审核"):
             self.service.login("teacher_new", "Medical123", "teacher")
@@ -58,22 +58,23 @@ class AuthServiceTests(unittest.TestCase):
         _, token = self.service.register(
             "student_once", "一次验证", "once@example.com", "Medical123", "student"
         )
-        self.service.verify_email(token)
+        self.service.verify_email_code("once@example.com", token)
         with self.assertRaisesRegex(ValueError, "无效或已过期"):
-            self.service.verify_email(token)
+            self.service.verify_email_code("once@example.com", token)
 
     def test_old_verification_cannot_undo_teacher_review(self) -> None:
         user, old_token = self.service.register("teacher_tokens", "Test Teacher", "tokens@example.com", "Medical123", "teacher")
+        self.service.verification_delivery_failed("tokens@example.com", old_token)
         _, new_token = self.service.create_verification("tokens@example.com")
-        self.service.verify_email(new_token)
+        self.service.verify_email_code("tokens@example.com", new_token)
         self.service.review_teacher(user["id"], True)
         with self.assertRaises(ValueError):
-            self.service.verify_email(old_token)
+            self.service.verify_email_code("tokens@example.com", old_token)
         self.service.login("teacher_tokens", "Medical123", "teacher")
 
     def test_reset_invalidates_other_reset_links(self) -> None:
         _, verification = self.service.register("reset_tokens", "Test Student", "resets@example.com", "Medical123", "student")
-        self.service.verify_email(verification)
+        self.service.verify_email_code("resets@example.com", verification)
         _, old_token = self.service.create_password_reset("resets@example.com")
         _, new_token = self.service.create_password_reset("resets@example.com")
         self.service.reset_password(new_token, "NewMedical456")

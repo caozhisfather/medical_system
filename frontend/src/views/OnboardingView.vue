@@ -10,7 +10,7 @@ const route = useRoute();
 const router = useRouter();
 const role = computed<WorkspaceRole>(() => trainingStore.state.profile.role);
 const form = reactive({
-  name: role.value === 'teacher' ? '张老师' : '陈同学',
+  name: trainingStore.state.profile.name,
   school: '东部医科大学',
   grade: role.value === 'teacher' ? '诊断学教研室' : '临床医学四年级',
   specialty: '临床医学',
@@ -45,7 +45,7 @@ async function finish() {
           <component :is="role === 'teacher' ? Users : GraduationCap" :size="20" />
           <span><strong>{{ role === 'teacher' ? '医学教师' : '医学生' }}</strong><small>身份可在登录页重新选择</small></span>
         </div>
-        <label>姓名或演示称呼<input v-model="form.name" required /></label>
+        <label>真实姓名<input :value="form.name" readonly /><small>真实姓名用于教师识别，不能自行修改。昵称可在账户设置中修改。</small></label>
         <label>学校/机构<input v-model="form.school" required /></label>
         <div class="form-split">
           <label>{{ role === 'teacher' ? '教研室/科室' : '年级' }}<input v-model="form.grade" required /></label>

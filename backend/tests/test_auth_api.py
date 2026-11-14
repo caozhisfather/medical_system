@@ -27,8 +27,8 @@ def test_registration_verify_login_reset_and_logout(auth_client):
     assert "token" not in response.json()
     credentials = {"account": payload["account"], "password": payload["password"], "role": "student"}
     assert client.post("/api/auth/login", json=credentials).status_code == 401
-    assert client.post("/api/auth/verify-email", json={"token": sent["verification"]}).status_code == 200
-    assert client.post("/api/auth/verify-email", json={"token": sent["verification"]}).status_code == 400
+    assert client.post("/api/auth/verify-email", json={"email":payload["email"],"code": sent["verification"]}).status_code == 200
+    assert client.post("/api/auth/verify-email", json={"email":payload["email"],"code": sent["verification"]}).status_code == 400
     login = client.post("/api/auth/login", json=credentials)
     assert login.status_code == 200
     headers = {"Authorization": f"Bearer {login.json()['token']}"}
@@ -46,7 +46,7 @@ def test_registration_verify_login_reset_and_logout(auth_client):
 def test_teacher_review_and_existing_features(auth_client):
     client, service, sent = auth_client
     user, token = service.register("new_teacher", "Test Teacher", "teacher@example.com", "Medical123", "teacher")
-    service.verify_email(token)
+    service.verify_email_code("teacher@example.com", token)
     credentials = {"account": "new_teacher", "password": "Medical123", "role": "teacher"}
     assert client.post("/api/auth/login", json=credentials).status_code == 401
     login = client.post("/api/auth/login", json={"account": "admin", "password": "admin123", "role": "admin"})
@@ -75,4 +75,41 @@ def test_registration_validation_and_failed_mail_recovery(auth_client, monkeypat
     assert "private SMTP information" not in response.text
     monkeypatch.setattr(main.mail_service, "send_verification", lambda email, token: sent.update(verification=token))
     assert client.post("/api/auth/resend-verification", json={"email": payload["email"]}).status_code == 200
-    assert client.post("/api/auth/verify-email", json={"token": sent["verification"]}).status_code == 200
+    assert client.post("/api/auth/verify-email", json={"email":payload["email"],"code": sent["verification"]}).status_code == 200
+
+def test_nickname_registration_profile_and_real_name_immutable(auth_client):
+    client,service,sent=auth_client
+    payload={'name':'张三','nickname':'爱学医的小王 🩺！','email':'nickname@example.com','password':'Medical123','role':'student'}
+    r=client.post('/api/auth/register',json=payload)
+    assert r.status_code==201
+    assert r.json()['user']['nickname']==payload['nickname']
+    assert r.json()['user']['name']=='张三'
+    assert r.json()['user']['account'].startswith('user_')
+    assert client.post('/api/auth/verify-email',json={'email':payload['email'],'code':sent['verification']}).status_code==200
+    login=client.post('/api/auth/login',json={'account':payload['email'],'password':'Medical123','role':'student'})
+    assert login.status_code==200
+    headers={'Authorization':'Bearer '+login.json()['token']}
+    assert client.patch('/api/auth/me',json={'nickname':'无权限'}).status_code==401
+    changed=client.patch('/api/auth/me',headers=headers,json={'nickname':'新昵称 <学医> 🌱'})
+    assert changed.status_code==200
+    assert changed.json()['name']=='张三' and changed.json()['nickname']=='新昵称 <学医> 🌱'
+    for forbidden in [{'nickname':'改名','name':'李四'},{'nickname':'改名','user_id':'someone_else'},{'nickname':'   '},{'nickname':'换\n行'}]:
+        assert client.patch('/api/auth/me',headers=headers,json=forbidden).status_code==422
+    assert client.get('/api/auth/me',headers=headers).json()['name']=='张三'
+    # Teaching records consume this unchanged name, not nickname.
+    assert next(u for u in service.list_users() if u['email']==payload['email'])['name']=='张三'
+    assert service.login(payload['email'],'Medical123','student')[1]['nickname']=='新昵称 <学医> 🌱'
+
+
+def test_duplicate_nicknames_and_legacy_accounts(auth_client):
+    client,service,sent=auth_client
+    for i in range(2):
+        payload={'name':f'学生{i}','nickname':'同一个昵称','email':f'duplicate{i}@example.com','password':'Medical123','role':'student'}
+        assert client.post('/api/auth/register',json=payload).status_code==201
+    # Existing accounts and real names survive an idempotent schema upgrade.
+    from backend.app.services.auth_service import AuthService
+    upgraded=AuthService(service.database_path)
+    _,admin=upgraded.login('admin','admin123','admin')
+    old_name=admin['name']
+    assert upgraded.update_nickname(admin['id'],'管理员昵称')['name']==old_name
+    assert upgraded.login('admin','admin123','admin')[1]['nickname']=='管理员昵称'

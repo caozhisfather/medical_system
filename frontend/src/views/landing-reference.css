@@ -83,3 +83,49 @@
 
 .landing-reference .lp-entry .role-choice button,.landing-reference .lp-entry .role-choice button.active{background-size:100% 100%,auto 140%!important;background-position:center,right center!important;background-repeat:no-repeat!important}
 .landing-reference .lp-entry .role-choice button:first-child{background-size:100% 100%,auto 130%!important}
+
+/* Light medical footer, isolated from the shared dark footer theme. */
+.landing-reference .lp-reference-footer{display:flex;align-items:center;justify-content:center;gap:0;width:100%;min-height:188px;margin:0;padding:34px max(40px,calc((100vw - 1440px)/2)) 45px!important;flex-wrap:nowrap;background:#eaf4ff var(--footer-background) center/100% 100% no-repeat!important;border:0;border-radius:0;color:#102b59;box-shadow:none}
+.lp-footer-brand{display:flex;align-items:center;gap:20px;flex-shrink:0;padding-right:60px}
+.lp-footer-brand>svg{color:#168cf0;filter:drop-shadow(3px 3px 0 #9fcaff55);flex-shrink:0}
+.lp-footer-brand>span{display:grid;gap:5px}
+.lp-footer-brand strong{font-size:28px;line-height:1.3;color:#0a2450;font-weight:800;white-space:nowrap}
+.lp-footer-brand small{font-size:18px;line-height:1.5;color:#5a78a0;white-space:nowrap}
+.landing-reference .lp-reference-footer>p{display:flex;align-items:center;justify-content:flex-start;gap:17px;border-left:1px solid #8eb3e4;padding:0 0 0 65px;margin:0;font-size:20px;line-height:1.7;color:#284e81!important;max-width:none;font-weight:500}
+.lp-reference-footer>p>svg{flex-shrink:0;color:#123e7a}
+@media(max-width:1250px){.landing-reference .lp-reference-footer{padding:30px 40px 40px!important;min-height:165px}.lp-footer-brand{padding-right:30px;gap:15px}.lp-footer-brand>svg{width:52px}.lp-footer-brand strong{font-size:24px}.lp-footer-brand small{font-size:15px}.landing-reference .lp-reference-footer>p{padding-left:30px;font-size:16px;gap:12px}}
+@media(max-width:760px){.landing-reference .lp-reference-footer{flex-direction:column;align-items:flex-start;gap:20px;padding:28px 25px 40px!important;background-size:auto 100%!important;background-position:right center!important}.lp-footer-brand{padding:0;gap:14px}.lp-footer-brand>svg{width:46px;height:46px}.lp-footer-brand strong{font-size:22px}.lp-footer-brand small{font-size:13px}.landing-reference .lp-reference-footer>p{border-left:0;border-top:1px solid #c5daf3;padding:18px 0 0;gap:10px;font-size:13px;align-items:flex-start}.lp-reference-footer>p>svg{width:21px;height:24px}}
+
+.landing-reference .lp-reference-footer{background:linear-gradient(180deg,#ffffffb3,#ffffff66),var(--footer-background) center/100% 100% no-repeat!important;box-shadow:none!important;filter:none!important}
+.lp-workflow{padding:55px max(42px,calc((100vw - 1660px)/2)) 90px;background:linear-gradient(110deg,#f8fbffcc,#edf5ff80),var(--workflow-bg) center/100% 100% no-repeat;position:relative;isolation:isolate;color:#071e53}
+.lp-workflow-heading{padding:0 25px;margin-bottom:52px}
+.lp-workflow-heading>span{display:inline-block;border-radius:25px;background:linear-gradient(110deg,#b5d9ff,#dfedff);color:#0057e8;font-size:21px;font-weight:800;padding:7px 22px}
+.lp-workflow-heading h2{font-size:clamp(29px,3.65vw,63px);font-weight:850;font-style:italic;line-height:1.35;margin:12px 0;color:#071e53;letter-spacing:-.02em}
+.lp-workflow-heading h2 span{color:#0069d9}
+.lp-workflow-heading>i{display:block;height:6px;width:60px;border-radius:5px;background:linear-gradient(90deg,#004dff,#4aaaff);margin:10px 0 16px}
+.lp-workflow-heading>p{font-size:21px;line-height:1.7;color:#49648b;margin:0}
+.lp-workflow-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:42px}
+.lp-workflow-grid article{position:relative;min-width:0;min-height:294px;padding:30px 28px 35px;border:2px solid #ffffffeb;border-bottom-color:#b6d6ff;border-radius:33px;background:linear-gradient(125deg,#fffffff2,#e7f3ffde);box-shadow:0 9px 24px #2877df19}
+.lp-workflow-grid article.featured{border-color:#3f9eff;background:linear-gradient(145deg,#fff,#edf6ff 80%,#97ceff);box-shadow:0 14px 28px #1b7aef30}
+.lp-workflow-grid article.featured:after{content:'';position:absolute;bottom:0;left:8%;right:0;height:30px;border-radius:0 0 28px 0;background:linear-gradient(150deg,transparent 40%,#87c7ff88 41%,#3f9aff66);pointer-events:none}
+.lp-step-top{display:flex;align-items:center;gap:19px;height:40px;position:relative;z-index:1;color:#0065ff}
+.lp-step-top>span{font-size:36px;line-height:1;font-weight:800;color:#b0d1ff;text-shadow:0 1px white}
+.lp-workflow-grid article>img{position:absolute;right:5px;top:8px;width:40%;height:130px;object-fit:contain;pointer-events:none}
+.lp-workflow-grid h3{font-size:26px;line-height:1.5;margin:25px 0 18px;font-weight:800;color:#071e53;position:relative;z-index:1}
+.lp-workflow-grid article>p{font-size:20px;line-height:1.8;color:#46628e;margin:0;position:relative;z-index:1}
+.lp-step-arrow{position:absolute;z-index:3;right:-45px;top:48%;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(#fff,#d0e9ff);color:#006aff;transform:translateX(-1px)}
+@media(max-width:1350px){.lp-workflow{padding:45px 30px 70px}.lp-workflow-heading{padding:0 8px;margin-bottom:42px}.lp-workflow-heading>span{font-size:17px}.lp-workflow-heading>p{font-size:17px}.lp-workflow-grid{gap:28px}.lp-workflow-grid article{padding:23px 20px 29px;min-height:285px;border-radius:25px}.lp-workflow-grid h3{font-size:21px;margin-top:28px;margin-bottom:15px}.lp-workflow-grid article>p{font-size:16px;line-height:1.8}.lp-step-top{gap:14px}.lp-step-top>span{font-size:31px}.lp-step-top svg{width:29px}.lp-workflow-grid article>img{height:112px;right:0}.lp-step-arrow{width:34px;height:34px;right:-33px}}
+@media(max-width:950px){.lp-workflow-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}.lp-workflow-grid article{min-height:255px}.lp-workflow-grid article:nth-child(2) .lp-step-arrow{display:none}.lp-workflow-grid h3{font-size:23px}.lp-workflow-grid article>p{font-size:17px}.lp-workflow-grid article>img{height:120px}.lp-workflow-heading h2{font-size:35px}}
+@media(max-width:560px){.lp-workflow{padding:32px 20px 45px;background-size:auto 100%}.lp-workflow-heading{padding:0;margin-bottom:28px}.lp-workflow-heading h2{font-size:29px;line-height:1.5}.lp-workflow-heading>span{font-size:15px;padding:5px 17px}.lp-workflow-heading>p{font-size:14px}.lp-workflow-grid{grid-template-columns:1fr;gap:25px}.lp-workflow-grid article{padding:22px 25px;min-height:245px}.lp-workflow-grid h3{font-size:23px;margin:22px 0 12px}.lp-workflow-grid article>p{font-size:16px}.lp-workflow-grid article>img{height:125px;right:12px;width:35%}.lp-step-arrow,.lp-workflow-grid article:nth-child(2) .lp-step-arrow{display:grid;right:calc(50% - 17px);top:auto;bottom:-30px;transform:rotate(90deg)}}
+.landing-reference .lp-reference-footer{position:relative;z-index:2;isolation:isolate;background-color:#f4f9ff!important}
+
+.lp-workflow-grid{position:relative}
+.lp-workflow-grid .lp-workflow-card{cursor:pointer;transition:background .4s ease,box-shadow .4s ease,border-color .4s ease;outline-offset:5px}
+.lp-workflow-grid .lp-workflow-card.featured{border-color:transparent;box-shadow:0 14px 28px #1b7aef30}
+.lp-workflow-frame{position:absolute;left:0;top:0;z-index:2;pointer-events:none;border:2px solid #258dff;border-radius:33px;transition:transform .55s cubic-bezier(.22,.7,.2,1),width .4s,height .4s,opacity .3s;box-shadow:0 0 0 1px #ffffff80 inset}
+.lp-workflow-controls{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:26px;flex-wrap:wrap}
+.lp-workflow-controls button{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;min-width:34px;border:1px solid #cee1fc;background:#f7fbffcf;color:#4076ad;border-radius:50%;font:inherit;font-size:12px;cursor:pointer;padding:0}
+.lp-workflow-controls .lp-step-dot.active{background:linear-gradient(120deg,#329dff,#0054ff);color:white;border-color:#1684ff;box-shadow:0 3px 8px #006aff24}
+.lp-workflow-controls .lp-play-toggle{border-radius:20px;padding:0 14px;margin-left:8px;min-width:75px;color:#1c5794}
+@media(max-width:1350px){.lp-workflow-frame{border-radius:25px}}
+@media(prefers-reduced-motion:reduce){.lp-workflow-frame,.lp-workflow-grid .lp-workflow-card{transition:none}}

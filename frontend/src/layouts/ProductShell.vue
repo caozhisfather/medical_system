@@ -55,7 +55,8 @@ const workspaces: Record<WorkspaceRole, { title: string; links: NavItem[] }> = {
 };
 
 const workspace = computed(() => workspaces[role.value]);
-const currentPage = computed(() => route.path === '/help'
+const displayName = computed(()=>trainingStore.state.profile.nickname || trainingStore.state.profile.name);
+const currentPage = computed(() => route.path === '/account' ? '账户设置' : route.path === '/help'
   ? '帮助中心'
   : workspace.value.links.find(item => item.path === route.path)?.label ?? workspace.value.title);
 
@@ -105,11 +106,12 @@ async function signOut() {
       <AgentCommand compact search-icon />
       <details ref="profileMenu" class="workspace-profile-menu" @keydown.esc="closeProfileMenu">
         <summary class="topbar-profile" aria-label="账户菜单">
-          <span class="user-avatar">{{ trainingStore.state.profile.name.slice(0, 1) }}</span>
-          <span><strong>{{ trainingStore.state.profile.name }}</strong><small>{{ workspace.title }}</small></span>
+          <span class="user-avatar">{{ displayName.slice(0, 1) }}</span>
+          <span><strong>{{ displayName }}</strong><small>{{ workspace.title }}</small></span>
           <ChevronDown :size="15" />
         </summary>
         <div class="workspace-profile-links">
+          <RouterLink to="/account" @click="closeProfileMenu"><Settings2 :size="16"/>账户设置</RouterLink>
           <RouterLink class="profile-help" to="/help" @click="closeProfileMenu"><CircleHelp :size="16" />帮助中心</RouterLink>
           <button type="button" @click="signOut"><LogOut :size="16" />退出登录</button>
         </div>

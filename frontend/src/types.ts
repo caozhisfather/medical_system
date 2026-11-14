@@ -305,7 +305,7 @@ export interface TtsResponse { status: string; voice: string; duration_seconds: 
 
 
 
-export interface AuthUser { id: string; name: string; account: string; role: string; status: string; department: string; permissions: string[]; }
+export interface AuthUser { id: string; name: string; nickname?: string; email?: string; account: string; role: string; status: string; department: string; permissions: string[]; }
 export interface AuthResponse { token: string; user: AuthUser; }
 export interface DataSourceItem { id: string; name: string; platform: string; type: string; modules: string[]; license: string; connected: boolean; index_status: string; sync_status: string; url: string; mapping: Record<string, unknown>; }
 export interface TextbookStage { id: string; title_zh: string; title_en: string; goal: string; books: string[]; }

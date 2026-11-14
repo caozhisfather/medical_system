@@ -91,6 +91,17 @@ class AuthService:
                     created_at TEXT NOT NULL,
                     used_at TEXT
                 );
+                CREATE TABLE IF NOT EXISTS email_verification_codes (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    code_hash TEXT NOT NULL,
+                    expires_at TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    used_at TEXT,
+                    attempts INTEGER NOT NULL DEFAULT 0,
+                    delivery_failed INTEGER NOT NULL DEFAULT 0
+                );
+                CREATE INDEX IF NOT EXISTS idx_email_codes_user ON email_verification_codes(user_id, created_at);
                 CREATE TABLE IF NOT EXISTS sessions (
                     id TEXT PRIMARY KEY,
                     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -104,6 +115,8 @@ class AuthService:
                 """
             )
             columns = {row["name"] for row in db.execute("PRAGMA table_info(users)")}
+            if "nickname" not in columns:
+                db.execute("ALTER TABLE users ADD COLUMN nickname TEXT NOT NULL DEFAULT ''")
             if "permissions" not in columns:
                 db.execute("ALTER TABLE users ADD COLUMN permissions TEXT NOT NULL DEFAULT '[]'")
             if "last_login" not in columns:
@@ -147,12 +160,15 @@ class AuthService:
         except (json.JSONDecodeError, TypeError):
             permissions = []
         return {
-            "id": row["id"], "name": row["name"], "account": row["account"],
+            "id": row["id"], "name": row["name"], "nickname": row["nickname"] or row["name"], "account": row["account"],
             "email": row["email"] or "", "role": row["role"], "status": row["status"],
             "department": row["department"], "permissions": permissions,
         }
 
-    def register(self, account: str, name: str, email: str, password: str, role: str) -> tuple[dict[str, Any], str]:
+    def register(self, account: str, name: str, email: str, password: str, role: str, nickname: str | None = None) -> tuple[dict[str, Any], str]:
+        nickname = self.validate_nickname(nickname if nickname is not None else name)
+        if not name.strip():
+            raise ValueError("请填写真实姓名")
         account, name, email = account.strip(), name.strip(), email.strip().lower()
         if role not in {"student", "teacher"}:
             raise ValueError("仅支持注册学生或教师账号")
@@ -168,9 +184,75 @@ class AuthService:
                 VALUES (?, ?, ?, ?, ?, ?, 'email_pending', 0, ?)""",
                 (user_id, account, name, email, hash_password(password), role, _iso(_now())),
             )
-            token = self._create_token(db, user_id, "verify_email", 30)
+            db.execute("UPDATE users SET nickname=? WHERE id=?", (nickname,user_id))
+            token = self._create_verification_code(db, user_id)
             row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
         return self.public_user(row), token
+
+    @staticmethod
+    def validate_nickname(value: str) -> str:
+        import unicodedata
+        value = value.strip()
+        if not 1 <= len(value) <= 40 or any(unicodedata.category(c) in {"Cc", "Cs"} for c in value):
+            raise ValueError("昵称需为1至40个字符，不能包含换行或控制字符")
+        return value
+
+    def update_nickname(self, user_id: str, nickname: str) -> dict[str, Any]:
+        nickname = self.validate_nickname(nickname)
+        with self._connection() as db:
+            row=db.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+            if not row:
+                raise ValueError("账号不存在")
+            db.execute("UPDATE users SET nickname=? WHERE id=?", (nickname,user_id))
+            return self.public_user(db.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone())
+
+    def _create_verification_code(self, db: sqlite3.Connection, user_id: str) -> str:
+        now = _now()
+        recent = db.execute("SELECT * FROM email_verification_codes WHERE user_id = ? AND created_at > ? ORDER BY created_at DESC", (user_id, _iso(now - timedelta(hours=1)))).fetchall()
+        if len(recent) >= 5:
+            raise ValueError("发送过于频繁，请一小时后重试")
+        if any(not row["delivery_failed"] and datetime.fromisoformat(row["created_at"]) > now - timedelta(seconds=60) for row in recent):
+            raise ValueError("请等待60秒后再发送验证码")
+        previous = db.execute("SELECT code_hash FROM email_verification_codes WHERE user_id=? ORDER BY created_at DESC LIMIT 1", (user_id,)).fetchone()
+        code = f"{secrets.randbelow(1000000):06d}"
+        while previous and verify_password(code, previous["code_hash"]):
+            code = f"{secrets.randbelow(1000000):06d}"
+        db.execute("UPDATE email_verification_codes SET used_at=? WHERE user_id=? AND used_at IS NULL", (_iso(now), user_id))
+        db.execute("INSERT INTO email_verification_codes(id,user_id,code_hash,expires_at,created_at) VALUES(?,?,?,?,?)", (uuid4().hex,user_id,hash_password(code),_iso(now+timedelta(minutes=10)),_iso(now)))
+        return code
+
+    def verification_delivery_failed(self, email: str, code: str) -> None:
+        with self._connection() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row=db.execute("SELECT c.* FROM email_verification_codes c JOIN users u ON u.id=c.user_id WHERE u.email=? COLLATE NOCASE ORDER BY c.created_at DESC LIMIT 1", (email.strip(),)).fetchone()
+            if row and verify_password(code,row["code_hash"]):
+                db.execute("UPDATE email_verification_codes SET delivery_failed=1,used_at=? WHERE id=?", (_iso(_now()),row["id"]))
+
+    def verify_email_code(self, email: str, code: str) -> dict[str, Any]:
+        error = None
+        user = None
+        with self._connection() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT c.*,u.role,u.status,u.email_verified FROM email_verification_codes c JOIN users u ON u.id=c.user_id WHERE u.email=? COLLATE NOCASE ORDER BY c.created_at DESC LIMIT 1", (email.strip(),)).fetchone()
+            if not row or row["used_at"] or row["delivery_failed"] or row["email_verified"] or datetime.fromisoformat(row["expires_at"]) <= _now():
+                error = "验证码无效或已过期，请重新获取"
+            elif row["attempts"] >= 5:
+                error = "验证码错误次数已达上限，请重新获取"
+            elif not verify_password(code, row["code_hash"]):
+                db.execute("UPDATE email_verification_codes SET attempts=attempts+1 WHERE id=?", (row["id"],))
+                error = "验证码错误次数已达上限，请重新获取" if row["attempts"] >= 4 else "验证码不正确，请检查后重试"
+            elif row["status"] != "email_pending":
+                error = "账号当前不可用，请联系管理员"
+            else:
+                status="active" if row["role"] == "student" else "pending_review"
+                db.execute("UPDATE users SET email_verified=1,status=? WHERE id=?", (status,row["user_id"]))
+                db.execute("UPDATE email_verification_codes SET used_at=? WHERE user_id=? AND used_at IS NULL", (_iso(_now()),row["user_id"]))
+                db.execute("UPDATE auth_tokens SET used_at=? WHERE user_id=? AND purpose='verify_email' AND used_at IS NULL", (_iso(_now()),row["user_id"]))
+                user=db.execute("SELECT * FROM users WHERE id=?",(row["user_id"],)).fetchone()
+        # Raise after committing so incorrect-attempt counters cannot roll back.
+        if error:
+            raise ValueError(error)
+        return self.public_user(user)
 
     def _create_token(self, db: sqlite3.Connection, user_id: str, purpose: str, minutes: int) -> str:
         cutoff = _iso(_now() - timedelta(hours=1))
@@ -204,13 +286,14 @@ class AuthService:
 
     def create_verification(self, email: str) -> tuple[str, str] | None:
         with self._connection() as db:
+            db.execute("BEGIN IMMEDIATE")
             row = db.execute(
                 "SELECT * FROM users WHERE email = ? COLLATE NOCASE AND email_verified = 0",
                 (email.strip(),),
             ).fetchone()
             if not row:
                 return None
-            return row["email"], self._create_token(db, row["id"], "verify_email", 30)
+            return row["email"], self._create_verification_code(db, row["id"])
 
     def login(self, account: str, password: str, requested_role: str) -> tuple[str, dict[str, Any]]:
         with self._connection() as db:
